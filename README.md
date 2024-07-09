@@ -1,4 +1,4 @@
-# Prov-GigaPath
+# learning Prov-GigaPath
 
 ## A whole-slide foundation model for digital pathology from real-world data
 
@@ -8,16 +8,6 @@ Hanwen Xu*, Naoto Usuyama*, Jaspreet Bagga, Sheng Zhang, Rajesh Rao, Tristan Nau
 
 [![License](https://img.shields.io/badge/Code%20License-Prov%20GigaPath-red)]()
 
-## 📢 News
-
-### July 2024
-- **WSI Preprocessing/Tiling**: We are pleased to share new preprocessing guide for Prov-GigaPath. This guide provides a walkthrough on setting up the environment and preprocessing WSI files for Prov-GigaPath. Check out the [guide](https://github.com/prov-gigapath/prov-gigapath/blob/main/gigapath/preprocessing/preprocessing.md) to get started.
-
-### June 2024
-- **New Demo Notebook Available**: We have prepared a new notebook for the walkthrough of the Prov-GigaPath model. This notebook provides a detailed demonstration of how to load and run the pretrained model. You can check it out [here](https://github.com/prov-gigapath/prov-gigapath/blob/main/demo/run_gigapath.ipynb).
-
-### May 2024
-- **Initial Model and Code Release**: We are excited to announce that the initial release of the Prov-GigaPath model and its code is now available. The [GigaPath paper](https://aka.ms/gigapath) has been published in *Nature*.
 
 ## Model Overview
 
@@ -32,17 +22,17 @@ Hanwen Xu*, Naoto Usuyama*, Jaspreet Bagga, Sheng Zhang, Rajesh Rao, Tristan Nau
 
 On an NVIDIA A100 Tensor Core GPU machine, with CUDA toolkit enabled.
 
-1. Download our repository and open the Prov-GigaPath
+1. Download our repository and open the path
 ```
-git clone https://github.com/prov-gigapath/prov-gigapath
-cd prov-gigapath
+git clone https://github.com/sagizty/BigModel.git
+cd BigModel
 ```
 
-2. Install GigaPath and its dependencies
+2. Install dependencies
 
 ```Shell
 conda env create -f environment.yaml
-conda activate gigapath
+conda activate BigModel
 pip install -e .
 ```
 
@@ -155,34 +145,3 @@ bash scripts/run_panda.sh data/GigaPath_PANDA_embeddings/h5_files
 
 A sample de-identified subset of the Prov-Path data can be accessed from these links [[1](https://zenodo.org/records/10909616), [2](https://zenodo.org/records/10909922)].
 
-## Model Uses
-
-### Intended Use
-The data, code, and model checkpoints are intended to be used solely for (I) future research on pathology foundation models and (II) reproducibility of the experimental results reported in the reference paper. The data, code, and model checkpoints are not intended to be used in clinical care or for any clinical decision-making purposes.
-
-### Primary Intended Use
-The primary intended use is to support AI researchers reproducing and building on top of this work. GigaPath should be helpful for exploring pre-training, and encoding of digital pathology slides data.
-
-### Out-of-Scope Use
-**Any** deployed use case of the model --- commercial or otherwise --- is out of scope. Although we evaluated the models using a broad set of publicly-available research benchmarks, the models and evaluations are intended *for research use only* and not intended for deployed use cases.
-
-## Usage and License Notices
-
-The model is not intended or made available for clinical use as a medical device, clinical support, diagnostic tool, or other technology intended to be used in the diagnosis, cure, mitigation, treatment, or prevention of disease or other conditions. The model is not designed or intended to be a substitute for professional medical advice, diagnosis, treatment, or judgment and should not be used as such.  All users are responsible for reviewing the output of the developed model to determine whether the model meets the user’s needs and for validating and evaluating the model before any clinical use.
-
-## Acknowledgements
-
-We would like to express our gratitude to the authors and developers of the exceptional repositories that this project is built upon: DINOv2, MAE, Timm, and TorchScale. Their contributions have been invaluable to our work.
-
-## Citation
-If you find Prov-GigaPath useful for your your research and applications, please cite using this BibTeX:
-
-```bibtex
-@article{xu2024gigapath,
-  title={A whole-slide foundation model for digital pathology from real-world data},
-  author={Xu, Hanwen and Usuyama, Naoto and Bagga, Jaspreet and Zhang, Sheng and Rao, Rajesh and Naumann, Tristan and Wong, Cliff and Gero, Zelalem and González, Javier and Gu, Yu and Xu, Yanbo and Wei, Mu and Wang, Wenhui and Ma, Shuming and Wei, Furu and Yang, Jianwei and Li, Chunyuan and Gao, Jianfeng and Rosemon, Jaylen and Bower, Tucker and Lee, Soohee and Weerasinghe, Roshanthi and Wright, Bill J. and Robicsek, Ari and Piening, Brian and Bifulco, Carlo and Wang, Sheng and Poon, Hoifung},
-  journal={Nature},
-  year={2024},
-  publisher={Nature Publishing Group UK London}
-}
-```
