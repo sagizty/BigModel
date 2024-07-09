@@ -8,16 +8,6 @@ Hanwen Xu*, Naoto Usuyama*, Jaspreet Bagga, Sheng Zhang, Rajesh Rao, Tristan Nau
 
 [![License](https://img.shields.io/badge/Code%20License-Prov%20GigaPath-red)]()
 
-
-## Model Overview
-
-<p align="center">
-    <img src="PuzzleAI/Archive/images/gigapath_overview.png" width="90%"> <br>
-
-  *Overview of Prov-GigaPath model architecture*
-
-</p>
-
 ## Install
 
 On an NVIDIA A100 Tensor Core GPU machine, with CUDA toolkit enabled.
