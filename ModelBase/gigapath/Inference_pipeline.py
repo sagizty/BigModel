@@ -5,7 +5,7 @@ import os
 import timm
 import torch
 import PuzzleAI.ModelBase.gigapath.slide_encoder as slide_encoder
-from PuzzleAI.DataPipe.pipeline import TileEncodingDataset
+from PuzzleAI.DataPipe.embedded_dataset import TileEncodingDataset
 from tqdm import tqdm
 from torchvision import transforms
 from typing import List, Tuple, Union
