@@ -41,3 +41,4 @@ dependencies:
       - monai
       - openslide-python
       - scikit-image
+      - opencv_contrib_python
