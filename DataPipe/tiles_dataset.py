@@ -183,7 +183,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                              tile_progress=tile_progress)
 
         # STEP 3: visualize the tile location overlay to WSI
-        visualize_tile_locations(loaded_WSI_sample, thumbnail_dir / (slide_image_path.name + "_roi_tiles.png"),
+        visualize_tile_locations(loaded_WSI_sample, thumbnail_dir / (slide_image_path.name + "_roi_tiles.jpeg"),
                                  tile_info_list, image_key=image_key)
 
         if n_failed_tiles > 0:
@@ -335,8 +335,6 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
 
 
 if __name__ == '__main__':
-    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
-                                            metadata_file_paths=[
-                                                '/data/hdd_1/ai4dd/metadata/240418-combined_labels.csv', ])
+    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/ssd_1/BigModel/tiles_datasets',
                                          tile_size=224, margin=0, overwrite=True, parallel=True)

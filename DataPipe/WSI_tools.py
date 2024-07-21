@@ -241,7 +241,7 @@ class Loader_for_get_one_WSI_sample(MapTransform):
 
         # Save original slide thumbnail with bbox
         save_openslide_thumbnail(WSI_image_obj,
-                                 self.thumbnail_dir / (self.slide_image_path.name + "_original.png"),
+                                 self.thumbnail_dir / (self.slide_image_path.name + "_original.jpeg"),
                                  size_target=1024, level0_bbox=level0_bbox)
 
         # STEP 3: Calibrate the location for OpenSlide
@@ -535,7 +535,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     """
     slide_id = sample["slide_id"]
     descriptor = get_tile_descriptor(tile_location)
-    rel_image_path = f"{rel_slide_dir}/{descriptor}.png"
+    rel_image_path = f"{rel_slide_dir}/{descriptor}.jpeg"
 
     tile_info = {
         "slide_id": slide_id,
@@ -611,7 +611,7 @@ def is_already_processed(output_tiles_dir):
     if not output_tiles_dir.exists():
         return False
 
-    if len(list(output_tiles_dir.glob("*.png"))) == 0:
+    if len(list(output_tiles_dir.glob("*.jpeg"))) == 0:
         return False
 
     dataset_csv_path = output_tiles_dir / "dataset.csv"
@@ -793,7 +793,7 @@ def visualize_CHW_numpy_image(image_array, output_path):
     # put back tiles for visualization
         assemble_img_array, offset = assemble_tiles_2d(image_tiles, tile_locations)
         assemble_img_array = downsample_chw_numpy_image(assemble_img_array)
-        visualize_CHW_numpy_image(assemble_img_array, thumbnail_dir / (slide_image_path.name + "_roi_recompose.png"))
+        visualize_CHW_numpy_image(assemble_img_array, thumbnail_dir / (slide_image_path.name + "_roi_recompose.jpeg"))
 
 
     """
