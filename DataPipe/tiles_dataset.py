@@ -54,62 +54,6 @@ from tqdm import tqdm
 from WSI_tools import *
 from Segmentation_and_filtering_tools import *
 
-
-def generate_tiles(slide_image: np.ndarray, tile_size: int, foreground_threshold: float,
-                   occupancy_threshold: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int]:
-    """Split the foreground of an input slide image into tiles.
-
-    :param slide_image: The RGB image array in (C, H, W) format.
-    :param tile_size: Lateral dimensions of each tile, in pixels.
-    :param foreground_threshold: Luminance threshold (0 to 255) to determine tile occupancy.
-    here the foreground_threshold value is automatically get from WSI level estimation, and applied to its ROI
-    :param occupancy_threshold: Threshold (between 0 and 1) to determine empty tiles to discard.
-
-    :return:
-    the image tiles (N, C, H, W),
-    tile coordinates (N, 2), HW(YX) ordering
-    occupancies (N,),
-    and total number of discarded empty tiles.
-    """
-    # STEP 1: crop WSI to generate tile sequence, location style in YX / HW
-    image_tiles, tile_locations = tile_array_2d(slide_image, tile_size=tile_size, constant_values=255)
-    # log WSI/ROI information
-    logging.info(f"image_tiles.shape: {image_tiles.shape}, dtype: {image_tiles.dtype}")
-    logging.info(f"Tiled {slide_image.shape} to {image_tiles.shape}")
-
-    # STEP 2: Filtering the ROIs with foreground ratio
-    # generate the foreground mask for each ROI in the sequence, based on the value of luminance at each pixel
-    foreground_mask, _ = segment_foreground(image_tiles, foreground_threshold)
-    # filtering the ROI tiles
-    selected, occupancies = ROI_occupancy_filtering(foreground_mask, occupancy_threshold)
-    # log ROI selection infor
-    n_discarded = (~selected).sum()
-    logging.info(f"Percentage tiles discarded: {n_discarded / len(selected) * 100:.2f}")
-
-    # STEP 3: Filtering the ROIs with variance and empty values
-    # FIXME: this uses too much memory, and its hacky design needs attention
-    empty_tile_bool_mask = check_empty_tiles(image_tiles)
-    selected = selected & (~empty_tile_bool_mask)
-    n_discarded = (~selected).sum()
-    logging.info(f"Percentage tiles discarded after filtering empty tiles: {n_discarded / len(selected) * 100:.2f}")
-
-    # log selection infor of WSI locations
-    logging.info(f"Before filtering: min y: {tile_locations[:, 0].min()}, max y: {tile_locations[:, 0].max()}, "
-                 f"min x: {tile_locations[:, 1].min()}, max x: {tile_locations[:, 1].max()}")
-
-    image_tiles = image_tiles[selected]
-    tile_locations = tile_locations[selected]  # style in YX / HW
-    occupancies = occupancies[selected]
-
-    if len(tile_locations) == 0:
-        logging.warn("No tiles selected")
-    else:
-        logging.info(f"After filtering: min y: {tile_locations[:, 0].min()}, max y: {tile_locations[:, 0].max()},"
-                     f" min x: {tile_locations[:, 1].min()}, max x: {tile_locations[:, 1].max()}")
-
-    return image_tiles, tile_locations, occupancies, n_discarded
-
-
 def process_one_slide_to_tiles(sample: Dict["SlideKey", Any], level: int, margin: int, tile_size: int,
                                foreground_threshold: Optional[float], occupancy_threshold: float, output_dir: Path,
                                thumbnail_dir: Path, tile_progress: bool = False, image_key="image") -> str:
@@ -190,12 +134,12 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any], level: int, margin
         '''
 
         # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
-        loader = Loader_for_one_WSI_with_valid_regions(WSIReader(backend="OpenSlide"), level=level, margin=margin,
-                                                       foreground_threshold=foreground_threshold)
+        loader = Loader_for_one_WSI_image(WSIReader(backend="OpenSlide"), level=level, margin=margin,
+                                          foreground_threshold=foreground_threshold)
         loaded_WSI_sample = loader(sample)  # load 'image' from disk and composed it into 'sample'
 
         # Save original slide thumbnail
-        save_thumbnail(slide_image_path, thumbnail_dir / (slide_image_path.name + "_original.png"))
+        save_openslide_thumbnail(slide_image_path, thumbnail_dir / (slide_image_path.name + "_original.png"))
 
         # Save ROI thumbnail
         slide_image = loaded_WSI_sample[image_key]  # CHW format
@@ -232,7 +176,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any], level: int, margin
             try:
                 # save tile to the location
                 tile_info = get_tile_info_dict(loaded_WSI_sample, occupancies[i], tile_locations[i], rel_slide_dir)
-                save_image(image_tiles[i], output_dir / tile_info["image"])
+                save_chw_image(image_tiles[i], output_dir / tile_info["image"])
             except Exception as e:
                 # sometimes certain tiles is broken (for pixel failure) and we need to skip
                 n_failed_tiles += 1
@@ -256,7 +200,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any], level: int, margin
                                  tile_info_list, tile_size, origin_offset=loaded_WSI_sample["origin"])
 
         '''
-        # put back tiles for visualization 
+        # put back all tiles for visualization 
         assemble_img_array, offset = assemble_tiles_2d(image_tiles, tile_locations)
         assemble_img_array = downsample_chw_numpy_image(assemble_img_array)
         visualize_CHW_numpy_image(assemble_img_array, thumbnail_dir / (slide_image_path.name + "_roi_recompose.png"))
@@ -448,7 +392,9 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
     print(f"Slide {slide_file} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
 
 
-slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
-                                        metadata_file_paths=['/data/hdd_1/ai4dd/metadata/240418-combined_labels.csv', ])
-prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/ssd_1/BigModel/tiles_datasets',
-                                     level=0, tile_size=224, margin=0, overwrite=True, parallel=True, n_processes=4)
+if __name__ == '__main__':
+    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
+                                            metadata_file_paths=[
+                                                '/data/hdd_1/ai4dd/metadata/240418-combined_labels.csv', ])
+    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/ssd_1/BigModel/tiles_datasets',
+                                         level=0, tile_size=224, margin=0, overwrite=True, parallel=False)
