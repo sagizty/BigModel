@@ -107,6 +107,7 @@ def incremental_std(flattened_tiles, pixel_std_threshold=5, batch_size=1000):
     return low_std_mask
 
 
+# this is designed for chunk process, but it is not needed now
 def check_empty_tiles(tiles: np.ndarray,
                       foreground_threshold: float, occupancy_threshold: float,
                       pixel_std_threshold: int = 5,
