@@ -333,7 +333,7 @@ def generate_rel_locations(target_level_tilesize, target_h, target_w):
     return tile_coords
 
 
-def adjust_tile_locations(rel_tile_locations, loaded_WSI_sample):
+def adjust_tile_locations(rel_tile_locations, loaded_WSI_sample, level0_y=None, level0_x=None):
     """
     Adjust the relative tile locations by scaling and translating based on the WSI sample information.
 
@@ -345,8 +345,8 @@ def adjust_tile_locations(rel_tile_locations, loaded_WSI_sample):
     - tile_locations: numpy array of adjusted tile locations (N, 2) with HW (YX) ordering
     """
     scale = loaded_WSI_sample["WSI_loc_scale"]
-    origin_y = loaded_WSI_sample["origin_start_y"]
-    origin_x = loaded_WSI_sample["origin_start_x"]
+    origin_y = level0_y or loaded_WSI_sample["origin_start_y"]
+    origin_x = level0_x or loaded_WSI_sample["origin_start_x"]
 
     # Adjust and translate tile locations
     scaled_locations = [(int(y * scale) + origin_y, int(x * scale) + origin_x) for y, x in rel_tile_locations]
@@ -357,8 +357,49 @@ def adjust_tile_locations(rel_tile_locations, loaded_WSI_sample):
     return tile_locations
 
 
-def read_a_tile(WSI_image_obj, level0_y, level0_x, target_level_tilesize, target_level,
-                reader=WSIReader(backend="OpenSlide")):
+def generate_chunk_and_tile_level0_locations(target_level_tilesize, target_h, target_w,
+                                             chunk_scale_in_tiles: int = 20, ROI_sample_from_WSI=None):
+    """
+    we load the ROI image by chunk of tiles, therefor improve disk reading performance with RAM usage
+
+    chunk_scale_in_tiles : how many tiles to make up the chunk at h and w
+    """
+    assert ROI_sample_from_WSI is not None
+
+    if chunk_scale_in_tiles == 0 or chunk_scale_in_tiles == 1:
+        rel_tile_locations_remains = generate_rel_locations(target_level_tilesize, target_h, target_w)
+        tile_locations = adjust_tile_locations(rel_tile_locations_remains, ROI_sample_from_WSI)
+        return None, tile_locations
+
+    else:
+        # separate the chunk region and remaining tiles
+        target_level_chunk_size = target_level_tilesize * chunk_scale_in_tiles
+
+        # step 1: calculate the all tiles location in target ROI
+        # List of tuples with (y, x) starting coordinates for each tile, encoded location starting with 0,0
+        rel_tile_locations_all = generate_rel_locations(target_level_tilesize, target_h, target_w)
+
+        # step 2: calculate the all tiles location in chuck region
+        # Calculate number of full tiles that fit in the height and width of chuck,
+        # drop the last chunk and adjust the region to chunk region
+        chunk_region_h = target_h - target_h % target_level_chunk_size
+        chunk_region_w = target_w - target_w % target_level_chunk_size
+
+        # step 3: get the dropped tiles
+        rel_tile_locations_chunk_region = generate_rel_locations(target_level_tilesize, chunk_region_h, chunk_region_w)
+        rel_tile_locations_remains = rel_tile_locations_all - rel_tile_locations_chunk_region
+        # adjust to real location in level-0
+        tile_locations = adjust_tile_locations(rel_tile_locations_remains, ROI_sample_from_WSI)
+
+        # step 4: get and adjust the chunck location in level-0
+        rel_chunk_locations = generate_rel_locations(target_level_chunk_size, chunk_region_h, chunk_region_w)
+        chunk_locations = adjust_tile_locations(rel_chunk_locations, ROI_sample_from_WSI)
+
+        return chunk_locations, tile_locations
+
+
+def read_a_region_from_WSI(WSI_image_obj, level0_y, level0_x, target_level_tilesize, target_level,
+                           reader=WSIReader(backend="OpenSlide")):
     """
     Read a tile from a WSI image with monai api
 
@@ -388,6 +429,27 @@ def read_a_tile(WSI_image_obj, level0_y, level0_x, target_level_tilesize, target
     return img_data
 
 
+def convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x, chunk_scale_in_tiles,
+                                  target_level_tilesize, ROI_sample_from_WSI):
+    """
+
+    a_chuck_img: The image data of the chuck as a numpy array in [C, H, W] int8 RGB format.
+    """
+
+    target_size = target_level_tilesize * chunk_scale_in_tiles
+    rel_tile_locations = generate_rel_locations(target_level_tilesize, target_size, target_size)
+    tile_locations = adjust_tile_locations(rel_tile_locations, ROI_sample_from_WSI,level0_y, level0_x)
+
+    # Split the a_chuck_img into tiles
+    tile_images = []
+
+    for y, x in rel_tile_locations:
+        tile = a_chuck_img[:, y:y + target_level_tilesize, x:x + target_level_tilesize]
+        tile_images.append(tile)
+
+    return tile_images, tile_locations
+
+
 def resize_tile_to_PIL_target_tile(tile_img, tile_size):
     """
     Resize the selected tile image to a new tile size.
@@ -414,7 +476,7 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
 def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                        tile_progress=True):
+                        chunk_scale_in_tiles=0, tile_progress=True):
     """
     :param WSI_image_obj:
     :param ROI_sample_from_WSI:
@@ -429,6 +491,8 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                 to say this ROI image is too 'empty'
     :param extreme_value_portion_th: The threshold for the ratio of the pixels being 0 of one ROI,
                                     to say this ROI image is too 'empty'
+
+    :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
 
     """
     # STEP 0: prepare log files:
@@ -451,17 +515,16 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     failed_tiles_file = failed_tiles_csv_path.open('w')
     failed_tiles_file.write('tile_id' + '\n')  # write CSV header
 
-    # STEP 1: prepare tile locations
+    # STEP 1: prepare chuck and tile locations
     target_level_tilesize = int(tile_size * ROI_sample_from_WSI["ROI_size_scale"])
-    # generate a list of related tile location starting from (0,0) for "target_h" and "target_w"
-    # loaded_WSI_sample["target_h"] and loaded_WSI_sample["target_w"]
-    rel_tile_locations = generate_rel_locations(target_level_tilesize,
-                                                ROI_sample_from_WSI["target_h"],
-                                                ROI_sample_from_WSI["target_w"])
-    # get level-0 loc
-    tile_locations = adjust_tile_locations(rel_tile_locations, ROI_sample_from_WSI)
-
-    n_tiles = len(tile_locations)
+    # generate a list of level-0 tile location starting with "target_h" and "target_w" at target level
+    chuck_locations, tile_locations = generate_chunk_and_tile_level0_locations(target_level_tilesize,
+                                                                               ROI_sample_from_WSI["target_h"],
+                                                                               ROI_sample_from_WSI["target_w"],
+                                                                               chunk_scale_in_tiles,
+                                                                               ROI_sample_from_WSI)
+    # each chuck is chunk_scale_in_tiles^2 of tiles
+    n_tiles = len(tile_locations) + len(chuck_locations) * chunk_scale_in_tiles * chunk_scale_in_tiles
     logging.info(f"{n_tiles} tiles found")
 
     # make a list to record the Tile information dictionary for valid tiles
@@ -469,23 +532,92 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     n_failed_tiles = 0
     n_discarded = 0
 
-    # for each tile
     logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
                  f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
-    for i in tqdm(range(n_tiles), f"Tiles ({ROI_sample_from_WSI['slide_id'][:6]}…) "
-                                  f"ROI index {ROI_sample_from_WSI['ROI_index']}",
-                  unit="img", disable=not tile_progress):
-        tile_location = tile_locations[i]
+    # STEP 2 (type a) : load tile at the location inside the chunk region
+    for chuck_index in tqdm(range(len(chuck_locations)),
+                            f"Processing the chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
+                            f"ROI index {ROI_sample_from_WSI['ROI_index']}",
+                            unit="img", disable=not tile_progress):
+        chuck_location = chuck_locations[chuck_index]
+        level0_y, level0_x = chuck_location
+        try:
+            a_chuck_img = read_a_region_from_WSI(WSI_image_obj, level0_y, level0_x,
+                                                 target_level_tilesize * chunk_scale_in_tiles,
+                                                 target_level=ROI_sample_from_WSI["target_level"],
+                                                 reader=WSIReader(backend="OpenSlide"))
+
+            tile_images, tile_locations = convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x,
+                                                                        chunk_scale_in_tiles,
+                                                                        target_level_tilesize,
+                                                                        ROI_sample_from_WSI)
+        except:
+            # sometimes reading certain region is broken (for pixel failure) and we need to skip
+            n_failed_tiles += chunk_scale_in_tiles * chunk_scale_in_tiles
+            descriptor = get_tile_descriptor(chuck_location)
+            # we write down these failed tiles into the log
+            failed_tiles_file.write(descriptor + '\n')
+            traceback.print_exc()
+            warnings.warn(f"An error occurred while saving tile "
+                          f"{get_tile_id(ROI_sample_from_WSI['slide_id'], chuck_location)}: {e}")
+        else:
+            # STEP 3: Filtering the ROIs with foreground occupancy ratio and pixel empty-value and pixel variance
+            for i in range(chunk_scale_in_tiles * chunk_scale_in_tiles):
+
+                a_tile_img = tile_images[i]
+                tile_location = tile_locations[i]
+
+                try:
+                    empty_tile_bool_mark, tile_occupancy = check_an_empty_tile(a_tile_img,
+                                                                               foreground_threshold,
+                                                                               occupancy_threshold,
+                                                                               pixel_std_threshold,
+                                                                               extreme_value_portion_th)
+                    # STEP 4: prepare tile
+                    if empty_tile_bool_mark:
+                        n_discarded += 1
+                    else:
+                        # convert the cropped valid tile into PIL image with tile_size
+                        PIL_tile = resize_tile_to_PIL_target_tile(a_tile_img, tile_size)
+                        # todo in future we can use h5 to log tile infor
+
+                        # logging and save the image to h5
+                        tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,
+                                                       target_level_tilesize,
+                                                       rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
+
+                        save_PIL_image(PIL_tile, output_tiles_dir / tile_info["image"])
+
+                except Exception as e:
+                    # sometimes certain tiles is broken (for pixel failure) and we need to skip
+                    n_failed_tiles += 1
+                    descriptor = get_tile_descriptor(tile_location)
+                    # we write down these failed tiles into the log
+                    failed_tiles_file.write(descriptor + '\n')
+                    traceback.print_exc()
+                    warnings.warn(f"An error occurred while saving tile "
+                                  f"{get_tile_id(ROI_sample_from_WSI['slide_id'], tile_location)}: {e}")
+                else:
+                    if not empty_tile_bool_mark:
+                        # record the tile information into tile_info_list
+                        tile_info_list.append(tile_info)
+                        dataset_row = format_csv_row(tile_info, keys_to_save, metadata_keys)
+                        dataset_csv_file.write(dataset_row + '\n')
+
+    # STEP 2 (type b) : load tile at the location for the tiles outside the chunk region
+    for tile_index in tqdm(range(len(tile_locations)),
+                           f"Processing the out-of-chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
+                           f"ROI index {ROI_sample_from_WSI['ROI_index']}",
+                           unit="img", disable=not tile_progress):
+        tile_location = tile_locations[tile_index]
         level0_y, level0_x = tile_location
 
         try:
-            # STEP 2: load tile at the location
-            a_tile_img = read_a_tile(WSI_image_obj, level0_y, level0_x,
-                                     target_level_tilesize, target_level=ROI_sample_from_WSI["target_level"],
-                                     reader=WSIReader(backend="OpenSlide"))
+            a_tile_img = read_a_region_from_WSI(WSI_image_obj, level0_y, level0_x,
+                                                target_level_tilesize, target_level=ROI_sample_from_WSI["target_level"],
+                                                reader=WSIReader(backend="OpenSlide"))
 
             # STEP 3: Filtering the ROIs with foreground occupancy ratio and pixel empty-value and pixel variance
-            # FIXME: this uses too much memory, and its hacky design needs attention
             empty_tile_bool_mark, tile_occupancy = check_an_empty_tile(a_tile_img,
                                                                        foreground_threshold, occupancy_threshold,
                                                                        pixel_std_threshold, extreme_value_portion_th)
@@ -495,6 +627,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
             else:
                 # convert the cropped valid tile into PIL image with tile_size
                 PIL_tile = resize_tile_to_PIL_target_tile(a_tile_img, tile_size)
+                # todo in future we can use h5 to log tile infor
 
                 # logging and save the image to h5
                 tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,

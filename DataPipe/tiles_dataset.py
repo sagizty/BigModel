@@ -114,6 +114,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
                                foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
                                pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
+                               chunk_scale_in_tiles: int = 20,
                                tile_progress: bool = False, image_key: str = "image") -> str:
     """Load and process a slide, saving tile images and information to a CSV file.
 
@@ -138,6 +139,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
     :param extreme_value_portion_th: The threshold for the ratio of the pixels being 0 of one ROI,
                                     to say this ROI image is too 'empty'
 
+    :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
     :param tile_progress: Whether to display a progress bar in the terminal.
     :param image_key: Image key in the input and output dictionaries. default is 'image'
 
@@ -183,6 +185,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                                 occupancy_threshold=occupancy_threshold,
                                                                 pixel_std_threshold=pixel_std_threshold,
                                                                 extreme_value_portion_th=extreme_value_portion_th,
+                                                                chunk_scale_in_tiles=chunk_scale_in_tiles,
                                                                 tile_progress=tile_progress)
 
             # STEP 3: visualize the tile location overlay to WSI
@@ -205,6 +208,7 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
                                     margin: int, tile_size: int, target_mpp: float,
                                     foreground_threshold: Optional[float], occupancy_threshold: float,
                                     pixel_std_threshold: int, extreme_value_portion_th: float,
+                                    chunk_scale_in_tiles: int,
                                     tile_progress: bool, image_key: str) -> Optional[str]:
     try:
         # Process the slide and return the output directory or some result
@@ -213,6 +217,7 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
             margin=margin, tile_size=tile_size, target_mpp=target_mpp,
             foreground_threshold=foreground_threshold, occupancy_threshold=occupancy_threshold,
             pixel_std_threshold=pixel_std_threshold, extreme_value_portion_th=extreme_value_portion_th,
+            chunk_scale_in_tiles=chunk_scale_in_tiles,
             tile_progress=tile_progress, image_key=image_key
         )
     except Exception as e:
@@ -227,6 +232,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                                          occupancy_threshold: float = 0.1,
                                          pixel_std_threshold: int = 5,
                                          extreme_value_portion_th: float = 0.5,
+                                         chunk_scale_in_tiles: int = 20,
                                          image_key: str = "image",
                                          parallel: bool = True,
                                          n_processes: Optional[int] = None,
@@ -251,6 +257,8 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                                 to say this ROI image is too 'empty'
     :param extreme_value_portion_th: The threshold for the ratio of the pixels being 0 of one ROI,
                                     to say this ROI image is too 'empty'
+
+    :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
 
     :param image_key: Image key in the input and output dictionaries. default is 'image'
 
@@ -289,6 +297,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                              occupancy_threshold=occupancy_threshold,
                              pixel_std_threshold=pixel_std_threshold,
                              extreme_value_portion_th=extreme_value_portion_th,
+                             chunk_scale_in_tiles=chunk_scale_in_tiles,
                              tile_progress=not parallel, image_key=image_key)
 
     if parallel:
@@ -349,6 +358,7 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
         occupancy_threshold=0.1,
         output_dir=save_dir / "output",
         thumbnail_dir=save_dir / "thumbnails",
+        chunk_scale_in_tiles=20,
         tile_progress=True,
     )
 
@@ -367,9 +377,16 @@ if __name__ == '__main__':
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
 
+    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
+    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/sampled_datasets',
+                                         tile_size=224, target_mpp=0.5, chunk_scale_in_tiles=20, overwrite=True,
+                                         parallel=True)
+
+    '''
     slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
     slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
+    '''
