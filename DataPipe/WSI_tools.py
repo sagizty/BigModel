@@ -30,7 +30,7 @@ it returns slide shape in (CHW) not (CWH)!
 However
 slide = openslide.OpenSlide(wsi_path) return slide in (WHC)
 """
-
+from copy import deepcopy
 import openslide
 import cv2
 from typing import Any, Dict, Iterable, Optional, Sequence
@@ -41,7 +41,7 @@ from monai.data import Dataset
 from monai.data.wsi_reader import WSIReader
 from tqdm import tqdm
 from PIL import ImageDraw, Image
-from box_utils import get_bounding_box, Box
+from bbox_tools import get_ROI_bounding_box_list, Box
 from Segmentation_and_filtering_tools import *
 
 
@@ -174,12 +174,19 @@ class Loader_for_get_one_WSI_sample(MapTransform):
         # foreground_mask is (1, H, W) boolean array indicating whether the pixel is foreground or not
         foreground_mask, Luminance_threshold = segment_foreground(slide, self.foreground_threshold)
         # threshold: Pixels with luminance below this value will be considered as foreground.
+        # visualize_foreground_mask(slide, foreground_mask, Luminance_threshold)
 
         scale = slide_obj.level_downsamples[highest_level]
-        # get bbox at level-0
-        level0_bbox = scale * get_bounding_box(foreground_mask).add_margin(self.margin)
 
-        return level0_bbox, Luminance_threshold
+        # select multiple valid region instead of one, reduce the calculation cost
+        box_list = get_ROI_bounding_box_list(foreground_mask, maximum_top_n=3)
+        level0_bbox_list = []
+        for bbox in box_list:
+            # get bbox at level-0
+            level0_bbox = scale * bbox.add_margin(self.margin)
+            level0_bbox_list.append(level0_bbox)
+
+        return level0_bbox_list, Luminance_threshold
 
     def __call__(self, sample: Dict) -> Dict:
         """
@@ -197,15 +204,18 @@ class Loader_for_get_one_WSI_sample(MapTransform):
          'gleason_score': ['0+0']}
 
         Returns:
-        sample (but compose the WSI information)
+            loaded_ROI_samples containing many :
+                ROI_sample (each sample is a ROI region of the WSI)
 
-        Example:
+        ROI_sample:
         {'image_id': ['1ca999adbbc948e69783686e5b5414e4'],
         'image': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
          'mask': ['/tmp/datasets/PANDA/train_label_masks/1ca999adbbc948e69783686e5b5414e4_mask.tiff'],
          'data_provider': ['karolinska'],
          'isup_grade': tensor([0]),
          'gleason_score': ['0+0'],
+
+         'ROI_index': ROI_index
 
          "origin_start_y": the absolute location on level_0 of the valid tissue region top-left point
          "origin_start_x": the absolute location on level_0 of the valid tissue region top-left point
@@ -235,43 +245,54 @@ class Loader_for_get_one_WSI_sample(MapTransform):
 
         # STEP 2: Select the valid regions on the WSI, in one bbox
         logging.info("Loader_for_get_one_WSI_sample: get level0_bbox ")
+
+        # Select multiple valid region instead of one big ROI, reduce the calculation cost
         # get WSI bbox's location and the foreground_threshold for Luminance estimation
-        level0_bbox, Luminance_threshold = self.WSI_region_detection(WSI_image_obj)
-        logging.info(f"Loader_for_get_one_WSI_sample: level0_bbox: {level0_bbox}")
+        level0_bbox_list, Luminance_threshold = self.WSI_region_detection(WSI_image_obj)
 
-        # Save original slide thumbnail with bbox
-        save_openslide_thumbnail(WSI_image_obj,
-                                 self.thumbnail_dir / (self.slide_image_path.name + "_original.jpeg"),
-                                 size_target=1024, level0_bbox=level0_bbox)
+        loaded_ROI_samples = []
 
-        # STEP 3: Calibrate the location for OpenSlide
-        # OpenSlide takes absolute location coordinates in the level 0 reference frame,
-        # but relative region size in pixels at the chosen level
-        WSI_loc_scale, target_level_bbox = convert_bbox_to_target_level(WSI_image_obj, level0_bbox, target_level)
+        for ROI_index, level0_bbox in enumerate(level0_bbox_list):
+            ROI_sample = deepcopy(sample)
+            logging.info(f"Loader_for_get_one_WSI_sample: level0_bbox: {level0_bbox}")
 
-        # compose the WSI information for following steps
-        # valid region at level-0
-        sample["origin_start_y"] = level0_bbox.y
-        sample["origin_start_x"] = level0_bbox.x
-        # sample["origin_h"] = level0_bbox.h
-        # sample["origin_w"] = level0_bbox.w
+            # Save original slide thumbnail with bbox
+            save_openslide_thumbnail(WSI_image_obj,
+                                     self.thumbnail_dir / (self.slide_image_path.name
+                                                           + "_original_ROI_" + str(ROI_index) + ".jpeg"),
+                                     size_target=1024, level0_bbox=level0_bbox)
 
-        # valid region at target_level
-        # sample["target_start_y"] = target_level_bbox.y
-        # sample["target_start_x"] = target_level_bbox.x
-        sample["target_h"] = target_level_bbox.h
-        sample["target_w"] = target_level_bbox.w
-        sample["target_level"] = target_level
+            # STEP 3: Calibrate the location for OpenSlide
+            # OpenSlide takes absolute location coordinates in the level 0 reference frame,
+            # but relative region size in pixels at the chosen level
+            WSI_loc_scale, target_level_bbox = convert_bbox_to_target_level(WSI_image_obj, level0_bbox, target_level)
 
-        sample["WSI_loc_scale"] = WSI_loc_scale  # scale of converting the target_level location to level-0
-        sample["ROI_size_scale"] = ROI_size_scale  # scale of changing the patch size
-        sample["foreground_threshold"] = Luminance_threshold
+            # compose the WSI information for following steps
+            # valid region at level-0
+            ROI_sample["ROI_index"] = ROI_index
 
-        logging.info(f"Loader_for_get_one_WSI_sample: target_level: {target_level}, "
-                     f"target_level_bbox: {target_level_bbox}")
+            ROI_sample["origin_start_y"] = level0_bbox.y
+            ROI_sample["origin_start_x"] = level0_bbox.x
+            # ROI_sample["origin_h"] = level0_bbox.h
+            # ROI_sample["origin_w"] = level0_bbox.w
 
-        # WSI_image_obj.close()
-        return WSI_image_obj, sample
+            # valid region at target_level
+            # ROI_sample["target_start_y"] = target_level_bbox.y
+            # ROI_sample["target_start_x"] = target_level_bbox.x
+            ROI_sample["target_h"] = target_level_bbox.h
+            ROI_sample["target_w"] = target_level_bbox.w
+            ROI_sample["target_level"] = target_level
+
+            ROI_sample["WSI_loc_scale"] = WSI_loc_scale  # scale of converting the target_level location to level-0
+            ROI_sample["ROI_size_scale"] = ROI_size_scale  # scale of changing the patch size
+            ROI_sample["foreground_threshold"] = Luminance_threshold
+
+            logging.info(f"Loader_for_get_one_WSI_sample: target_level: {target_level}, "
+                         f"target_level_bbox: {target_level_bbox}")
+
+            loaded_ROI_samples.append(ROI_sample)
+
+        return WSI_image_obj, loaded_ROI_samples
 
 
 # WSI tilling tools
@@ -383,13 +404,13 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
     return resized_tile_img_pil
 
 
-def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path, tile_size: int,
+def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                         tile_progress=True):
     """
     :param WSI_image_obj:
-    :param loaded_WSI_sample:
+    :param ROI_sample_from_WSI:
     :param output_tiles_dir: tiles will be saved here as a h5
 
     :param tile_size:
@@ -408,7 +429,7 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
     keys_to_save = ("slide_id", "tile_id", "image", "label",
                     "tile_y", "tile_x", "occupancy")
     # Decode the slide metadata (if got)
-    slide_metadata: Dict[str, Any] = loaded_WSI_sample["metadata"]
+    slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
     metadata_keys = tuple("slide_" + key for key in slide_metadata)
     # print('metadata_keys',metadata_keys)
     csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
@@ -424,14 +445,14 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
     failed_tiles_file.write('tile_id' + '\n')  # write CSV header
 
     # STEP 1: prepare tile locations
-    target_level_tilesize = int(tile_size * loaded_WSI_sample["ROI_size_scale"])
+    target_level_tilesize = int(tile_size * ROI_sample_from_WSI["ROI_size_scale"])
     # generate a list of related tile location starting from (0,0) for "target_h" and "target_w"
     # loaded_WSI_sample["target_h"] and loaded_WSI_sample["target_w"]
     rel_tile_locations = generate_rel_locations(target_level_tilesize,
-                                                loaded_WSI_sample["target_h"],
-                                                loaded_WSI_sample["target_w"])
+                                                ROI_sample_from_WSI["target_h"],
+                                                ROI_sample_from_WSI["target_w"])
     # get level-0 loc
-    tile_locations = adjust_tile_locations(rel_tile_locations, loaded_WSI_sample)
+    tile_locations = adjust_tile_locations(rel_tile_locations, ROI_sample_from_WSI)
 
     n_tiles = len(tile_locations)
     logging.info(f"{n_tiles} tiles found")
@@ -442,8 +463,10 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
     n_discarded = 0
 
     # for each tile
-    logging.info(f"Saving tiles for slide {loaded_WSI_sample['slide_id']} ...")
-    for i in tqdm(range(n_tiles), f"Tiles ({loaded_WSI_sample['slide_id'][:6]}…)",
+    logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
+                 f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
+    for i in tqdm(range(n_tiles), f"Tiles ({ROI_sample_from_WSI['slide_id'][:6]}…) "
+                                  f"ROI index {ROI_sample_from_WSI['ROI_index']}",
                   unit="img", disable=not tile_progress):
         tile_location = tile_locations[i]
         level0_y, level0_x = tile_location
@@ -451,7 +474,7 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
         try:
             # STEP 2: load tile at the location
             a_tile_img = read_a_tile(WSI_image_obj, level0_y, level0_x,
-                                     target_level_tilesize, target_level=loaded_WSI_sample["target_level"],
+                                     target_level_tilesize, target_level=ROI_sample_from_WSI["target_level"],
                                      reader=WSIReader(backend="OpenSlide"))
 
             # STEP 3: Filtering the ROIs with foreground occupancy ratio and pixel empty-value and pixel variance
@@ -467,9 +490,9 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
                 PIL_tile = resize_tile_to_PIL_target_tile(a_tile_img, tile_size)
 
                 # logging and save the image to h5
-                tile_info = get_tile_info_dict(loaded_WSI_sample, tile_occupancy, tile_location,
+                tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,
                                                target_level_tilesize,
-                                               rel_slide_dir=Path(loaded_WSI_sample['slide_id']))
+                                               rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
 
                 save_PIL_image(PIL_tile, output_tiles_dir / tile_info["image"])
 
@@ -481,7 +504,7 @@ def extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir: Path
             failed_tiles_file.write(descriptor + '\n')
             traceback.print_exc()
             warnings.warn(f"An error occurred while saving tile "
-                          f"{get_tile_id(loaded_WSI_sample['slide_id'], tile_location)}: {e}")
+                          f"{get_tile_id(ROI_sample_from_WSI['slide_id'], tile_location)}: {e}")
         else:
             if not empty_tile_bool_mark:
                 # record the tile information into tile_info_list
@@ -520,6 +543,7 @@ def get_tile_id(slide_id: str, tile_location: Sequence[int]) -> str:
     """
     return f"{slide_id}.{get_tile_descriptor(tile_location)}"
 
+
 def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_location: Sequence[int],
                        target_level_tilesize, rel_slide_dir: Path) -> Dict["TileKey", Any]:
     """Map slide information and tiling outputs into tile-specific information dictionary.
@@ -544,7 +568,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
         "label": sample.get("label", None),
         "tile_y": tile_location[0],
         "tile_x": tile_location[1],
-        'target_level_tilesize':target_level_tilesize,
+        'target_level_tilesize': target_level_tilesize,
         "occupancy": occupancy,
         "metadata": {"slide_" + key: value for key, value in sample["metadata"].items()}
     }
@@ -644,6 +668,26 @@ def merge_dataset_csv_files(dataset_dir: Path) -> Path:
 
 
 # visualization tools
+def visualize_foreground_mask(image: np.ndarray, mask: np.ndarray, threshold: float) -> None:
+    """
+    Visualize the original image and its foreground mask side-by-side.
+
+    :param image: The original image array in (C, H, W) format.
+    :param mask: The foreground mask array in (H, W) format.
+    :param threshold: The threshold value used for segmentation.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    axes[0].imshow(np.transpose(image, (1, 2, 0)))
+    axes[0].set_title("Original Image")
+
+    axes[1].imshow(mask, cmap='gray')
+    axes[1].set_title(f"Foreground Mask (Threshold: {threshold:.2f})")
+
+    plt.show()
+    fig.savefig('./foreground_mask.jpeg')
+    plt.close()
+
+
 def assemble_tiles_2d(tiles: np.ndarray, coords: np.ndarray, fill_value: Optional[int] = 255,
                       channels_first: Optional[bool] = True) -> Tuple[np.ndarray, np.ndarray]:
     """Assembles a 2D array from sequences of tiles and coordinates.

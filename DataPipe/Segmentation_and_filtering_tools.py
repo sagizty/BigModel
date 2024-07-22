@@ -1,9 +1,3 @@
-#  ------------------------------------------------------------------------------------------
-#  Copyright (c) Microsoft Corporation. All rights reserved.
-#  Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
-#
-# Original: https://github.com/microsoft/hi-ml/blob/main/hi-ml-cpath/src/health_cpath/preprocessing/loading.py
-#  ------------------------------------------------------------------------------------------
 
 import logging
 from pathlib import Path
@@ -19,13 +13,21 @@ from openslide import OpenSlide
 
 # ROI/WSI Segmentation tools
 def get_luminance(image_or_images: np.ndarray) -> np.ndarray:
-    """Compute a grayscale version of the input image_or_images.
+    """
+    Convert the RGB image array to luminance.
 
     :param image_or_images: The RGB image array in (*, C, H, W) format.
-    :return: The single-channel luminance array as (*, H, W).
+    :return: The luminance image array in (*, H, W) format.
     """
-    # TODO: Consider more sophisticated luminance calculation if necessary
-    return image_or_images.mean(axis=-3, dtype=np.float16)  # type: ignore
+    # Assuming the input is in the format (*, C, H, W) and the channels are RGB
+    if image_or_images.ndim == 4:
+        # Convert RGB to luminance for each image in the batch
+        return np.dot(image_or_images.transpose(0, 2, 3, 1), [0.2126, 0.7152, 0.0722])
+    elif image_or_images.ndim == 3:
+        # Convert RGB to luminance for a single image
+        return np.dot(image_or_images.transpose(1, 2, 0), [0.2126, 0.7152, 0.0722])
+    else:
+        raise ValueError("Expected an image array with 3 or 4 dimensions.")
 
 
 def segment_foreground(image_or_images: np.ndarray, threshold: Optional[float] = None) \
@@ -38,13 +40,19 @@ def segment_foreground(image_or_images: np.ndarray, threshold: Optional[float] =
 
     :return: the boolean output array of foreground_mask and the threshold used.
     foreground_mask is (*, H, W) boolean array indicating whether the pixel is foreground or not
-
     """
     luminance = get_luminance(image_or_images)  # -> (*, H, W)
     if threshold is None:
         threshold = skimage.filters.threshold_otsu(luminance)
     logging.info(f"Otsu threshold from luminance: {threshold}")
-    return luminance < threshold, threshold
+
+    # Foreground is where luminance is greater than the threshold
+    foreground_mask = (luminance < threshold)  # True is foreground
+
+    # Apply binary closing to connect the very near parts
+    foreground_mask = skimage.morphology.binary_closing(foreground_mask)
+
+    return foreground_mask, threshold
 
 
 # ROI filtering tools

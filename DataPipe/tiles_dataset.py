@@ -54,6 +54,7 @@ from tqdm import tqdm
 from WSI_tools import *
 from Segmentation_and_filtering_tools import *
 
+
 # todo it should be designed for better pretraining management
 def prepare_slides_dataset(slide_root, slide_suffixes=['.svs', '.ndpi'], metadata_file_paths=None):
     """
@@ -167,24 +168,28 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                target_mpp=target_mpp, margin=margin,
                                                foreground_threshold=foreground_threshold,
                                                thumbnail_dir=thumbnail_dir)
-        WSI_image_obj, loaded_WSI_sample = loader(sample)  # load 'image' from disk and composed it into 'sample'
+        WSI_image_obj, loaded_ROI_samples = loader(sample)
 
         # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
         logging.info(f"Tiling slide {slide_id} ...")
+        # each ROI_sample in loaded_WSI_samples is a valid ROI region
+        n_failed_tiles = 0
+        for index, ROI_sample in enumerate(loaded_ROI_samples):
+            # The estimated luminance (foreground threshold) for whole WSI is applied to ROI here to filter the tiles
+            tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, output_tiles_dir,
+                                                                tile_size=tile_size,
+                                                                foreground_threshold=ROI_sample[
+                                                                    "foreground_threshold"],
+                                                                occupancy_threshold=occupancy_threshold,
+                                                                pixel_std_threshold=pixel_std_threshold,
+                                                                extreme_value_portion_th=extreme_value_portion_th,
+                                                                tile_progress=tile_progress)
 
-        # The estimated luminance (foreground threshold) for whole WSI is applied to ROI here to filter the tiles
-        tile_info_list, n_failed_tiles = extract_valid_tiles(WSI_image_obj, loaded_WSI_sample, output_tiles_dir,
-                                                             tile_size=tile_size,
-                                                             foreground_threshold=loaded_WSI_sample[
-                                                                 "foreground_threshold"],
-                                                             occupancy_threshold=occupancy_threshold,
-                                                             pixel_std_threshold=pixel_std_threshold,
-                                                             extreme_value_portion_th=extreme_value_portion_th,
-                                                             tile_progress=tile_progress)
-
-        # STEP 3: visualize the tile location overlay to WSI
-        visualize_tile_locations(loaded_WSI_sample, thumbnail_dir / (slide_image_path.name + "_roi_tiles.jpeg"),
-                                 tile_info_list, image_key=image_key)
+            # STEP 3: visualize the tile location overlay to WSI
+            visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
+                                                                         + "_roi_" + str(index) + "_tiles.jpeg"),
+                                     tile_info_list, image_key=image_key)
+            n_failed_tiles += n_failed_tile
 
         if n_failed_tiles > 0:
             # what we want to do with slides that have some failed tiles? for now, just drop?
@@ -259,7 +264,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
     func = functools.partial(process_one_slide_to_tiles,
                              output_dir=output_dir, thumbnail_dir=thumbnail_dir,
-                             margin=margin, tile_size=tile_size,target_mpp=target_mpp,
+                             margin=margin, tile_size=tile_size, target_mpp=target_mpp,
                              foreground_threshold=foreground_threshold,
                              occupancy_threshold=occupancy_threshold,
                              pixel_std_threshold=pixel_std_threshold,
