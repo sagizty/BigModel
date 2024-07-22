@@ -369,7 +369,7 @@ def generate_chunk_and_tile_level0_locations(target_level_tilesize, target_h, ta
     if chunk_scale_in_tiles == 0 or chunk_scale_in_tiles == 1:
         rel_tile_locations_remains = generate_rel_locations(target_level_tilesize, target_h, target_w)
         tile_locations = adjust_tile_locations(rel_tile_locations_remains, ROI_sample_from_WSI)
-        return None, tile_locations
+        return [], tile_locations
 
     else:
         # separate the chunk region and remaining tiles
@@ -387,7 +387,8 @@ def generate_chunk_and_tile_level0_locations(target_level_tilesize, target_h, ta
 
         # step 3: get the dropped tiles
         rel_tile_locations_chunk_region = generate_rel_locations(target_level_tilesize, chunk_region_h, chunk_region_w)
-        rel_tile_locations_remains = rel_tile_locations_all - rel_tile_locations_chunk_region
+        rel_tile_locations_remains = get_remaining_tile_locations(
+            rel_tile_locations_all, rel_tile_locations_chunk_region)
         # adjust to real location in level-0
         tile_locations = adjust_tile_locations(rel_tile_locations_remains, ROI_sample_from_WSI)
 
@@ -517,6 +518,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
 
     # STEP 1: prepare chuck and tile locations
     target_level_tilesize = int(tile_size * ROI_sample_from_WSI["ROI_size_scale"])
+
     # generate a list of level-0 tile location starting with "target_h" and "target_w" at target level
     chuck_locations, tile_locations = generate_chunk_and_tile_level0_locations(target_level_tilesize,
                                                                                ROI_sample_from_WSI["target_h"],
@@ -547,7 +549,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                                  target_level=ROI_sample_from_WSI["target_level"],
                                                  reader=WSIReader(backend="OpenSlide"))
 
-            tile_images, tile_locations = convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x,
+            tile_images, chuck_tile_locations = convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x,
                                                                         chunk_scale_in_tiles,
                                                                         target_level_tilesize,
                                                                         ROI_sample_from_WSI)
@@ -565,7 +567,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
             for i in range(chunk_scale_in_tiles * chunk_scale_in_tiles):
 
                 a_tile_img = tile_images[i]
-                tile_location = tile_locations[i]
+                tile_location = chuck_tile_locations[i]
 
                 try:
                     empty_tile_bool_mark, tile_occupancy = check_an_empty_tile(a_tile_img,
@@ -656,12 +658,29 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     failed_tiles_file.close()
 
     # log ROI selection infor
-    logging.info(f"Percentage tiles discarded: {n_discarded / len(tile_locations) * 100:.2f}")
+    logging.info(f"Percentage tiles discarded: {n_discarded / n_tiles * 100:.2f}")
 
     return tile_info_list, n_failed_tiles
 
 
 # Other tools
+def get_remaining_tile_locations(all_locations, chunk_locations):
+    """
+    Get the difference between two lists of positions.
+
+    :param all_locations: List of all positions (list of tuples).like [(y1,x1),(y2,x2),...]
+    :param chunk_locations: List of positions to be removed (list of tuples).like [(y1,x1),(y2,x2),...]
+    :return: List of positions remaining after removal.
+    """
+    all_locations_set = set(all_locations)
+    chunk_locations_set = set(chunk_locations)
+
+    remaining_locations_set = all_locations_set - chunk_locations_set
+    remaining_locations = list(remaining_locations_set)
+
+    return remaining_locations
+
+
 def get_tile_descriptor(tile_location) -> str:
     """Format the YX tile coordinates into a tile descriptor.
 

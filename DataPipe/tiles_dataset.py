@@ -26,6 +26,7 @@ now its highest magnification and lowest level (level-0), now the resolution for
 """
 
 import os
+import time
 import torch
 import numpy as np
 import pandas as pd
@@ -114,7 +115,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
                                foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
                                pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                               chunk_scale_in_tiles: int = 20,
+                               chunk_scale_in_tiles: int = 0,
                                tile_progress: bool = False, image_key: str = "image") -> str:
     """Load and process a slide, saving tile images and information to a CSV file.
 
@@ -232,7 +233,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                                          occupancy_threshold: float = 0.1,
                                          pixel_std_threshold: int = 5,
                                          extreme_value_portion_th: float = 0.5,
-                                         chunk_scale_in_tiles: int = 20,
+                                         chunk_scale_in_tiles: int = 4,
                                          image_key: str = "image",
                                          parallel: bool = True,
                                          n_processes: Optional[int] = None,
@@ -319,7 +320,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
     logging.info("Merging slide files into a single file")
     merge_dataset_csv_files(output_dir)
 
-    print(error_WSIs)
+    print(error_WSIs)  # fixme temp design, better write to system as a file
 
 
 # for inference
@@ -378,15 +379,10 @@ if __name__ == '__main__':
                         format='%(asctime)s %(levelname)s:%(message)s')
 
     slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
-    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/sampled_datasets',
-                                         tile_size=224, target_mpp=0.5, chunk_scale_in_tiles=20, overwrite=True,
-                                         parallel=True)
 
-    '''
     slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
     slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
-    '''
