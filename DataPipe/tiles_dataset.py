@@ -197,7 +197,27 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
 
         logging.info(f"Finished processing slide {slide_id}")
 
-        return output_tiles_dir
+        return None
+
+
+# Function to handle exceptions and logging
+def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, thumbnail_dir: Path,
+                                    margin: int, tile_size: int, target_mpp: float,
+                                    foreground_threshold: Optional[float], occupancy_threshold: float,
+                                    pixel_std_threshold: int, extreme_value_portion_th: float,
+                                    tile_progress: bool, image_key: str) -> Optional[str]:
+    try:
+        # Process the slide and return the output directory or some result
+        return process_one_slide_to_tiles(
+            sample=sample, output_dir=output_dir, thumbnail_dir=thumbnail_dir,
+            margin=margin, tile_size=tile_size, target_mpp=target_mpp,
+            foreground_threshold=foreground_threshold, occupancy_threshold=occupancy_threshold,
+            pixel_std_threshold=pixel_std_threshold, extreme_value_portion_th=extreme_value_portion_th,
+            tile_progress=tile_progress, image_key=image_key
+        )
+    except Exception as e:
+        logging.error(f"Error processing slide {sample['image']}: {e}")
+        return sample["image"]
 
 
 # Process multiple WSIs for pretraining
@@ -262,7 +282,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
     thumbnail_dir.mkdir(exist_ok=True)
     logging.info(f"Thumbnail directory: {thumbnail_dir}")
 
-    func = functools.partial(process_one_slide_to_tiles,
+    func = functools.partial(safe_process_one_slide_to_tiles,
                              output_dir=output_dir, thumbnail_dir=thumbnail_dir,
                              margin=margin, tile_size=tile_size, target_mpp=target_mpp,
                              foreground_threshold=foreground_threshold,
@@ -280,14 +300,17 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
     else:
         map_func = map  # type: ignore
 
-    output_tilesets_dirs = list(
+    error_WSIs = list(
         tqdm(map_func(func, dataset), desc="Slides", unit="img", total=len(dataset)))  # type: ignore
 
     if parallel:
         pool.close()
+        pool.join()  # Ensure all processes are cleaned up
 
     logging.info("Merging slide files into a single file")
     merge_dataset_csv_files(output_dir)
+
+    print(error_WSIs)
 
 
 # for inference
@@ -340,6 +363,13 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
 
 
 if __name__ == '__main__':
-    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
-    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/ssd_1/BigModel/tiles_datasets',
-                                         tile_size=224, margin=0, overwrite=True, parallel=True)
+    # Configure logging
+    logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s:%(message)s')
+
+    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
+    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
+                                         tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
+    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
+    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
+                                         tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)

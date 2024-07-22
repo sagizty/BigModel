@@ -62,7 +62,14 @@ def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
     '''
     # Get the list of mpps for each level
     # Calculate highest resolutoin relative level (assume level 0 resolution = 0.25)
-    lowest_mpp = float(WSI_image_obj.properties[openslide.PROPERTY_NAME_MPP_X])
+    # Try to get the MPP value from the WSI image properties
+    mpp_x = WSI_image_obj.properties.get(openslide.PROPERTY_NAME_MPP_X)
+    mpp_y = WSI_image_obj.properties.get(openslide.PROPERTY_NAME_MPP_Y)
+
+    if mpp_x is None or mpp_y is None:
+        raise KeyError("Microns per pixel (MPP) value is missing from the slide properties")
+    else:
+        lowest_mpp = float(mpp_x)
 
     # Adjust lowest_mpp to common resolutions if within a certain range
     if 0.2 < lowest_mpp < 0.3:  # resolution:0.25um/pixel
