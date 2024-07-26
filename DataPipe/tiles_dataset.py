@@ -1,5 +1,5 @@
 """
-# Pipeline for processing the sample
+WSI tile cropping dataset tools   Script  ver： July 27th 01:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)

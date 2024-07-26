@@ -1,4 +1,8 @@
+"""
+ROI/WSI Segmentation tools   Script  ver： July 27th 01:00
 
+
+"""
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
