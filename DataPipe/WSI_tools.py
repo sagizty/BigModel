@@ -133,12 +133,12 @@ class Loader_for_get_one_WSI_sample(MapTransform):
     - 'scale' (float): corresponding scale, loaded from the file
     """
 
-    def __init__(self, reader: WSIReader, image_key: str = "image", target_mpp: float = 0.5,
+    def __init__(self, reader: WSIReader, image_key: str = "slide_image_path", target_mpp: float = 0.5,
                  margin: int = 0, foreground_threshold: Optional[float] = None,
                  thumbnail_dir: Path = '.') -> None:
         """
         :param reader: An instance of MONAI's `WSIReader`.
-        :param image_key: Image key in the input and output dictionaries. default is 'image'
+        :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
 
         :param target_mpp: use to get Magnification level to load slides at target_mpp
         from the raw multi-scale files.
@@ -203,8 +203,8 @@ class Loader_for_get_one_WSI_sample(MapTransform):
         :param sample: 'Slide information dictionary', dict describing image metadata.
 
         Example:
-        {'image_id': ['1ca999adbbc948e69783686e5b5414e4'],
-        'image': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
+        {'slide_id': ['1ca999adbbc948e69783686e5b5414e4'],
+        'slide_image_path': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
          'mask': ['/tmp/datasets/PANDA/train_label_masks/1ca999adbbc948e69783686e5b5414e4_mask.tiff'],
          'data_provider': ['karolinska'],
          'isup_grade': tensor([0]),
@@ -215,8 +215,8 @@ class Loader_for_get_one_WSI_sample(MapTransform):
                 ROI_sample (each sample is a ROI region of the WSI)
 
         ROI_sample:
-        {'image_id': ['1ca999adbbc948e69783686e5b5414e4'],
-        'image': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
+        {'slide_id': ['1ca999adbbc948e69783686e5b5414e4'],
+        'slide_image_path': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
          'mask': ['/tmp/datasets/PANDA/train_label_masks/1ca999adbbc948e69783686e5b5414e4_mask.tiff'],
          'data_provider': ['karolinska'],
          'isup_grade': tensor([0]),
@@ -477,7 +477,7 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
 def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                        chunk_scale_in_tiles=0, tile_progress=True):
+                        chunk_scale_in_tiles=0, tile_progress=True, image_key: str = "slide_image_path"):
     """
     :param WSI_image_obj:
     :param ROI_sample_from_WSI:
@@ -495,10 +495,13 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
 
     :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
 
+    :param tile_progress: Whether to display a progress bar in the terminal.
+    :param image_key: WSI Image key in the input and output dictionaries. default is 'slide_image_path'
+
     """
     # STEP 0: prepare log files:
     # prepare a csv log file for ROI tiles
-    keys_to_save = ("slide_id", "tile_id", "image", "label",
+    keys_to_save = ("slide_id", "tile_id", image_key, "label",
                     "tile_y", "tile_x", "occupancy")
     # Decode the slide metadata (if got)
     slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
@@ -540,7 +543,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     for chuck_index in tqdm(range(len(chuck_locations)),
                             f"Processing the chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                             f"ROI index {ROI_sample_from_WSI['ROI_index']}",
-                            unit="img", disable=not tile_progress):
+                            unit="chuck", disable=not tile_progress):
         chuck_location = chuck_locations[chuck_index]
         level0_y, level0_x = chuck_location
         try:
@@ -588,7 +591,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                                        target_level_tilesize,
                                                        rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
 
-                        save_PIL_image(PIL_tile, output_tiles_dir / tile_info["image"])
+                        save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
 
                 except Exception as e:
                     # sometimes certain tiles is broken (for pixel failure) and we need to skip
@@ -610,7 +613,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     for tile_index in tqdm(range(len(tile_locations)),
                            f"Processing the out-of-chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                            f"ROI index {ROI_sample_from_WSI['ROI_index']}",
-                           unit="img", disable=not tile_progress):
+                           unit="tile", disable=not tile_progress):
         tile_location = tile_locations[tile_index]
         level0_y, level0_x = tile_location
 
@@ -636,7 +639,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                                target_level_tilesize,
                                                rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
 
-                save_PIL_image(PIL_tile, output_tiles_dir / tile_info["image"])
+                save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
 
         except Exception as e:
             # sometimes certain tiles is broken (for pixel failure) and we need to skip
@@ -723,7 +726,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     tile_info = {
         "slide_id": slide_id,
         "tile_id": get_tile_id(slide_id, tile_location),
-        "image": rel_image_path,
+        "tile_image_path": rel_image_path,
         "label": sample.get("label", None),
         "tile_y": tile_location[0],
         "tile_x": tile_location[1],
@@ -758,8 +761,8 @@ def load_image_dict(sample: dict, level: int, margin: int,
     """
     Load image from metadata dictionary
     :param sample: dict describing image metadata. Example:
-        {'image_id': ['1ca999adbbc948e69783686e5b5414e4'],
-        'image': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
+        {'slide_id': ['1ca999adbbc948e69783686e5b5414e4'],
+        'slide_image_path': ['/tmp/datasets/PANDA/train_images/1ca999adbbc948e69783686e5b5414e4.tiff'],
          'mask': ['/tmp/datasets/PANDA/train_label_masks/1ca999adbbc948e69783686e5b5414e4_mask.tiff'],
          'data_provider': ['karolinska'],
          'isup_grade': tensor([0]),
@@ -774,8 +777,8 @@ def load_image_dict(sample: dict, level: int, margin: int,
 
     :return: a dict containing the image sample and metadata
     """
-    loader = Loader_for_one_WSI_image(WSIReader(backend="OpenSlide"), level=level, margin=margin,
-                                      foreground_threshold=foreground_threshold)
+    loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), level=level, margin=margin,
+                                           foreground_threshold=foreground_threshold)
     WSI_img = loader(sample)
 
     return WSI_img
@@ -943,7 +946,7 @@ def save_openslide_thumbnail(openslide_obj, output_path, size_target=1024, level
 
 def visualize_tile_locations(sample, output_path, tile_info_list,
                              reader: WSIReader = WSIReader(backend="OpenSlide"),
-                             image_key: str = "image", size_thumbnail=1024):
+                             image_key: str = "slide_image_path", size_thumbnail=1024):
     """
     Visualize tile locations on a downscaled thumbnail of a WSI image.
 
@@ -952,7 +955,7 @@ def visualize_tile_locations(sample, output_path, tile_info_list,
     - output_path: path to save the output visualization
     - tile_info_list: list of dictionaries containing tile information with keys 'tile_x', 'tile_y', and 'target_level_tilesize'
     - reader: WSIReader object to read the WSI image
-    - image_key: Image key in the input and output dictionaries. default is 'image'
+    - image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
     - size_thumbnail: size of the thumbnail image to create for visualization
     """
     # Read the WSI image

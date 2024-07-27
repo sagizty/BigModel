@@ -57,12 +57,13 @@ from Segmentation_and_filtering_tools import *
 
 
 # todo it should be designed for better pretraining management
-def prepare_slides_dataset(slide_root, slide_suffixes=['.svs', '.ndpi'], metadata_file_paths=None):
+def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi'], metadata_file_paths=None,
+                               image_key: str = "slide_image_path"):
     """
-    Make a slides_dataset list, each element inside is a
-    slide_sample = {"image": slide_file, "slide_id": slide_id, "metadata": {}}
+    Make a slides_sample_list, each element inside is a
+    slide_sample = {"slide_image_path": slide_image_path, "slide_id": slide_id, "metadata": {}}
 
-    Later it will be warped like: dataset = torch.utils.data.Dataset(slides_dataset)
+    Later it will be warped like: dataset = torch.utils.data.Dataset(slides_sample_list)
 
     Args:
         slide_root: a root folder of multiple WSIs, notice each WSI may be organized in different folder format
@@ -75,21 +76,25 @@ def prepare_slides_dataset(slide_root, slide_suffixes=['.svs', '.ndpi'], metadat
         load them as pd dataframe, if the information for a certain WSI (slide_id) can be found in certain pd dataframe,
         the information will be kept in dictionary in "metadata"
 
-    Returns: slides_dataset
+        :param image_key: WSI Image key in the input and output dictionaries. default is 'slide_image_path'
+
+    Returns: slides_sample_list
+
+    slide_sample = {"slide_image_path": str(slide_image_path), "slide_id": slide_id, "metadata": {}}
     """
-    slides_dataset = []
+    slides_sample_list = []
 
     # Traverse the slide_root directory to find all files with the given suffixes
     for root, _, files in os.walk(slide_root):
         for file in files:
             if any(file.endswith(suffix) for suffix in slide_suffixes):
-                slide_file = Path(root) / file
+                slide_image_path = Path(root) / file
                 # Assuming the slide_id is the filename [0:12] without the suffix
-                slide_id = slide_file.stem
+                slide_id = slide_image_path.stem
                 patient_id = slide_id[0:12]  # fixme TCGA format only
 
                 # Initialize the slide_sample dictionary
-                slide_sample = {"image": str(slide_file), "slide_id": slide_id, "metadata": {}}
+                slide_sample = {image_key: str(slide_image_path), "slide_id": slide_id, "metadata": {}}
 
                 # If metadata file paths are provided, load metadata
                 if metadata_file_paths:
@@ -104,10 +109,10 @@ def prepare_slides_dataset(slide_root, slide_suffixes=['.svs', '.ndpi'], metadat
                                                        == patient_id].to_dict(orient='records')[0]
                             slide_sample["metadata"].update(metadata)
 
-                # Append the slide_sample to the slides_dataset
-                slides_dataset.append(slide_sample)
+                # Append the slide_sample to the slides_sample_list
+                slides_sample_list.append(slide_sample)
 
-    return slides_dataset
+    return slides_sample_list
 
 
 def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
@@ -116,7 +121,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
                                pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                                chunk_scale_in_tiles: int = 0,
-                               tile_progress: bool = False, image_key: str = "image") -> str:
+                               tile_progress: bool = False, image_key: str = "slide_image_path") -> str:
     """Load and process a slide, saving tile images and information to a CSV file.
 
     :param sample: Slide information dictionary, returned by the input slide dataset.
@@ -142,7 +147,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
 
     :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
     :param tile_progress: Whether to display a progress bar in the terminal.
-    :param image_key: Image key in the input and output dictionaries. default is 'image'
+    :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
 
 
     """
@@ -163,7 +168,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
         output_tiles_dir.mkdir(parents=True, exist_ok=True)
 
         # STEP 1: take the WSI and get the ROIs (valid tissue regions)
-        slide_image_path = Path(sample["image"])
+        slide_image_path = Path(sample[image_key])
         logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
 
         # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
@@ -187,7 +192,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                                 pixel_std_threshold=pixel_std_threshold,
                                                                 extreme_value_portion_th=extreme_value_portion_th,
                                                                 chunk_scale_in_tiles=chunk_scale_in_tiles,
-                                                                tile_progress=tile_progress)
+                                                                tile_progress=tile_progress, image_key=image_key)
 
             # STEP 3: visualize the tile location overlay to WSI
             visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
@@ -222,8 +227,8 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
             tile_progress=tile_progress, image_key=image_key
         )
     except Exception as e:
-        logging.error(f"Error processing slide {sample['image']}: {e}")
-        return sample["image"]
+        logging.error(f"Error processing slide {sample[image_key]}: {e}")
+        return sample[image_key]
 
 
 # Process multiple WSIs for pretraining
@@ -234,7 +239,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                                          pixel_std_threshold: int = 5,
                                          extreme_value_portion_th: float = 0.5,
                                          chunk_scale_in_tiles: int = 4,
-                                         image_key: str = "image",
+                                         image_key: str = "slide_image_path",
                                          parallel: bool = True,
                                          n_processes: Optional[int] = None,
                                          overwrite: bool = False,
@@ -261,7 +266,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
     :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
 
-    :param image_key: Image key in the input and output dictionaries. default is 'image'
+    :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
 
     :param parallel: Whether slides should be processed in parallel with multiprocessing.
     :param n_processes: If given, limit the total number of slides for multiprocessing
@@ -277,7 +282,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
     # make sure all slide files exist in the image dir
     for sample in dataset:
-        image_path = Path(sample["image"])
+        image_path = Path(sample[image_key])
         assert image_path.exists(), f"{image_path} doesn't exist"
 
     output_dir = Path(root_output_dir)
@@ -311,7 +316,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
         map_func = map  # type: ignore
 
     error_WSIs = list(
-        tqdm(map_func(func, dataset), desc="Slides", unit="img", total=len(dataset)))  # type: ignore
+        tqdm(map_func(func, dataset), desc="Slides", unit="wsi", total=len(dataset)))  # type: ignore
 
     if parallel:
         pool.close()
@@ -324,7 +329,8 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
 
 # for inference
-def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str = '', tile_size: int = 256):
+def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir: str = '', tile_size: int = 256,
+                                           image_key: str = "slide_image_path"):
     """
     This function is used to tile a single slide and save the tiles to a directory.
     -------------------------------------------------------------------------------
@@ -341,15 +347,16 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
     tile_size : int
         The size of the tiles.
     """
-    slide_id = os.path.basename(slide_file)
-    # slide_sample = {"image": slide_file, "slide_id": slide_id, "metadata": {'TP53': 1, 'Diagnosis': 'Lung Cancer'}}
-    slide_sample = {"image": slide_file, "slide_id": slide_id, "metadata": {}}
+    slide_id = os.path.basename(slide_image_path)
+    # slide_sample = {"slide_image_path": slide_image_path, "slide_id": slide_id,
+    # "metadata": {'TP53': 1, 'Diagnosis': 'Lung Cancer'}}
+    slide_sample = {image_key: slide_image_path, "slide_id": slide_id, "metadata": {}}
 
     save_dir = Path(save_dir)
     if save_dir.exists():
         print(f"Warning: Directory {save_dir} already exists. ")
 
-    print(f"Processing slide {slide_file} with tile size {tile_size}. Saving to {save_dir}.")
+    print(f"Processing slide {slide_image_path} with tile size {tile_size}. Saving to {save_dir}.")
 
     slide_dir = process_one_slide_to_tiles(
         slide_sample,
@@ -361,6 +368,7 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
         thumbnail_dir=save_dir / "thumbnails",
         chunk_scale_in_tiles=20,
         tile_progress=True,
+        image_key=image_key
     )
 
     dataset_csv_path = slide_dir / "dataset.csv"
@@ -370,7 +378,7 @@ def prepare_tiles_dataset_for_single_slide(slide_file: str = '', save_dir: str =
     failed_df = pd.read_csv(failed_csv_path)
     assert len(failed_df) == 0
 
-    print(f"Slide {slide_file} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
+    print(f"Slide {slide_image_path} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
 
 
 if __name__ == '__main__':
@@ -378,11 +386,11 @@ if __name__ == '__main__':
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
 
-    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
+    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
 
-    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
+    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
-    slides_dataset = prepare_slides_dataset(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
+    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
     prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)

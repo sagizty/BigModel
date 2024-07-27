@@ -113,7 +113,7 @@ def hdf5_save_a_patch_coord(h5_file_path, coord_y, coord_x):
         file.close()
 
 
-def hdf5_save_a_wsi_coord_npy(h5_file_path):
+def hdf5_save_a_wsi_coords_npy(h5_file_path):
     """
     build the coordinate index numpy of a WSI h5
 
@@ -130,15 +130,15 @@ def hdf5_save_a_wsi_coord_npy(h5_file_path):
     Y_max = coord_read[:, 0].max() + 1  # +1 is to make the correct shape of index matrix (start with 0)
     X_max = coord_read[:, 1].max() + 1
 
-    coord_npy = np.ones([Y_max, X_max]) * -1  # set default to -1 (no patch)
+    coords_npy = np.ones([Y_max, X_max]) * -1  # set default to -1 (no patch)
 
     for index in range(len(coord_read)):
-        coord_npy[coord_read[index, 0], coord_read[index, 1]] = index
+        coords_npy[coord_read[index, 0], coord_read[index, 1]] = index
 
     # save coordinate in numpy matrix, only have one matrix for the whole WSI
-    coord_dset = file.create_dataset('coord_npy', shape=(1, Y_max, X_max), maxshape=(1, Y_max, X_max),
+    coord_dset = file.create_dataset('coords_npy', shape=(1, Y_max, X_max), maxshape=(1, Y_max, X_max),
                                      chunks=(1, Y_max, X_max), dtype=np.int8)
-    coord_dset[:] = coord_npy
+    coord_dset[:] = coords_npy
 
     file.close()
 
@@ -155,8 +155,8 @@ def hdf5_save_a_WSI(h5_file_path, patch_list=None, patch_loc_list=None, patch_ty
     (features) format of numpy
 
     output:
-    coord_npy is a numpy size of Y_max, X_max, each value is the patch index of patch at [Y,X], or -1 for missing
-    the whole WSI only have one coord_npy, keep as [1, Y_max, X_max]
+    coords_npy is a numpy size of Y_max, X_max, each value is the patch index of patch at [Y,X], or -1 for missing
+    the whole WSI only have one coords_npy, keep as [1, Y_max, X_max]
     """
     assert type(patch_type) is str
     assert patch_loc_list is not None
@@ -180,28 +180,28 @@ def hdf5_save_a_WSI(h5_file_path, patch_list=None, patch_loc_list=None, patch_ty
         hdf5_save_a_patch_coord(h5_file_path, coord_y=patch_loc_list[idx][0], coord_x=patch_loc_list[idx][1])
 
     # build the coordinate index numpy
-    hdf5_save_a_wsi_coord_npy(h5_file_path)
+    hdf5_save_a_wsi_coords_npy(h5_file_path)
 
 
 def hdf5_check_all_coord(h5_file_path):
     """
-    coord_list is a list of coordinates, each item is [Y,X], Y,X is coordinates
-    coord_npy is a numpy size of Y_max, X_max, each value is the patch index of patch at [Y,X], or -1 for missing
+    coords_list is a list of coordinates, each item is [Y,X], Y,X is coordinates
+    coords_npy is a numpy size of Y_max, X_max, each value is the patch index of patch at [Y,X], or -1 for missing
     """
     # get a list of coordinates, each item is [Y,X], Y,X is coordinates
     # can select patch based on coordinates.
     file = h5py.File(h5_file_path, "r")
-    coord_dset = file['coords_yx']  # N,2
+    coords_dset = file['coords_yx']  # N,2
 
-    # the whole WSI only have one coord_npy, keep as [1, Y_max, X_max]
-    coord_npy = file['coord_npy'][0]
+    # the whole WSI only have one coords_npy, keep as [1, Y_max, X_max]
+    coords_npy = file['coords_npy'][0]
 
-    coord_list = []
-    for coord in coord_dset:
-        coord_list.append(coord.tolist())
+    coords_list = []
+    for coord in coords_dset:
+        coords_list.append(coord.tolist())
     file.close()
 
-    return coord_list, coord_npy
+    return coords_list, coords_npy
 
 
 def hdf5_load_a_list_of_patches_by_id(h5_file_path, patch_idx_list, patch_type='images'):
@@ -309,12 +309,12 @@ if __name__ == '__main__':
     hdf5_save_a_WSI(h5_file_path, patch_list, patch_loc_list, patch_type=patch_type)
 
     # Then, read all valid coordinates from current wsi
-    coord_list, coord_npy = hdf5_check_all_coord(h5_file_path)
+    coords_list, coords_npy = hdf5_check_all_coord(h5_file_path)
 
-    # we can take a patch_idx by its coordinate with coord_npy[Y, X]
+    # we can take a patch_idx by its coordinate with coords_npy[Y, X]
 
     # (play) get valid coordinate index list
-    # coord_valid_list_idx = [coord_npy[2, 4], coord_npy[2, 7], coord_npy[9, 4]]  # let's say I want idx 2,4,5
+    # coord_valid_list_idx = [coords_npy[2, 4], coords_npy[2, 7], coords_npy[9, 4]]  # let's say I want idx 2,4,5
     coord_valid_list_idx = random.choices(range(len(saved_patch_list)), k=5)
 
     patch_list, patch_coord_list = hdf5_load_a_list_of_patches_by_id(
@@ -329,5 +329,5 @@ if __name__ == '__main__':
             patch = Image.open(save_patch_path)
             print(patch, patch_coord_list[i])
 
-    coord_valid_list_coord = [coord_list[x] for x in coord_valid_list_idx]  # just for example
+    coord_valid_list_coord = [coords_list[x] for x in coord_valid_list_idx]  # just for example
 
