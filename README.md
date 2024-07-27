@@ -1,12 +1,4 @@
-# learning Prov-GigaPath
-
-## A whole-slide foundation model for digital pathology from real-world data
-
-[[`Model`](https://huggingface.co/prov-gigapath/prov-gigapath)] [[`Paper`](https://aka.ms/gigapath)] [[`BibTeX`](#Citation)]
-
-Hanwen Xu*, Naoto Usuyama*, Jaspreet Bagga, Sheng Zhang, Rajesh Rao, Tristan Naumann, Cliff Wong, Zelalem Gero, Javier González, Yu Gu, Yanbo Xu, Mu Wei, Wenhui Wang, Shuming Ma, Furu Wei, Jianwei Yang, Chunyuan Li, Jianfeng Gao, Jaylen Rosemon, Tucker Bower, Soohee Lee, Roshanthi Weerasinghe, Bill J. Wright, Ari Robicsek, Brian Piening, Carlo Bifulco, Sheng Wang, Hoifung Poon (*Equal Contribution)
-
-[![License](https://img.shields.io/badge/Code%20License-Prov%20GigaPath-red)]()
+# Fundational model pipeline via learning Prov-GigaPath
 
 ## Install
 
@@ -25,6 +17,33 @@ conda env create -f environment.yaml
 conda activate BigModel
 pip install -e .
 ```
+
+3. Cropping
+```Shell
+cd BigModel/DataPipe
+# set path inside and run
+nohup python tiles_dataset.py &
+```
+
+4. Embedding the ROIs
+```Shell
+cd BigModel/DataPipe
+# set path inside and run
+nohup python embedded_dataset.py &
+```
+
+5. Running the models
+   
+todo
+
+## A whole-slide foundation model for digital pathology from real-world data
+
+[[`Model`](https://huggingface.co/prov-gigapath/prov-gigapath)] [[`Paper`](https://aka.ms/gigapath)] [[`BibTeX`](#Citation)]
+
+Hanwen Xu*, Naoto Usuyama*, Jaspreet Bagga, Sheng Zhang, Rajesh Rao, Tristan Naumann, Cliff Wong, Zelalem Gero, Javier González, Yu Gu, Yanbo Xu, Mu Wei, Wenhui Wang, Shuming Ma, Furu Wei, Jianwei Yang, Chunyuan Li, Jianfeng Gao, Jaylen Rosemon, Tucker Bower, Soohee Lee, Roshanthi Weerasinghe, Bill J. Wright, Ari Robicsek, Brian Piening, Carlo Bifulco, Sheng Wang, Hoifung Poon (*Equal Contribution)
+
+[![License](https://img.shields.io/badge/Code%20License-Prov%20GigaPath-red)]()
+
 
 ## Model Download
 
