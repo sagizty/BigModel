@@ -478,7 +478,7 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
 def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                        chunk_scale_in_tiles=0, tile_progress=True, image_key: str = "slide_image_path"):
+                        chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path"):
     """
     :param WSI_image_obj:
     :param ROI_sample_from_WSI:
@@ -497,12 +497,12 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
 
     :param tile_progress: Whether to display a progress bar in the terminal.
-    :param image_key: WSI Image key in the input and output dictionaries. default is 'slide_image_path'
+    :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
 
     """
     # STEP 0: prepare log files:
     # prepare a csv log file for ROI tiles
-    keys_to_save = ("slide_id", "tile_id", image_key, "label",
+    keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
                     "tile_y", "tile_x", "occupancy")
     # Decode the slide metadata (if got)
     slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
@@ -557,6 +557,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                                                         chunk_scale_in_tiles,
                                                                         target_level_tilesize,
                                                                         ROI_sample_from_WSI)
+
         except:
             # sometimes reading certain region is broken (for pixel failure) and we need to skip
             n_failed_tiles += chunk_scale_in_tiles * chunk_scale_in_tiles
@@ -568,10 +569,10 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                           f"{get_tile_id(ROI_sample_from_WSI['slide_id'], chuck_location)}: {e}")
         else:
             # STEP 3: Filtering the ROIs with foreground occupancy ratio and pixel empty-value and pixel variance
-            for i in range(chunk_scale_in_tiles * chunk_scale_in_tiles):
+            for tile_idx_in_chuck in range(chunk_scale_in_tiles * chunk_scale_in_tiles):
 
-                a_tile_img = tile_images[i]
-                tile_location = chuck_tile_locations[i]
+                a_tile_img = tile_images[tile_idx_in_chuck]
+                tile_location = chuck_tile_locations[tile_idx_in_chuck]
 
                 try:
                     empty_tile_bool_mark, tile_occupancy = check_an_empty_tile(a_tile_img,
@@ -590,8 +591,8 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                         # logging and save the image to h5
                         tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,
                                                        target_level_tilesize,
-                                                       rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
-
+                                                       rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']),
+                                                       ROI_image_key=ROI_image_key)
                         save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
 
                 except Exception as e:
@@ -638,7 +639,8 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                 # logging and save the image to h5
                 tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,
                                                target_level_tilesize,
-                                               rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']))
+                                               rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']),
+                                               ROI_image_key=ROI_image_key)
 
                 save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
 
@@ -708,7 +710,8 @@ def get_tile_id(slide_id: str, tile_location: Sequence[int]) -> str:
 
 
 def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_location: Sequence[int],
-                       target_level_tilesize, rel_slide_dir: Path) -> Dict["TileKey", Any]:
+                       target_level_tilesize, rel_slide_dir: Path,
+                       ROI_image_key: str = "tile_image_path") -> Dict["TileKey", Any]:
     """Map slide information and tiling outputs into tile-specific information dictionary.
 
     :param sample: Slide dictionary.
@@ -717,6 +720,8 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     :param target_level_tilesize:
 
     :param rel_slide_dir: Directory where tiles are saved, relative to dataset root.
+
+    :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
 
     :return: Tile information dictionary.
     """
@@ -727,7 +732,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     tile_info = {
         "slide_id": slide_id,
         "tile_id": get_tile_id(slide_id, tile_location),
-        "tile_image_path": rel_image_path,
+        ROI_image_key: rel_image_path,
         "label": sample.get("label", None),
         "tile_y": tile_location[0],
         "tile_x": tile_location[1],

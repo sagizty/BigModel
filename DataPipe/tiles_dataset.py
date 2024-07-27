@@ -121,7 +121,9 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
                                pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                                chunk_scale_in_tiles: int = 0,
-                               tile_progress: bool = False, image_key: str = "slide_image_path") -> str:
+                               tile_progress: bool = False,
+                               image_key: str = "slide_image_path",
+                               ROI_image_key='tile_image_path') -> str:
     """Load and process a slide, saving tile images and information to a CSV file.
 
     :param sample: Slide information dictionary, returned by the input slide dataset.
@@ -148,8 +150,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
     :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
     :param tile_progress: Whether to display a progress bar in the terminal.
     :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
-
-
+    :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
     """
     # STEP 0: set up path and log files
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -192,7 +193,8 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                                 pixel_std_threshold=pixel_std_threshold,
                                                                 extreme_value_portion_th=extreme_value_portion_th,
                                                                 chunk_scale_in_tiles=chunk_scale_in_tiles,
-                                                                tile_progress=tile_progress, image_key=image_key)
+                                                                tile_progress=tile_progress,
+                                                                ROI_image_key=ROI_image_key)
 
             # STEP 3: visualize the tile location overlay to WSI
             visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
@@ -387,10 +389,6 @@ if __name__ == '__main__':
                         format='%(asctime)s %(levelname)s:%(message)s')
     # I have put the demo below:
     # TCGA-READ
-    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
-    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
-                                         tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
-    # TCGA_COAD
-    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
-    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
+    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
+    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/sampled_tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)

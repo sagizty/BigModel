@@ -16,6 +16,7 @@ import torch
 import logging
 import time
 import random
+import shutil
 import pandas as pd
 import numpy as np
 from typing import Optional, List, Tuple, Union
@@ -483,7 +484,8 @@ def embedding_one_slide(slide_folder: Union[str, Path],
                         edge_size: int = 224,
                         suffix: str = '.jpeg',
                         device: str = 'cuda',
-                        embedding_progress: bool = False) -> Optional[Tuple[str, str]]:
+                        embedding_progress: bool = False,
+                        overwrite: bool = False) -> Optional[Tuple[str, str]]:
     """
     Embeds all tiles in a given slide folder using a specified embedding model.
 
@@ -515,6 +517,8 @@ def embedding_one_slide(slide_folder: Union[str, Path],
         Device to run the embedding model on (default is 'cuda').
     embedding_progress: bool, optional
         Whether to show a progress bar (default is False).
+    overwrite: Whether to overwrite an existing output tiles dataset. If `True`,
+        will delete previous file and recreate
 
     Returns:
     --------
@@ -522,6 +526,7 @@ def embedding_one_slide(slide_folder: Union[str, Path],
         Returns None if successful, or a tuple (slide_id, slide_folder) if an error occurs.
     """
     slide_id = os.path.basename(slide_folder)
+
     try:
         # Determine the output path for the HDF5 file
         if output_WSI_dataset_path is None:
@@ -530,6 +535,13 @@ def embedding_one_slide(slide_folder: Union[str, Path],
             output_dir = os.path.join(output_WSI_dataset_path, slide_id)
             os.makedirs(output_dir, exist_ok=True)
             target_h5path = os.path.join(output_dir, f'{slide_id}.h5')
+
+        # is_already_processed
+        if os.path.exists(target_h5path):
+            if overwrite:
+                shutil.rmtree(target_h5path)
+            else:
+                logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} - h5 file already processed")
 
         # Create the dataset and dataloader
         tile_dataset = TileEncodingDataset(slide_folder, transform=transform, edge_size=edge_size, suffix=suffix)
@@ -570,7 +582,8 @@ def embedding_one_slide(slide_folder: Union[str, Path],
 
 
 def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
-                         model_name, model_weight_path, batch_size=256, edge_size=224):
+                         model_name, model_weight_path, batch_size=256, edge_size=224,
+                         overwrite=False):
     """
     Embeds all slides in the given root_path using the specified model and saves the embeddings.
     the embedding is running parallel per GPU
@@ -593,6 +606,8 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
     edge_size : int, optional
         Size of the edge of the image tiles (default is 224).
 
+    overwrite: Whether to overwrite an existing output tiles dataset. If `True`,
+        will delete previous file and recreate
     returns:
     ----------
     a list of (slide_id, slide_folder) if the slide encounter error in the embedding process
@@ -624,7 +639,7 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
             error_wsi_infor = embedding_one_slide(
                 slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                 batch_size=batch_size, device=device_list[device_index], num_workers=num_workers,
-                embedding_progress=False
+                embedding_progress=False, overwrite=overwrite
             )
             if error_wsi_infor:
                 error_wsi_infor_list_at_device.append(error_wsi_infor)
@@ -683,6 +698,7 @@ if __name__ == '__main__':
                         transform=None, suffix='.jpeg', device=device, embedding_progress=True)
     '''
     # demo with multiple sample
-    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_datasets',
+    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
                          output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
-                         model_name='ViT', model_weight_path='timm', batch_size=256, edge_size=224)
+                         model_name='ViT', model_weight_path='timm', batch_size=256, edge_size=224,
+                         overwrite=True)
