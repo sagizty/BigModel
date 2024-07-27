@@ -1,3 +1,6 @@
+"""
+tools for managing bbox    Script  ver： July 28th 01:00
+"""
 from dataclasses import dataclass
 from typing import Optional, Sequence, Tuple
 

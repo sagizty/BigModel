@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： July 27th 01:00
+WSI embedding dataset tools   Script  ver： July 28th 01:00
 
 
 """
@@ -14,15 +14,17 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'M
 import h5py
 import torch
 import logging
+import time
+import random
 import pandas as pd
 import numpy as np
-from typing import List, Tuple, Union
+from typing import Optional, List, Tuple, Union
 from PIL import Image
 from tqdm import tqdm
 import torch.nn as nn
 from torchvision import models
 from torchvision import transforms
-from multiprocessing import cpu_count
+import multiprocessing
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
@@ -30,7 +32,11 @@ from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 try:
     from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
 except:
-    from PuzzleAI.ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
+    try:
+        from VPT_ViT_modules import build_ViT_or_VPT
+    except ModuleNotFoundError:
+        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
+        from VPT_ViT_modules import build_ViT_or_VPT
 
 
 # datasets for embedding step or loading embedded slide_level datasets
@@ -84,7 +90,7 @@ class TileEncodingDataset(Dataset):
         with open(img_path, "rb") as f:
             patch_image_tensor = Image.open(f).convert("RGB")  # Prepare tile in [H, W, C] int8 RGB
             if self.transform:
-                patch_image_tensor = self.transform(img)
+                patch_image_tensor = self.transform(patch_image_tensor)
 
         return patch_image_tensor, patch_coord_yx_tensor
 
@@ -467,9 +473,17 @@ class Patch_embedding_model(nn.Module):
 
 
 # functions for the tile embedding and prepare dataset for slide-level tasks
-def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path=None,
-                        batch_size=256, shuffle=False, num_workers=2,
-                        transform=None, edge_size=224, suffix='.jpeg', device='cuda', embedding_progress=False):
+def embedding_one_slide(slide_folder: Union[str, Path],
+                        embedding_model_at_certain_GPU: torch.nn.Module,
+                        output_WSI_dataset_path: Optional[Union[str, Path]] = None,
+                        batch_size: int = 256,
+                        shuffle: bool = False,
+                        num_workers: int = 2,
+                        transform: Optional[transforms.Compose] = None,
+                        edge_size: int = 224,
+                        suffix: str = '.jpeg',
+                        device: str = 'cuda',
+                        embedding_progress: bool = False) -> Optional[Tuple[str, str]]:
     """
     Embeds all tiles in a given slide folder using a specified embedding model.
 
@@ -477,16 +491,14 @@ def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI
     the provided embedding model, and saves the features and their corresponding coordinates
     into an HDF5 file.
 
-    Arguments:
-    ----------
+    Parameters:
+    -----------
     slide_folder : str or Path
         Path to the folder containing tiled images of a whole slide image (WSI).
     embedding_model_at_certain_GPU : torch.nn.Module
         Pretrained model to be used for extracting features from the image tiles.
-
-    output_WSI_dataset_path: Path, optional, default=None will save the h5 file to the original WSI_folder
-                                if specified the h5 will be save at output_WSI_dataset_path/WSI_folder
-
+    output_WSI_dataset_path: Path, optional
+        Path to save the HDF5 file. If not specified, saves to the original slide folder.
     batch_size : int, optional
         Number of image tiles to process in a batch (default is 256).
     shuffle : bool, optional
@@ -495,14 +507,14 @@ def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI
         Number of subprocesses to use for data loading (default is 2).
     transform : torchvision.transforms.Compose, optional
         Transform to apply to each image tile (default is None).
-    edge_size: int, optional tile edge size (default is 224)
+    edge_size: int, optional
+        Tile edge size (default is 224).
     suffix : str, optional
         Suffix of the image files (default is '.jpeg').
-
     device : str, optional
         Device to run the embedding model on (default is 'cuda').
-
-    embedding_progress: bool, optional, False for not showing progress bar (default is False)
+    embedding_progress: bool, optional
+        Whether to show a progress bar (default is False).
 
     Returns:
     --------
@@ -510,29 +522,34 @@ def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI
         Returns None if successful, or a tuple (slide_id, slide_folder) if an error occurs.
     """
     slide_id = os.path.basename(slide_folder)
-
     try:
         # Determine the output path for the HDF5 file
         if output_WSI_dataset_path is None:
             target_h5path = os.path.join(slide_folder, f'{slide_id}.h5')
         else:
             output_dir = os.path.join(output_WSI_dataset_path, slide_id)
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
             target_h5path = os.path.join(output_dir, f'{slide_id}.h5')
 
         # Create the dataset and dataloader
         tile_dataset = TileEncodingDataset(slide_folder, transform=transform, edge_size=edge_size, suffix=suffix)
-        tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                                     drop_last=False)
 
         since = time.time()
         embedding_model_at_certain_GPU.eval()  # Set model to evaluation mode
 
+        logging.info(f'Processing {len(tile_dataset)} tiles from slide {slide_id}')
+
         # Process each batch of image tiles
-        for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) in tqdm(enumerate(tile_dataloader),
-                                                                                disable=not embedding_progress):
+        for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
+                in tqdm(enumerate(tile_dataloader),
+                        disable=not embedding_progress,
+                        total=len(tile_dataloader),
+                        unit="batch",
+                        desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
             patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
-            with torch.no_grad():  # no need gradient for embedding
+            with torch.no_grad():  # No need for gradient computation during embedding
                 patch_feature_tensor = embedding_model_at_certain_GPU(patch_image_tensor)  # Extract features
 
             # Save the features and coordinates to the HDF5 file
@@ -543,13 +560,13 @@ def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI
                                         coord_x=patch_coord_yx_tensor[idx][1].item())
 
         time_elapsed = time.time() - since
-        logging.info(f'slide_id: {slide_id}, time of embedding: {time_elapsed:.2f} seconds')
+        logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
 
     except Exception as e:
         logging.error(f"Error processing slide {slide_id}: {e}")
         return (slide_id, slide_folder)  # Return error information
-    else:
-        return None  # Return None if successful
+
+    return None  # Return None if successful
 
 
 def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
@@ -602,7 +619,8 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
     def embed_at_device(device_index, device_list, embedding_model_list, slide_folders, output_queue):
         embedding_model_at_certain_GPU = embedding_model_list[device_index]
         error_wsi_infor_list_at_device = []
-        for slide_id, slide_folder in tqdm(slide_folders, desc=f'Embedding slides on {device_list[device_index]}'):
+        for slide_id, slide_folder in tqdm(slide_folders,
+                                           desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
             error_wsi_infor = embedding_one_slide(
                 slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                 batch_size=batch_size, device=device_list[device_index], num_workers=num_workers,
@@ -649,7 +667,10 @@ if __name__ == '__main__':
     logging.basicConfig(filename='wsi_tile_embedding.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
 
-    dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/tiles_datasets')
+    '''
+    # demo with one sample 
+    
+    dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/sampled_datasets')
     slide_folder = dataset.slide_paths[dataset.slide_ids[0]]
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
@@ -657,6 +678,11 @@ if __name__ == '__main__':
     embedding_model_at_certain_GPU = embedding_model.to(device)
 
     embedding_one_slide(slide_folder, embedding_model_at_certain_GPU,
-                        output_WSI_dataset_path='/data/hdd_1/BigModel/embedded_datasets',
+                        output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
                         batch_size=256, shuffle=False, num_workers=20,
-                        transform=None, suffix='.jpeg', embedding_progress=True)
+                        transform=None, suffix='.jpeg', device=device, embedding_progress=True)
+    '''
+    # demo with multiple sample
+    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_datasets',
+                         output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                         model_name='ViT', model_weight_path='timm', batch_size=256, edge_size=224)

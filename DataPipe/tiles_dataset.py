@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： July 27th 01:00
+WSI tile cropping dataset tools   Script  ver： July 28th 01:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -232,7 +232,7 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
 
 
 # Process multiple WSIs for pretraining
-def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_output_dir: Union[str, Path],
+def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list", root_output_dir: Union[str, Path],
                                          margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
                                          foreground_threshold: Optional[float] = None,
                                          occupancy_threshold: float = 0.1,
@@ -246,7 +246,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
                                          n_slides: Optional[int] = None) -> None:
     """Process a slides dataset to produce many folders of tiles dataset.
 
-    :param slides_dataset: Input tiles dataset object.
+    :param slides_sample_list: Input tiles dataset object.
     :param root_output_dir: The root directory of the output tiles dataset.
 
     :param margin: Margin around the foreground bounding box, in pixels at lowest resolution.
@@ -278,7 +278,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
     # Ignoring some types here because mypy is getting confused with the MONAI Dataset class
     # to select a sub-set of samples use keyword n_slides
-    dataset = Dataset(slides_dataset)[:n_slides]  # type: ignore
+    dataset = Dataset(slides_sample_list)[:n_slides]  # type: ignore
 
     # make sure all slide files exist in the image dir
     for sample in dataset:
@@ -287,7 +287,7 @@ def prepare_tiles_dataset_for_all_slides(slides_dataset: "SlidesDataset", root_o
 
     output_dir = Path(root_output_dir)
     logging.info(f"Creating dataset of mpp-{target_mpp} {tile_size}x{tile_size} "
-                 f"{slides_dataset.__class__.__name__} tiles at: {output_dir}")
+                 f"{slides_sample_list.__class__.__name__} tiles at: {output_dir}")
 
     if overwrite and output_dir.exists():
         shutil.rmtree(output_dir)
@@ -385,12 +385,12 @@ if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
-
-    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
-
-    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
-    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
+    # I have put the demo below:
+    # TCGA-READ
+    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data')
+    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
-    slides_dataset = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
-    prepare_tiles_dataset_for_all_slides(slides_dataset, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
+    # TCGA_COAD
+    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-COAD/raw_data')
+    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/tiles_datasets',
                                          tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)

@@ -1,4 +1,5 @@
 """
+tools to process WSI     Script  ver： July 28th 01:00
 a WSI is a scanned whole slide image of some tissue region and many blank background
 
 Terminology:
