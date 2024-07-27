@@ -3,16 +3,34 @@ WSI embedding dataset tools   Script  ver： July 27th 01:00
 
 
 """
+import sys
 import os
+
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
+
+
 import h5py
 import torch
+import logging
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Union
 from PIL import Image
-
+from tqdm import tqdm
+import torch.nn as nn
+from torchvision import models
+from torchvision import transforms
+from multiprocessing import cpu_count
+from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
-
+from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
+try:
+    from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
+except:
+    from PuzzleAI.ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
 
 class TileEncodingDataset(Dataset):
     """
@@ -124,7 +142,7 @@ class Slide_loading_Dataset(Dataset):
                 for fname in os.listdir(slide_folder_path):
                     if fname.endswith(self.possible_suffixes):
                         slide_id = dirname
-                        slide_paths[slide_id] = slide_folder_path
+                        slide_paths[slide_id] = Path(slide_folder_path)
                         break  # Break early once a valid file is found
         return slide_paths
 
@@ -448,7 +466,7 @@ class Patch_embedding_model(nn.Module):
 # preparing dataset for slide level task
 def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                         batch_size=256, shuffle=False, num_workers=2,
-                        transform=None, edge_size=224, suffix='.jpeg', device='cuda'):
+                        transform=None, edge_size=224, suffix='.jpeg', device='cuda', embedding_progress=True):
     """
     Embeds all tiles in a given slide folder using a specified embedding model.
 
@@ -504,7 +522,8 @@ def embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI
     # No need to track gradient for all steps in embedding and saving
     embedding_model_at_certain_GPU.eval()
 
-    for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) in enumerate(tile_dataloader):
+    for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
+            in tqdm(enumerate(tile_dataloader), disable=not embedding_progress):
         # Move patch_image_tensor to the device
         patch_feature_tensor = embedding_model_at_certain_GPU(patch_image_tensor.to(device))
 
@@ -564,7 +583,8 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
             embedding_one_slide(slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                                 batch_size=batch_size,
                                 device=device_list[device_index],
-                                num_workers=num_workers)
+                                num_workers=num_workers,
+                                embedding_progress=False)
 
     # Split slide paths among available devices
     slide_folders = list(slide_path_dict.items())
