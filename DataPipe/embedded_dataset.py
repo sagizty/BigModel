@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： July 28th 01:00
+WSI embedding dataset tools   Script  ver： July 28th 10:00
 
 
 """
@@ -10,6 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
 
 import h5py
 import torch
@@ -32,12 +33,16 @@ from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 
 try:
     from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
+    from ..ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
 except:
     try:
         from VPT_ViT_modules import build_ViT_or_VPT
+        from Inference_pipeline import load_tile_slide_encoder
     except ModuleNotFoundError:
         sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
+        # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
         from VPT_ViT_modules import build_ViT_or_VPT
+        # from Inference_pipeline import load_tile_slide_encoder
 
 
 # datasets for embedding step or loading embedded slide_level datasets
@@ -396,8 +401,6 @@ class Patch_embedding_model(nn.Module):
 
     [batch, 3, edge, edge] -> [batch, D]
 
-    # todo add gigapath
-
     """
 
     def __init__(self, model_name='18', edge_size=224, pretrained_weight=None, prompt_state_dict=None):
@@ -454,12 +457,19 @@ class Patch_embedding_model(nn.Module):
 
             # GTP feature embedding resnet
             # Ref: Y. Zheng et al., “A Graph-Transformer for Whole Slide Image Classification,”
-            elif model_name == 'gtp':
-                assert pretrained_weight is not None
-                self.backbone = get_gtp_feature_embed(pretrained_weight, embed_dim=512)
+            elif model_name == 'gigapath':
+                # fixme if failed, use your own hugging face token and register for the project gigapath
+                os.environ["HF_TOKEN"] = "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"
+                if pretrained_weight is not None:
+                    tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=False,
+                                                     checkpoint_path=pretrained_weight)
+                else:
+                    tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
+                print("Tile encoder param #", sum(p.numel() for p in tile_encoder.parameters()))
+                self.backbone = tile_encoder
 
             else:
-                raise
+                raise NotImplementedError("This function is not yet implemented, model_name: " + str(model_name))
         else:
             self.backbone = model_name  # put for future input as a model
 
