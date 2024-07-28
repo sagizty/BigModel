@@ -455,9 +455,9 @@ class Patch_embedding_model(nn.Module):
                     edge_size=224, model_idx='ViT', patch_size=16,
                     VPT_type=None, base_state_dict=pretrained_weight or 'timm')
 
-            # GTP feature embedding resnet
-            # Ref: Y. Zheng et al., “A Graph-Transformer for Whole Slide Image Classification,”
+            # prov-gigapath feature embedding ViT
             elif model_name == 'gigapath':
+                # ref: https://www.nature.com/articles/s41586-024-07441-w
                 # fixme if failed, use your own hugging face token and register for the project gigapath
                 os.environ["HF_TOKEN"] = "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"
                 if pretrained_weight is not None:
@@ -710,5 +710,5 @@ if __name__ == '__main__':
     # demo with multiple sample
     embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
                          output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
-                         model_name='ViT', model_weight_path='timm', batch_size=256, edge_size=224,
+                         model_name='gigapath', model_weight_path='timm', batch_size=256, edge_size=224,
                          overwrite=True)
