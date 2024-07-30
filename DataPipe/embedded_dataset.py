@@ -1,6 +1,19 @@
 """
-WSI embedding dataset tools   Script  ver： July 30th 14:40
+WSI embedding dataset tools   Script  ver： July 30th 15:40
 
+load a cropped dataset (ROI dataset):
+    each WSI is a folder (slide_folder, name of slide_id),
+    cropped tiles are inside with name like: 44004y_11136x.jpeg
+->
+embed to a tile_feature dataset
+    each WSI is a folder (slide_folder, name of slide_id),
+    all cropped tiles are embedded as one .h5 file:
+        h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
+                            for transformer embedding, the feature dim is [768]
+        h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
+        
+to embed the tiles, a model and its weights need to be set:
+ we use Patch_embedding_model to achieve that
 
 """
 import sys
@@ -700,8 +713,7 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
             error_wsi_infor = embedding_one_slide(
                 slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                 batch_size=batch_size, device=device_list[device_index], num_workers=num_workers,
-                embedding_progress=False, overwrite=overwrite
-            )
+                embedding_progress=False, overwrite=overwrite)
             if error_wsi_infor:
                 error_wsi_infor_list_at_device.append(error_wsi_infor)
         output_queue.put(error_wsi_infor_list_at_device)
