@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： July 28th 10:00
+WSI embedding dataset tools   Script  ver： July 30th 14:40
 
 
 """
@@ -403,7 +403,16 @@ class Patch_embedding_model(nn.Module):
 
     """
 
-    def __init__(self, model_name='18', edge_size=224, pretrained_weight=None, prompt_state_dict=None):
+    def __init__(self, model_name='18', edge_size=224, pretrained_weight=None, prompt_state_dict=None,
+                 online_building =True):
+        """
+        :param model_name:
+        :param edge_size:
+        :param pretrained_weight:
+        :param prompt_state_dict:
+        :param online_building: default True to use timm or huggingface for the weights
+        
+        """
 
         super(Patch_embedding_model, self).__init__()
         self.edge_size = edge_size
@@ -458,13 +467,54 @@ class Patch_embedding_model(nn.Module):
             # prov-gigapath feature embedding ViT
             elif model_name == 'gigapath':
                 # ref: https://www.nature.com/articles/s41586-024-07441-w
-                # fixme if failed, use your own hugging face token and register for the project gigapath
-                os.environ["HF_TOKEN"] = "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"
-                if pretrained_weight is not None:
-                    tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=False,
-                                                     checkpoint_path=pretrained_weight)
+                if online_building:
+                    # fixme if failed, use your own hugging face token and register for the project gigapath
+                    os.environ["HF_TOKEN"] = "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"
+                    if pretrained_weight is not None:
+                        tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=False,
+                                                         checkpoint_path=pretrained_weight)
+                    else:
+                        tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
                 else:
-                    tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
+                    # Model configuration from your JSON
+                    config = {
+                        "architecture": "vit_giant_patch14_dinov2",
+                        "num_classes": 0,
+                        "num_features": 1536,
+                        "global_pool": "token",
+                        "model_args": {
+                            "img_size": 224,
+                            "in_chans": 3,
+                            "patch_size": 16,
+                            "embed_dim": 1536,
+                            "depth": 40,
+                            "num_heads": 24,
+                            "init_values": 1e-05,
+                            "mlp_ratio": 5.33334,
+                            "num_classes": 0
+                        }
+                    }
+
+                    # Create the model using timm
+                    tile_encoder = timm.create_model(
+                        config['architecture'],
+                        pretrained=False,  # Set to True if you want to load pretrained weights
+                        img_size=config['model_args']['img_size'],
+                        in_chans=config['model_args']['in_chans'],
+                        patch_size=config['model_args']['patch_size'],
+                        embed_dim=config['model_args']['embed_dim'],
+                        depth=config['model_args']['depth'],
+                        num_heads=config['model_args']['num_heads'],
+                        init_values=config['model_args']['init_values'],
+                        mlp_ratio=config['model_args']['mlp_ratio'],
+                        num_classes=config['model_args']['num_classes']
+                    )
+
+                    # Print the model to verify
+                    print(model)
+                    if pretrained_weight is not None:
+                        tile_encoder.load_state_dict(pretrained_weight, False)
+
                 print("Tile encoder param #", sum(p.numel() for p in tile_encoder.parameters()))
                 self.backbone = tile_encoder
 
@@ -638,7 +688,8 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
 
     embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
                                             pretrained_weight=model_weight_path)
-    embedding_model_list = [embedding_model.to(device) for device in device_list]
+    compiled_model = torch.compile(embedding_model)
+    embedding_model_list = [compiled_model.to(device) for device in device_list]
 
     # Function to embed slides for a specific device
     def embed_at_device(device_index, device_list, embedding_model_list, slide_folders, output_queue):
