@@ -11,7 +11,7 @@ embed to a tile_feature dataset
         h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
                             for transformer embedding, the feature dim is [768]
         h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
-        
+
 to embed the tiles, a model and its weights need to be set:
  we use Patch_embedding_model to achieve that
 
@@ -25,6 +25,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'M
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
 
+import json
 import h5py
 import torch
 import logging
@@ -195,6 +196,11 @@ class SlideDataset(Slide_loading_Dataset):
         '''
         The slide dataset class for retrieving the slide sample for different tasks
 
+        Each WSI is a folder (slide_folder, name of slide_id), all cropped tiles are embedded as one .h5 file:
+            h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
+                            for transformer embedding, the feature dim is [768]
+            h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
+
         Arguments:
         ----------
         data_df: pd.DataFrame
@@ -231,7 +237,8 @@ class SlideDataset(Slide_loading_Dataset):
         # filter out slides that do not have tile encodings
         data_df = data_df[data_df[self.slide_id_key].isin(valid_slide_ids)]
         # set up the task (fixme 'label' is for example should change to certain specific task name)
-        self.setup_task_data(data_df, splits, task_config.get('setting', 'label'))
+        task_name_list = task_config.get('setting', 'label')
+        self.setup_task_data(data_df, splits, task_name_list)
 
         # load from settings or set default value
         self.max_tiles = task_config.get('max_tiles', 1000)
@@ -282,10 +289,9 @@ class SlideDataset(Slide_loading_Dataset):
             slide_labels = df[[task_name]].to_numpy()
         return df, slide_ids, slide_labels, n_classes
 
-    # fixme change to Multiple task (currently its multiple-labeled single task)
+    # fixme old demo
     def prepare_multi_label_CLS_data_list(self, df: pd.DataFrame, splits: list, task_name_list: list):
         '''Prepare the sample for multi-label classification'''
-        # todo make this func ready in later days
         # set up the label_dict
         label_dict = self.task_cfg.get('label_dict', {})
         assert label_dict, 'No label_dict found in the task configuration'
@@ -303,13 +309,74 @@ class SlideDataset(Slide_loading_Dataset):
 
         return df, slide_ids, labels, n_classes
 
-    def setup_task_data(self, df: pd.DataFrame, splits: list, task_name_list: list):
+    def prepare_MTL_data_list(self, task_description_csv: pd.DataFrame, splits: str, task_name_list: list):
+        """
+
+        Args:
+            task_description_csv: slide_csv from MTL settings
+                    task_description_csv = pd.read_csv(os.path.join(self.task_setting_path,
+                                            'task_description.csv')).drop(columns=['split'])  # drop the split column
+            splits: a phase indicator str, like 'train'
+            task_name_list:
+
+        Returns:
+
+        """
+        '''Prepare the sample for multi-label task'''
+        # get the task-settings to encode the cls labels
+        task_dict = self.task_cfg.get('all_task_dict')
+        # json.load(open(os.path.join(self.root_path, 'all_task_dict.json'), 'r'))
+        one_hot_dict = self.task_cfg.get('one_hot_dict')
+        # json.load(open(os.path.join(self.root_path, 'one_hot_dict.json'), 'r'))
+
+        # get the label from csv file with WSIs assigned with the target split(such as train).
+        task_description_csv = task_description_csv[task_description_csv[self.split_target_key] == splits]
+
+        WSI_names = task_description_csv[self.slide_id_key]
+
+        labels = []
+
+        # get the WSI name
+        for WSI_name in WSI_names:
+            task_description_list = []
+
+            # convert to dictionary, basically the same as json file in old version, but cls is not one-hot encoded
+            loaded_task_description = \
+                task_description_csv[task_description_csv[self.slide_id_key] == WSI_name].to_dict('records')[0]
+
+            # get the label from the dictionary extracted from the csv file
+            for task in task_name_list:
+                data_type = task_dict[task]
+                if not pd.isna(loaded_task_description[task]):  # in case of available label
+                    if data_type == float:  # reg task
+                        task_description_list.append(
+                            torch.tensor(loaded_task_description[task]))  # e.g. torch.tensor(0.69)
+
+                    else:  # CLS task
+                        label = loaded_task_description[task]  # e.g. label = 'lusc'
+                        one_hot_label = torch.tensor(one_hot_dict[task][label])
+                        # e.g. one_hot_dict[lung-cancer-subtyping]['luad'] = torch.tensor([0, 1, 0])
+                        long_label = one_hot_label.argmax()
+                        # e.g. the index of the one-hot label, e.g. torch.LongTensor(1)
+                        task_description_list.append(long_label)  # e.g. torch.tensor(1)
+
+                else:  # in case of missing label
+                    if data_type == float:  # REG task
+                        task_description_list.append(torch.tensor(99999999.99))  # missing label
+                    else:  # CLS task
+                        task_description_list.append(torch.tensor(99999999))  # missing label
+
+            labels.append(task_description_list)
+
+        return task_description_csv, WSI_names, labels, None
+
+    def setup_task_data(self, df: pd.DataFrame, splits: list or str, task_name_list: list):
         '''Prepare the sample for single task setting or single task setting'''
         # Prepare slide sample
         if len(task_name_list) == 1:
             prepare_data_func = self.prepare_single_task_data_list
         elif len(task_name_list) > 1:
-            prepare_data_func = self.prepare_multi_label_CLS_data_list
+            prepare_data_func = self.prepare_MTL_data_list
         else:
             raise ValueError('Invalid task: {}'.format(task_name_list))
         self.slide_data, self.slide_ids, self.labels, self.n_classes = prepare_data_func(df, splits, task_name_list)
@@ -341,7 +408,6 @@ class SlideDataset(Slide_loading_Dataset):
 
     def get_embedded_data_dict(self, embedding_file_path: str) -> dict:
         """Get the image_features from the path"""
-        # fixme future abandon .pt?
         if '.pt' in embedding_file_path:
             image_features = torch.load(embedding_file_path)
             coords_yx = 0
