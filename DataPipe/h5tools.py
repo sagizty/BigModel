@@ -22,6 +22,8 @@ def hdf5_save_a_patch(h5_file_path, patch, patch_type='features'):
     h5file[patch_type] is a list of numpy
     (images) None, they are too big in h5, we don't save them in h5. we keep them in jpeg at the same folder of h5
     (features) format of numpy
+        h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
+                            for transformer embedding, the feature dim is [768]
     """
     assert h5_file_path.endswith('.h5')
     assert type(patch_type) is str
@@ -194,7 +196,10 @@ def hdf5_check_all_coord(h5_file_path):
     coords_dset = file['coords_yx']  # N,2
 
     # the whole WSI only have one coords_npy, keep as [1, Y_max, X_max]
-    coords_npy = file['coords_npy'][0]
+    try:
+        coords_npy = file['coords_npy'][0]
+    except:
+        coords_npy = -1
 
     coords_list = []
     for coord in coords_dset:
@@ -261,7 +266,7 @@ def print_h5_dataset_sizes(h5_file_path):
         print(f"Total data size: {total_size // 1024} KB")
 
 
-if __name__ == '__main__':
+def demo():
     h5_file_path = './sample/data.h5'
     patch_type = 'images'  # or features
 
@@ -331,3 +336,6 @@ if __name__ == '__main__':
 
     coord_valid_list_coord = [coords_list[x] for x in coord_valid_list_idx]  # just for example
 
+
+if __name__ == '__main__':
+    demo()

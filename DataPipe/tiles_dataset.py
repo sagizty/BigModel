@@ -383,6 +383,11 @@ def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir:
     print(f"Slide {slide_image_path} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
 
 
+# todo to support loading ROI level tasks for ROI model
+def tile_ROI_loadding_dataset(slide_image_path):
+    pass
+
+
 if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,

@@ -26,10 +26,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'M
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
 
 import json
+import yaml
 import h5py
 import torch
 import logging
 import time
+import timm
 import random
 import shutil
 import pandas as pd
@@ -44,6 +46,7 @@ import multiprocessing
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
+from tiles_dataset import *
 
 try:
     from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
@@ -105,7 +108,7 @@ class TileEncodingDataset(Dataset):
         # Extract y, x coordinates from the image name
         y, x = img_name.split(self.suffix)[0].split('_')  # EG: 44004y_11136x.jpeg
         y, x = int(y.replace('y', '')), int(x.replace('x', ''))
-        patch_coord_yx_tensor = torch.tensor([y, x], dtype=torch.int8)
+        patch_coord_yx_tensor = torch.tensor([y, x], dtype=torch.int32)
         # Load the image
         with open(img_path, "rb") as f:
             patch_image_tensor = Image.open(f).convert("RGB")  # Prepare tile in [H, W, C] int8 RGB
@@ -183,296 +186,6 @@ class Slide_loading_Dataset(Dataset):
         return slide_folder
 
 
-# todo Embedded slide dataset for WSI tasks
-class SlideDataset(Slide_loading_Dataset):
-    def __init__(self,
-                 data_df: pd.DataFrame,
-                 root_path: str,
-                 splits: list,
-                 task_config: dict,
-                 slide_id_key='slide_id',
-                 split_target_key='pat_id',
-                 **kwargs):
-        '''
-        The slide dataset class for retrieving the slide sample for different tasks
-
-        Each WSI is a folder (slide_folder, name of slide_id), all cropped tiles are embedded as one .h5 file:
-            h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
-                            for transformer embedding, the feature dim is [768]
-            h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
-
-        Arguments:
-        ----------
-        data_df: pd.DataFrame
-            The dataframe that contains the slide sample, from a csv file of slide and labels
-        root_path: str
-            The root path of the tile embeddings
-
-        task_config_path: dict
-            The task configuration dictionary
-                task configuration is a json file with the following structure:
-                        'setting': ['task_name_1', 'task_name_2',...] a list of target task
-                        'label_dict': a list of encoding rules for MTL fixme check with previous design
-
-        splits: list
-            The list of patient_ids/slide_ids as the split lists to build dataset
-
-        slide_id_key: str
-            The key that contains the slide id
-        split_target_key: str
-            The key that specifies the column name for taking the splits
-        '''
-        super(SlideDataset, self).__init__(**kwargs)
-
-        self.root_path = root_path
-
-        self.task_cfg = task_config
-
-        self.split_target_key = split_target_key
-        self.slide_id_key = slide_id_key
-
-        # get slides that have tile encodings
-        self.embedded_slide_paths = {}
-        valid_slide_ids = self.get_valid_slides(self.root_path, data_df[self.slide_id_key].values)
-        # filter out slides that do not have tile encodings
-        data_df = data_df[data_df[self.slide_id_key].isin(valid_slide_ids)]
-        # set up the task (fixme 'label' is for example should change to certain specific task name)
-        task_name_list = task_config.get('setting', 'label')
-        self.setup_task_data(data_df, splits, task_name_list)
-
-        # load from settings or set default value
-        self.max_tiles = task_config.get('max_tiles', 1000)
-        self.shuffle_tiles = task_config.get('shuffle_tiles', False)
-        print('Dataset has been initialized!')
-
-    def get_valid_slides(self, root_path: str, slide_ids: list) -> list:
-        '''This function is used to get the slides that have tile encodings stored in the tile directory'''
-        valid_slide_ids = []
-        for slide_id in slide_ids:
-
-            if 'pt_files' in root_path.split('/')[-1]:
-                embedded_slide_file = slide_id.replace(".svs", "") + '.pt'
-            else:
-                embedded_slide_file = slide_id.replace(".svs", "") + '.h5'
-
-            embedded_slide_path = os.path.join(self.slide_paths[slide_id], embedded_slide_file)
-            if not os.path.exists(embedded_slide_path):
-                print('Missing: ', embedded_slide_path)
-            else:
-                # add to valid list
-                valid_slide_ids.append(slide_id)
-                self.embedded_slide_paths[slide_id] = embedded_slide_path
-
-        return valid_slide_ids
-
-    def prepare_single_task_data_list(self, df: pd.DataFrame, splits: list, task_name_list=['label', ]):
-        '''Prepare the sample for single task'''
-        task_name = task_name_list[0]
-
-        # set up the label_dict
-        label_dict_settings = self.task_cfg.get('label_dict', {})  # one-encoding dict
-        assert label_dict_settings, 'No label_dict found in the task configuration'
-        label_dict = label_dict_settings[task_name]
-
-        # set up the mappings
-        assert task_name in df.columns, 'No label column found in the dataframe'
-        df[task_name] = df[task_name].map(label_dict)
-        n_classes = len(label_dict)  # if 1, its regression task
-
-        # get the corresponding splits
-        assert self.split_target_key in df.columns, 'No {} column found in the dataframe'.format(self.split_target_key)
-        df = df[df[self.split_target_key].isin(splits)]
-        slide_ids = df[self.slide_id_key].to_list()
-        if n_classes == 1:
-            slide_labels = df[[task_name]].to_numpy().astype(int)  # manual long-int encoding in df[['label']]
-        else:
-            slide_labels = df[[task_name]].to_numpy()
-        return df, slide_ids, slide_labels, n_classes
-
-    # fixme old demo
-    def prepare_multi_label_CLS_data_list(self, df: pd.DataFrame, splits: list, task_name_list: list):
-        '''Prepare the sample for multi-label classification'''
-        # set up the label_dict
-        label_dict = self.task_cfg.get('label_dict', {})
-        assert label_dict, 'No label_dict found in the task configuration'
-        # Prepare mutation sample
-        label_keys = label_dict.keys()
-        # sort key using values
-        label_keys = sorted(label_keys, key=lambda x: label_dict[x])
-        n_classes = len(label_dict)
-
-        # get the corresponding splits
-        assert self.split_target_key in df.columns, 'No {} column found in the dataframe'.format(self.split_target_key)
-        df = df[df[self.split_target_key].isin(splits)]
-        slide_ids = df[self.slide_id_key].to_list()
-        labels = df[label_keys].to_numpy().astype(int)
-
-        return df, slide_ids, labels, n_classes
-
-    def prepare_MTL_data_list(self, task_description_csv: pd.DataFrame, splits: str, task_name_list: list):
-        """
-
-        Args:
-            task_description_csv: slide_csv from MTL settings
-                    task_description_csv = pd.read_csv(os.path.join(self.task_setting_path,
-                                            'task_description.csv')).drop(columns=['split'])  # drop the split column
-            splits: a phase indicator str, like 'train'
-            task_name_list:
-
-        Returns:
-
-        """
-        '''Prepare the sample for multi-label task'''
-        # get the task-settings to encode the cls labels
-        task_dict = self.task_cfg.get('all_task_dict')
-        # json.load(open(os.path.join(self.root_path, 'all_task_dict.json'), 'r'))
-        one_hot_dict = self.task_cfg.get('one_hot_dict')
-        # json.load(open(os.path.join(self.root_path, 'one_hot_dict.json'), 'r'))
-
-        # get the label from csv file with WSIs assigned with the target split(such as train).
-        task_description_csv = task_description_csv[task_description_csv[self.split_target_key] == splits]
-
-        WSI_names = task_description_csv[self.slide_id_key]
-
-        labels = []
-
-        # get the WSI name
-        for WSI_name in WSI_names:
-            task_description_list = []
-
-            # convert to dictionary, basically the same as json file in old version, but cls is not one-hot encoded
-            loaded_task_description = \
-                task_description_csv[task_description_csv[self.slide_id_key] == WSI_name].to_dict('records')[0]
-
-            # get the label from the dictionary extracted from the csv file
-            for task in task_name_list:
-                data_type = task_dict[task]
-                if not pd.isna(loaded_task_description[task]):  # in case of available label
-                    if data_type == float:  # reg task
-                        task_description_list.append(
-                            torch.tensor(loaded_task_description[task]))  # e.g. torch.tensor(0.69)
-
-                    else:  # CLS task
-                        label = loaded_task_description[task]  # e.g. label = 'lusc'
-                        one_hot_label = torch.tensor(one_hot_dict[task][label])
-                        # e.g. one_hot_dict[lung-cancer-subtyping]['luad'] = torch.tensor([0, 1, 0])
-                        long_label = one_hot_label.argmax()
-                        # e.g. the index of the one-hot label, e.g. torch.LongTensor(1)
-                        task_description_list.append(long_label)  # e.g. torch.tensor(1)
-
-                else:  # in case of missing label
-                    if data_type == float:  # REG task
-                        task_description_list.append(torch.tensor(99999999.99))  # missing label
-                    else:  # CLS task
-                        task_description_list.append(torch.tensor(99999999))  # missing label
-
-            labels.append(task_description_list)
-
-        return task_description_csv, WSI_names, labels, None
-
-    def setup_task_data(self, df: pd.DataFrame, splits: list or str, task_name_list: list):
-        '''Prepare the sample for single task setting or single task setting'''
-        # Prepare slide sample
-        if len(task_name_list) == 1:
-            prepare_data_func = self.prepare_single_task_data_list
-        elif len(task_name_list) > 1:
-            prepare_data_func = self.prepare_MTL_data_list
-        else:
-            raise ValueError('Invalid task: {}'.format(task_name_list))
-        self.slide_data, self.slide_ids, self.labels, self.n_classes = prepare_data_func(df, splits, task_name_list)
-        # reset the embedded_slide_paths dict
-        self.embedded_slide_paths = self.embedded_slide_paths[self.slide_ids]
-
-    def shuffle_data_pairs(self, images: torch.Tensor, coords: torch.Tensor) -> tuple:
-        '''Shuffle the serialized images and coordinates'''
-        indices = torch.randperm(len(images))
-        images_ = images[indices]
-        coords_ = coords[indices]
-        return images_, coords_
-
-    def read_assets_from_h5(self, h5_path: str) -> tuple:
-        '''Read the assets from the h5 file'''
-        assets = {}
-        attrs = {}
-        with h5py.File(h5_path, 'r') as f:
-            for key in f.keys():
-                assets[key] = f[key][:]
-                if f[key].attrs is not None:
-                    attrs[key] = dict(f[key].attrs)
-        return assets, attrs
-
-    def get_slide_name_from_path(self, sld: str) -> str:
-        '''Get the slide name from the slide path'''
-        slide_name = os.path.basename(sld).split('.h5')[0]
-        return slide_name
-
-    def get_embedded_data_dict(self, embedding_file_path: str) -> dict:
-        """Get the image_features from the path"""
-        if '.pt' in embedding_file_path:
-            image_features = torch.load(embedding_file_path)
-            coords_yx = 0
-        elif '.h5' in embedding_file_path:
-            assets, _ = self.read_assets_from_h5(embedding_file_path)
-            image_features = torch.from_numpy(assets['features'])
-            coords_yx = torch.from_numpy(assets['coords_yx'])
-
-            # if shuffle the sample
-            if self.shuffle_tiles:
-                image_features, coords_yx = self.shuffle_data_pairs(image_features, coords_yx)
-
-            if image_features.size(0) > self.max_tiles:
-                image_features = image_features[:self.max_tiles, :]
-            if coords_yx.size(0) > self.max_tiles:
-                coords_yx = coords_yx[:self.max_tiles, :]
-
-        # set the input dict
-        data_dict = {'image_features': image_features,
-                     'image_features_lens': image_features.size(0),
-                     'pad_mask': 0,  # It may be used for some model design
-                     'coords_yx': coords_yx}
-        return data_dict
-
-    def get_one_embedded_sample(self, idx: int) -> dict:
-        '''Get one sample from the dataset'''
-        # get the slide id
-        slide_id = self.slide_ids[idx]
-        # get the slide path
-        embedded_slide_path = self.embedded_slide_paths[slide_id]
-
-        # get the slide tile embeddings
-        data_dict = self.get_embedded_data_dict(embedded_slide_path)
-        # get the slide label
-        label = torch.from_numpy(self.labels[idx])
-        # set the sample dict
-        sample = {'image_features': data_dict['image_features'],
-                  'image_features_lens': data_dict['image_features_lens'],
-                  'pad_mask': data_dict['pad_mask'],
-                  'coords_yx': data_dict['coords_yx'],
-                  'slide_id': slide_id,
-                  'labels': label}
-        return sample
-
-    def get_embedded_sample_with_try(self, idx, n_try=3):
-        '''Get the sample with n_try,
-        fixme this handels missing/ failed sample, but not nicely'''
-        for _ in range(n_try):
-            try:
-                one_embedded_sample = self.get_one_embedded_sample(idx)
-                return one_embedded_sample
-            except:
-                print('Error in getting the sample, try another index')
-                idx = np.random.randint(0, len(self.slide_data))
-        print('Error in getting one sample with n_try: ', n_try)
-        raise  # Error in getting one sample with n_try
-
-    def __len__(self):
-        return len(self.slide_data)
-
-    def __getitem__(self, idx):
-        slide_level_sample = self.get_embedded_sample_with_try(idx)
-        return slide_level_sample
-
-
 # class for setting up embedding model
 class Patch_embedding_model(nn.Module):
     """
@@ -483,7 +196,7 @@ class Patch_embedding_model(nn.Module):
     """
 
     def __init__(self, model_name='18', edge_size=224, pretrained_weight=None, prompt_state_dict=None,
-                 online_building =True):
+                 online_building=True):
         """
         :param model_name:
         :param edge_size:
@@ -590,7 +303,7 @@ class Patch_embedding_model(nn.Module):
                     )
 
                     # Print the model to verify
-                    print(model)
+                    print(tile_encoder)
                     if pretrained_weight is not None:
                         tile_encoder.load_state_dict(pretrained_weight, False)
 
@@ -613,18 +326,18 @@ class Patch_embedding_model(nn.Module):
 
 
 # functions for the tile embedding and prepare dataset for slide-level tasks
-def embedding_one_slide(slide_folder: Union[str, Path],
-                        embedding_model_at_certain_GPU: torch.nn.Module,
-                        output_WSI_dataset_path: Optional[Union[str, Path]] = None,
-                        batch_size: int = 256,
-                        shuffle: bool = False,
-                        num_workers: int = 2,
-                        transform: Optional[transforms.Compose] = None,
-                        edge_size: int = 224,
-                        suffix: str = '.jpeg',
-                        device: str = 'cuda',
-                        embedding_progress: bool = False,
-                        overwrite: bool = False) -> Optional[Tuple[str, str]]:
+def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
+                                   embedding_model_at_certain_GPU: torch.nn.Module,
+                                   output_WSI_dataset_path: Optional[Union[str, Path]] = None,
+                                   batch_size: int = 256,
+                                   shuffle: bool = False,
+                                   num_workers: int = 2,
+                                   transform: Optional[transforms.Compose] = None,
+                                   edge_size: int = 224,
+                                   suffix: str = '.jpeg',
+                                   device: str = 'cuda',
+                                   embedding_progress: bool = False,
+                                   overwrite: bool = False) -> Optional[Tuple[str, str]]:
     """
     Embeds all tiles in a given slide folder using a specified embedding model.
 
@@ -681,6 +394,7 @@ def embedding_one_slide(slide_folder: Union[str, Path],
                 shutil.rmtree(target_h5path)
             else:
                 logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} - h5 file already processed")
+                return (slide_id, slide_folder)
 
         # Create the dataset and dataloader
         tile_dataset = TileEncodingDataset(slide_folder, transform=transform, edge_size=edge_size, suffix=suffix)
@@ -718,6 +432,112 @@ def embedding_one_slide(slide_folder: Union[str, Path],
         return (slide_id, slide_folder)  # Return error information
 
     return None  # Return None if successful
+
+
+def embedding_one_slide_from_slide(sample: Dict["SlideKey", Any],
+                                   output_dir: Path, thumbnail_dir: Optional[Path] = None,
+                                   margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
+                                   foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
+                                   pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
+                                   chunk_scale_in_tiles: int = 0,
+                                   tile_progress: bool = False,
+                                   image_key: str = "slide_image_path",
+                                   ROI_image_key='tile_image_path',
+                                   overwrite: bool = False) -> str:
+    """Load and process a slide, saving tile images and information to a CSV file.
+
+    :param sample: Slide information dictionary, returned by the input slide dataset.
+
+    :param output_dir: Root directory for the output dataset; outputs for a single slide will be
+    saved inside `output_dir/slide_id/`.
+    :param thumbnail_dir:root for all thumbnails
+
+    :param margin: Margin around the foreground bounding box, in pixels at lowest resolution.
+    :param tile_size: Lateral dimensions of each tile, in pixels.
+    :param target_mpp: 0.5 for prov-gigapath
+
+    :param foreground_threshold: Luminance threshold (0 to 255) to determine if one pixel is foreground
+    then the pixels can be used for checking tile occupancy. If `None` (default),
+    an optimal threshold will be estimated automatically.
+
+    :param occupancy_threshold: Threshold (between 0 and 1) to determine empty tiles to discard.
+
+    :param pixel_std_threshold: The threshold for the pixel variance at one ROI
+                                to say this ROI image is too 'empty'
+    :param extreme_value_portion_th: The threshold for the ratio of the pixels being 0 of one ROI,
+                                    to say this ROI image is too 'empty'
+
+    :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
+    :param tile_progress: Whether to display a progress bar in the terminal.
+    :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
+    :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
+    """
+    # STEP 0: set up path and log files
+    slide_id: str = sample["slide_id"]
+    slide_image_path = Path(sample[image_key])
+    slide_folder = os.path.split(slide_image_path)[0]
+    # Determine the output path for the HDF5 file
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_slide_folder = os.path.join(output_dir, slide_id)
+    os.makedirs(output_slide_folder, exist_ok=True)
+    target_h5path = os.path.join(output_slide_folder, f'{slide_id}.h5')
+
+    thumbnail_dir = thumbnail_dir or output_dir
+    thumbnail_dir.mkdir(parents=True, exist_ok=True)
+
+    # is_already_processed
+    if os.path.exists(target_h5path):
+        if overwrite:
+            shutil.rmtree(target_h5path)
+        else:
+            logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} "
+                         f"- h5 file already processed at output_slide_folder {output_slide_folder}")
+            return (slide_id, slide_folder)
+
+    else:
+        # STEP 1: take the WSI and get the ROIs (valid tissue regions)
+        logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
+
+        # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
+        loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), image_key=image_key,
+                                               target_mpp=target_mpp, margin=margin,
+                                               foreground_threshold=foreground_threshold,
+                                               thumbnail_dir=thumbnail_dir)
+        WSI_image_obj, loaded_ROI_samples = loader(sample)
+
+        # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
+        logging.info(f"Tiling slide {slide_id} ...")
+        # each ROI_sample in loaded_WSI_samples is a valid ROI region
+        n_failed_tiles = 0
+        for index, ROI_sample in enumerate(loaded_ROI_samples):
+            # todo output_tiles_dir make like a temp file! not done yet
+            '''
+            # The estimated luminance (foreground threshold) for whole WSI is applied to ROI here to filter the tiles
+            tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, output_tiles_dir,
+                                                                tile_size=tile_size,
+                                                                foreground_threshold=ROI_sample[
+                                                                    "foreground_threshold"],
+                                                                occupancy_threshold=occupancy_threshold,
+                                                                pixel_std_threshold=pixel_std_threshold,
+                                                                extreme_value_portion_th=extreme_value_portion_th,
+                                                                chunk_scale_in_tiles=chunk_scale_in_tiles,
+                                                                tile_progress=tile_progress,
+                                                                ROI_image_key=ROI_image_key)
+            '''
+
+            # STEP 3: visualize the tile location overlay to WSI
+            visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
+                                                                  + "_roi_" + str(index) + "_tiles.jpeg"),
+                                     tile_info_list, image_key=image_key)
+            n_failed_tiles += n_failed_tile
+
+        if n_failed_tiles > 0:
+            # what we want to do with slides that have some failed tiles? for now, just drop?
+            logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
+
+        logging.info(f"Finished processing slide {slide_id}")
+
+        return (slide_id, slide_folder)
 
 
 def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
@@ -776,7 +596,7 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
         error_wsi_infor_list_at_device = []
         for slide_id, slide_folder in tqdm(slide_folders,
                                            desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
-            error_wsi_infor = embedding_one_slide(
+            error_wsi_infor = embedding_one_slide_from_tiles(
                 slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
                 batch_size=batch_size, device=device_list[device_index], num_workers=num_workers,
                 embedding_progress=False, overwrite=overwrite)
@@ -820,24 +640,30 @@ if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(filename='wsi_tile_embedding.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
-
     '''
-    # demo with one sample 
+    # demo with one sample
     
-    dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/sampled_datasets')
+    dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/sampled_tiles_datasets')
     slide_folder = dataset.slide_paths[dataset.slide_ids[0]]
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     embedding_model = Patch_embedding_model(model_name='ViT', pretrained_weight='timm')
     embedding_model_at_certain_GPU = embedding_model.to(device)
 
-    embedding_one_slide(slide_folder, embedding_model_at_certain_GPU,
-                        output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
-                        batch_size=256, shuffle=False, num_workers=20,
-                        transform=None, suffix='.jpeg', device=device, embedding_progress=True)
-    '''
+    embedding_one_slide_from_tiles(slide_folder, embedding_model_at_certain_GPU,
+                                   output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                                   batch_size=256, shuffle=False, num_workers=20,
+                                   transform=None, suffix='.jpeg', device=device, embedding_progress=True)
+                                   
+                                   
     # demo with multiple sample
     embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
                          output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
                          model_name='gigapath', model_weight_path='timm', batch_size=256, edge_size=224,
                          overwrite=True)
+    '''
+    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets',
+                         output_WSI_dataset_path='/data/hdd_1/BigModel/embedded_datasets',
+                         model_name='gigapath', model_weight_path='timm', batch_size=256, edge_size=224,
+                         overwrite=True)
+
