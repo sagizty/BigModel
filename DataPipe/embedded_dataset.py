@@ -36,6 +36,7 @@ import random
 import shutil
 import pandas as pd
 import numpy as np
+import tempfile
 from typing import Optional, List, Tuple, Union
 from PIL import Image
 from tqdm import tqdm
@@ -325,7 +326,7 @@ class Patch_embedding_model(nn.Module):
         return x
 
 
-# functions for the tile embedding and prepare dataset for slide-level tasks
+# functions for embedding the tiles from tiles_dataset
 def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
                                    embedding_model_at_certain_GPU: torch.nn.Module,
                                    output_WSI_dataset_path: Optional[Union[str, Path]] = None,
@@ -434,115 +435,9 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
     return None  # Return None if successful
 
 
-def embedding_one_slide_from_slide(sample: Dict["SlideKey", Any],
-                                   output_dir: Path, thumbnail_dir: Optional[Path] = None,
-                                   margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
-                                   foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
-                                   pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                                   chunk_scale_in_tiles: int = 0,
-                                   tile_progress: bool = False,
-                                   image_key: str = "slide_image_path",
-                                   ROI_image_key='tile_image_path',
-                                   overwrite: bool = False) -> str:
-    """Load and process a slide, saving tile images and information to a CSV file.
-
-    :param sample: Slide information dictionary, returned by the input slide dataset.
-
-    :param output_dir: Root directory for the output dataset; outputs for a single slide will be
-    saved inside `output_dir/slide_id/`.
-    :param thumbnail_dir:root for all thumbnails
-
-    :param margin: Margin around the foreground bounding box, in pixels at lowest resolution.
-    :param tile_size: Lateral dimensions of each tile, in pixels.
-    :param target_mpp: 0.5 for prov-gigapath
-
-    :param foreground_threshold: Luminance threshold (0 to 255) to determine if one pixel is foreground
-    then the pixels can be used for checking tile occupancy. If `None` (default),
-    an optimal threshold will be estimated automatically.
-
-    :param occupancy_threshold: Threshold (between 0 and 1) to determine empty tiles to discard.
-
-    :param pixel_std_threshold: The threshold for the pixel variance at one ROI
-                                to say this ROI image is too 'empty'
-    :param extreme_value_portion_th: The threshold for the ratio of the pixels being 0 of one ROI,
-                                    to say this ROI image is too 'empty'
-
-    :param chunk_scale_in_tiles: to speed up the io for loading the WSI regions
-    :param tile_progress: Whether to display a progress bar in the terminal.
-    :param image_key: Image key in the input and output dictionaries. default is 'slide_image_path'
-    :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
-    """
-    # STEP 0: set up path and log files
-    slide_id: str = sample["slide_id"]
-    slide_image_path = Path(sample[image_key])
-    slide_folder = os.path.split(slide_image_path)[0]
-    # Determine the output path for the HDF5 file
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_slide_folder = os.path.join(output_dir, slide_id)
-    os.makedirs(output_slide_folder, exist_ok=True)
-    target_h5path = os.path.join(output_slide_folder, f'{slide_id}.h5')
-
-    thumbnail_dir = thumbnail_dir or output_dir
-    thumbnail_dir.mkdir(parents=True, exist_ok=True)
-
-    # is_already_processed
-    if os.path.exists(target_h5path):
-        if overwrite:
-            shutil.rmtree(target_h5path)
-        else:
-            logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} "
-                         f"- h5 file already processed at output_slide_folder {output_slide_folder}")
-            return (slide_id, slide_folder)
-
-    else:
-        # STEP 1: take the WSI and get the ROIs (valid tissue regions)
-        logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
-
-        # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
-        loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), image_key=image_key,
-                                               target_mpp=target_mpp, margin=margin,
-                                               foreground_threshold=foreground_threshold,
-                                               thumbnail_dir=thumbnail_dir)
-        WSI_image_obj, loaded_ROI_samples = loader(sample)
-
-        # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
-        logging.info(f"Tiling slide {slide_id} ...")
-        # each ROI_sample in loaded_WSI_samples is a valid ROI region
-        n_failed_tiles = 0
-        for index, ROI_sample in enumerate(loaded_ROI_samples):
-            # todo output_tiles_dir make like a temp file! not done yet
-            '''
-            # The estimated luminance (foreground threshold) for whole WSI is applied to ROI here to filter the tiles
-            tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, output_tiles_dir,
-                                                                tile_size=tile_size,
-                                                                foreground_threshold=ROI_sample[
-                                                                    "foreground_threshold"],
-                                                                occupancy_threshold=occupancy_threshold,
-                                                                pixel_std_threshold=pixel_std_threshold,
-                                                                extreme_value_portion_th=extreme_value_portion_th,
-                                                                chunk_scale_in_tiles=chunk_scale_in_tiles,
-                                                                tile_progress=tile_progress,
-                                                                ROI_image_key=ROI_image_key)
-            '''
-
-            # STEP 3: visualize the tile location overlay to WSI
-            visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
-                                                                  + "_roi_" + str(index) + "_tiles.jpeg"),
-                                     tile_info_list, image_key=image_key)
-            n_failed_tiles += n_failed_tile
-
-        if n_failed_tiles > 0:
-            # what we want to do with slides that have some failed tiles? for now, just drop?
-            logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
-
-        logging.info(f"Finished processing slide {slide_id}")
-
-        return (slide_id, slide_folder)
-
-
-def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
-                         model_name, model_weight_path, batch_size=256, edge_size=224,
-                         overwrite=False):
+def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_WSI_dataset_path,
+                                            model_name, model_weight_path, batch_size=256, edge_size=224,
+                                            overwrite=False):
     """
     Embeds all slides in the given root_path using the specified model and saves the embeddings.
     the embedding is running parallel per GPU
@@ -636,11 +531,289 @@ def embedding_all_slides(input_tile_WSI_dataset_path, output_WSI_dataset_path,
     return error_wsi_infor_list
 
 
+# functions for cropping and embedding the tiles from original slides
+def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
+                             embedding_model: torch.nn.Module,
+                             output_dir: Path, thumbnail_dir: Optional[Path] = None,
+                             batch_size: int = 32,
+                             shuffle: bool = False,
+                             num_workers: int = 1,
+                             transform: Optional[transforms.Compose] = None,
+                             device: str = 'cuda',
+                             margin: int = 0, tile_size: int = 224, target_mpp: float = 0.5,
+                             foreground_threshold: Optional[float] = None, occupancy_threshold: float = 0.1,
+                             pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
+                             chunk_scale_in_tiles: int = 0,
+                             tile_progress: bool = False,
+                             image_key: str = "slide_image_path",
+                             ROI_image_key='tile_image_path',
+                             overwrite: bool = False) -> str:
+    """Load and process a slide, saving tile images and information to a CSV file.
+
+    sample: dict
+        Slide information dictionary, returned by the input slide dataset.
+    embedding_model: torch.nn.Module
+        Pretrained model to be used for extracting features from the image tiles.
+    output_dir: Path
+        Root directory for the output dataset; outputs for a single slide will be saved inside `output_dir/slide_id/`.
+    thumbnail_dir: Optional[Path], optional
+        Root directory for all thumbnails.
+    batch_size: int, optional
+        Number of image tiles to process in a batch (default is 256).
+    shuffle: bool, optional
+        Whether to shuffle the tiles before processing (default is False).
+    num_workers: int, optional
+        Number of subprocesses to use for data loading (default is 1 for not multiple processing).
+    transform: torchvision.transforms.Compose, optional
+        Transform to apply to each image tile (default is None).
+    device: str, optional
+        Device to run the embedding model on (default is 'cuda').
+    margin: int, optional
+        Margin around the foreground bounding box, in pixels at lowest resolution.
+    tile_size: int, optional
+        Lateral dimensions of each tile, in pixels (default is 224).
+    target_mpp: float, optional
+        Target microns per pixel for the slide (default is 0.5).
+    foreground_threshold: Optional[float], optional
+        Luminance threshold (0 to 255) to determine if a pixel is foreground.
+    occupancy_threshold: float, optional
+        Threshold (between 0 and 1) to determine empty tiles to discard (default is 0.1).
+    pixel_std_threshold: int, optional
+        The threshold for the pixel variance at one ROI to say this ROI image is too 'empty'.
+    extreme_value_portion_th: float, optional
+        The threshold for the ratio of the pixels being 0 of one ROI, to say this ROI image is too 'empty'.
+    chunk_scale_in_tiles: int, optional
+        To speed up the I/O for loading the WSI regions.
+    tile_progress: bool, optional
+        Whether to display a progress bar in the terminal.
+    image_key: str, optional
+        Image key in the input and output dictionaries (default is 'slide_image_path').
+    ROI_image_key: str, optional
+        ROI Image key in the input and output dictionaries (default is 'tile_image_path').
+    overwrite: bool, optional
+        Whether to overwrite existing files (default is False).
+
+    Returns:
+    --------
+    slide id if the process raise error, else None
+    """
+    # STEP 0: set up path and log files
+    slide_id: str = sample["slide_id"]
+    slide_image_path = Path(sample[image_key])
+    slide_folder = os.path.split(slide_image_path)[0]
+    # Determine the output path for the HDF5 file
+    os.makedirs(output_dir, exist_ok=True)
+    output_slide_folder = os.path.join(output_dir, slide_id)
+    os.makedirs(output_slide_folder, exist_ok=True)
+    target_h5path = os.path.join(output_slide_folder, f'{slide_id}.h5')
+
+    thumbnail_dir = Path(thumbnail_dir or output_dir)
+    thumbnail_dir.mkdir(parents=True, exist_ok=True)
+
+    # is_already_processed
+    if os.path.exists(target_h5path):
+        if overwrite:
+            shutil.rmtree(output_slide_folder)
+            os.makedirs(output_slide_folder, exist_ok=True)
+        else:
+            logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} "
+                         f"- h5 file already processed at output_slide_folder {output_slide_folder}")
+            return None  # Return None if successful
+
+    try:
+        # STEP 1: take the WSI and get the ROIs (valid tissue regions)
+        logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
+
+        # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
+        loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), image_key=image_key,
+                                               target_mpp=target_mpp, margin=margin,
+                                               foreground_threshold=foreground_threshold,
+                                               thumbnail_dir=thumbnail_dir)
+        WSI_image_obj, loaded_ROI_samples = loader(sample)
+
+        # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
+        logging.info(f"Tiling slide {slide_id} ...")
+        # each ROI_sample in loaded_WSI_samples is a valid ROI region
+        n_failed_tiles = 0
+        for index, ROI_sample in enumerate(loaded_ROI_samples):
+            # process in a temp file
+            with tempfile.TemporaryDirectory() as output_tiles_dir:
+                # The estimated luminance (foreground threshold) for WSI is applied to ROI here to filter the tiles
+                tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, Path(output_tiles_dir),
+                                                                    tile_size=tile_size,
+                                                                    foreground_threshold=ROI_sample[
+                                                                        "foreground_threshold"],
+                                                                    occupancy_threshold=occupancy_threshold,
+                                                                    pixel_std_threshold=pixel_std_threshold,
+                                                                    extreme_value_portion_th=extreme_value_portion_th,
+                                                                    chunk_scale_in_tiles=chunk_scale_in_tiles,
+                                                                    tile_progress=tile_progress,
+                                                                    ROI_image_key=ROI_image_key,
+                                                                    num_workers=num_workers)
+
+                # STEP 3: visualize the tile location overlay to WSI
+                visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
+                                                                      + "_roi_" + str(index) + "_tiles.jpeg"),
+                                         tile_info_list, image_key=image_key)
+                n_failed_tiles += n_failed_tile
+
+                # STEP 4 : embedding on-fly
+                # Create the dataset and dataloader
+                tile_dataset = TileEncodingDataset(output_tiles_dir, transform=transform, edge_size=tile_size)
+                tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle,
+                                             num_workers=num_workers, drop_last=False)
+
+                since = time.time()
+
+                logging.info(f'Processing {len(tile_dataset)} tiles from slide {slide_id}')
+
+                # Process each batch of image tiles
+                for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
+                        in tqdm(enumerate(tile_dataloader),
+                                disable=not tile_progress,
+                                total=len(tile_dataloader),
+                                unit="batch",
+                                desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
+                    patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
+                    with torch.no_grad():  # No need for gradient computation during embedding
+                        patch_feature_tensor = embedding_model(patch_image_tensor)  # Extract features
+
+                    # Save the features and coordinates to the HDF5 file
+                    for idx in range(patch_feature_tensor.shape[0]):
+                        hdf5_save_a_patch(target_h5path, patch_feature_tensor[idx].cpu().numpy(),
+                                          patch_type='features')
+                        hdf5_save_a_patch_coord(target_h5path,
+                                                coord_y=patch_coord_yx_tensor[idx][0].item(),
+                                                coord_x=patch_coord_yx_tensor[idx][1].item())
+
+                time_elapsed = time.time() - since
+                logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
+
+    except Exception as e:
+        logging.error(f"Error processing slide {slide_id}: {e}")
+        return slide_id  # Return error WSI information
+
+    else:
+        if n_failed_tiles > 0:
+            # what we want to do with slides that have some failed tiles? for now, just drop?
+            logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
+
+        logging.info(f"Finished processing slide {slide_id}")
+
+        return None  # Return None if successful
+
+
+def crop_and_embed_slides_at_device(device_index, device_list, embedding_model_list, slide_folders, output_queue,
+                                    output_WSI_dataset_path, batch_size, edge_size, overwrite, tile_progress,
+                                    parallel=False):
+    embedding_model_at_certain_GPU = embedding_model_list[device_index]
+    error_wsi_infor_list_at_device = []
+    for sample in tqdm(slide_folders, desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
+        error_wsi_infor = None
+        if parallel:
+            cpu_pool_size_for_each_device = (multiprocessing.cpu_count() - len(device_list)) // len(device_list)
+            # TODO: Implement parallel processing for slides assigned to one GPU
+        else:
+            error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
+                                                       output_dir=output_WSI_dataset_path,
+                                                       thumbnail_dir=output_WSI_dataset_path,
+                                                       batch_size=batch_size, shuffle=False,
+                                                       num_workers=1, transform=None, tile_size=edge_size,
+                                                       device=device_list[device_index],
+                                                       chunk_scale_in_tiles=4,
+                                                       tile_progress=tile_progress, overwrite=overwrite)
+        if error_wsi_infor:
+            error_wsi_infor_list_at_device.append(error_wsi_infor)
+    output_queue.put(error_wsi_infor_list_at_device)
+
+
+def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Path],
+                                     output_WSI_dataset_path: Union[str, Path],
+                                     model_name: str, model_weight_path: str,
+                                     batch_size: int = 32, edge_size: int = 224,
+                                     overwrite: bool = False, parallel: bool = False) -> List[Optional[str]]:
+    """
+    Embed all slides from the given input dataset path and save the outputs to the specified output path.
+
+    Parameters
+    ----------
+    input_tile_WSI_dataset_path : Union[str, Path]
+        Path to the input dataset containing the tiles of WSIs.
+    output_WSI_dataset_path : Union[str, Path]
+        Path to save the output embedded tiles.
+    model_name : str
+        Name of the pre-trained model to use for embedding.
+    model_weight_path : str
+        Path to the pre-trained model weights.
+    batch_size : int, optional
+        Batch size for processing tiles (default is 32).
+    edge_size : int, optional
+        Edge size for the tiles (default is 224).
+    overwrite : bool, optional
+        Whether to overwrite existing files (default is False).
+    parallel : bool, optional
+        Whether to run the embedding in parallel across multiple devices (default is False).
+
+    Returns
+    -------
+    List[Optional[str]]
+        List of slide IDs that encountered errors during processing.
+    """
+    multiprocessing.set_start_method('spawn', force=True)
+    tile_progress = not parallel
+
+    if not os.path.exists(output_WSI_dataset_path):
+        os.makedirs(output_WSI_dataset_path)
+
+    # List of available devices (GPUs), if no GPU is available, use 'cpu'
+    device_list = [f'cuda:{i}' for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else ['cpu']
+
+    # Split slide paths among available devices
+    slide_folders = prepare_slides_sample_list(slide_root=input_tile_WSI_dataset_path)
+    random.shuffle(slide_folders)  # Randomly shuffle the slides
+    split_slide_folders = [slide_folders[i::len(device_list)] for i in range(len(device_list))]
+
+    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
+                                            pretrained_weight=model_weight_path)
+    # embedding_model = torch.compile(embedding_model)
+    embedding_model_list = [embedding_model.to(device) for device in device_list]
+    for model in embedding_model_list:
+        model.eval()  # Set model to evaluation mode
+
+    # Use multiprocessing to parallelly process slides on each device
+    processes = []
+    output_queue = multiprocessing.Queue()
+
+    for device_index, device_slide_folders in enumerate(split_slide_folders):
+        p = multiprocessing.Process(target=crop_and_embed_slides_at_device,
+                                    args=(device_index, device_list, embedding_model_list, device_slide_folders,
+                                          output_queue, output_WSI_dataset_path, batch_size, edge_size,
+                                          overwrite, tile_progress, parallel))
+        p.start()
+        processes.append(p)
+
+    # Join processes to ensure all embeddings are completed
+    device_combined_error_wsi_infor_list = []
+    for p in processes:
+        p.join()
+        device_combined_error_wsi_infor_list.extend(output_queue.get())
+
+    error_wsi_infor_list = []
+    for error_info in device_combined_error_wsi_infor_list:
+        if error_info:
+            logging.error(f"Error embedding slide: {error_info}")
+            error_wsi_infor_list.append(error_info)
+
+    # Return the combined error_wsi_infor_list from all GPUs (skip None in the list)
+    return error_wsi_infor_list
+
+
 if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(filename='wsi_tile_embedding.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
     '''
+    # for processing tiles dataset
     # demo with one sample
     
     dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/sampled_tiles_datasets')
@@ -655,15 +828,58 @@ if __name__ == '__main__':
                                    batch_size=256, shuffle=False, num_workers=20,
                                    transform=None, suffix='.jpeg', device=device, embedding_progress=True)
                                    
-                                   
+    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets',
+                                            output_WSI_dataset_path='/data/hdd_1/BigModel/embedded_datasets',
+                                            model_name='gigapath', model_weight_path='timm', batch_size=256,
+                                            edge_size=224,
+                                            overwrite=True)                               
     # demo with multiple sample
-    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                         output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
-                         model_name='gigapath', model_weight_path='timm', batch_size=256, edge_size=224,
-                         overwrite=True)
+    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
+                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                                            model_name='gigapath', model_weight_path='timm', batch_size=256,
+                                            edge_size=224, overwrite=True)
     '''
-    embedding_all_slides(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets',
-                         output_WSI_dataset_path='/data/hdd_1/BigModel/embedded_datasets',
-                         model_name='gigapath', model_weight_path='timm', batch_size=256, edge_size=224,
-                         overwrite=True)
 
+    '''
+    # for processing slide dataset directly
+    # demo with one sample
+    slide_folders = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
+    sample = slide_folders[3]
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    output_WSI_dataset_path = '/data/hdd_1/BigModel/sampled_embedded_datasets'
+
+    embedding_model = Patch_embedding_model(model_name='ViT', pretrained_weight='timm')
+    embedding_model_at_certain_GPU = embedding_model.to(device)
+
+    error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
+                                               output_dir=output_WSI_dataset_path,
+                                               thumbnail_dir=output_WSI_dataset_path,
+                                               batch_size=32, shuffle=False,
+                                               num_workers=1, transform=None,
+                                               device=device,
+                                               chunk_scale_in_tiles=4,
+                                               tile_progress=True, overwrite=True)
+    
+    # demo with multiple sample
+    embedding_all_slides_from_slides(input_tile_WSI_dataset_path='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
+                                     output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                                     model_name='gigapath', model_weight_path='timm', overwrite=True, parallel=False)
+    '''
+    # for processing slide dataset directly
+    # demo with one sample
+    slide_folders = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
+    sample = slide_folders[3]
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    output_WSI_dataset_path = '/data/hdd_1/BigModel/sampled_embedded_datasets'
+
+    embedding_model = Patch_embedding_model(model_name='ViT', pretrained_weight='timm')
+    embedding_model_at_certain_GPU = embedding_model.to(device)
+
+    error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
+                                               output_dir=output_WSI_dataset_path,
+                                               thumbnail_dir=output_WSI_dataset_path,
+                                               batch_size=32, shuffle=False,
+                                               num_workers=1, transform=None,
+                                               device=device,
+                                               chunk_scale_in_tiles=4,
+                                               tile_progress=True, overwrite=True)

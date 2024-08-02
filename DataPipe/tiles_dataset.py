@@ -37,7 +37,6 @@ from torch.utils.data import Dataset, DataLoader
 import functools
 import logging
 import shutil
-import tempfile
 import traceback
 import warnings
 from pathlib import Path

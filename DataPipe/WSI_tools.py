@@ -31,6 +31,7 @@ it returns slide shape in (CHW) not (CWH)!
 However
 slide = openslide.OpenSlide(wsi_path) return slide in (WHC)
 """
+import os
 from copy import deepcopy
 import openslide
 import cv2
@@ -44,7 +45,8 @@ from tqdm import tqdm
 from PIL import ImageDraw, Image
 from bbox_tools import get_ROI_bounding_box_list, Box
 from Segmentation_and_filtering_tools import *
-
+import traceback
+import warnings
 
 # this is used to process WSI to get slide-level (for OpenSlide) at a target mpp
 def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
@@ -478,7 +480,8 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
 def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
-                        chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path"):
+                        chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path",
+                        num_workers=1):
     """
     :param WSI_image_obj:
     :param ROI_sample_from_WSI:
@@ -498,6 +501,9 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
 
     :param tile_progress: Whether to display a progress bar in the terminal.
     :param ROI_image_key: ROI Image key in the input and output dictionaries. default is 'tile_image_path'
+
+    :param num_workers: int, optional
+        Number of subprocesses to use for data loading (default is 1 for not multiple processing).
 
     """
     # STEP 0: prepare log files:
@@ -642,7 +648,7 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                                                rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']),
                                                ROI_image_key=ROI_image_key)
 
-                save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
+                save_PIL_image(PIL_tile, os.path.join(output_tiles_dir, tile_info["tile_image_path"]))
 
         except Exception as e:
             # sometimes certain tiles is broken (for pixel failure) and we need to skip
@@ -711,7 +717,7 @@ def get_tile_id(slide_id: str, tile_location: Sequence[int]) -> str:
 
 def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_location: Sequence[int],
                        target_level_tilesize, rel_slide_dir: Path,
-                       ROI_image_key: str = "tile_image_path") -> Dict["TileKey", Any]:
+                       ROI_image_key: str = "tile_image_path", suffix='.jpeg') -> Dict["TileKey", Any]:
     """Map slide information and tiling outputs into tile-specific information dictionary.
 
     :param sample: Slide dictionary.
@@ -727,7 +733,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     """
     slide_id = sample["slide_id"]
     descriptor = get_tile_descriptor(tile_location)
-    rel_image_path = f"{rel_slide_dir}/{descriptor}.jpeg"
+    rel_image_path = f"{rel_slide_dir}/{descriptor}"+suffix
 
     tile_info = {
         "slide_id": slide_id,

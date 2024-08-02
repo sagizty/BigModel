@@ -258,6 +258,7 @@ def save_PIL_image(pil_image: np.ndarray, path: Path) -> PIL.Image:
     :param pil_image: numpy image in PIL.Image format
     :param path: path of saving a .jpeg ROI
     """
+    path=Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     pil_image.convert('RGB').save(path)
     return pil_image
