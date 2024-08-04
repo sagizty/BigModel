@@ -713,7 +713,8 @@ def crop_and_embed_slides_at_device(device_index, device_list, embedding_model_l
     for sample in tqdm(slide_folders, desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
         error_wsi_infor = None
         if parallel:
-            cpu_pool_size_for_each_device = (multiprocessing.cpu_count() - len(device_list)) // len(device_list)
+            # cpu_pool_size_for_each_device
+            num_workers = (multiprocessing.cpu_count() - len(device_list)) // len(device_list)
             # TODO: Implement parallel processing for slides assigned to one GPU
         else:
             error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
