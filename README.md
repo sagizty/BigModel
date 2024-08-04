@@ -22,14 +22,14 @@ pip install -e .
 ```Shell
 cd BigModel/DataPipe
 # set path inside and run
-nohup python tiles_dataset.py &
+nohup python Tiles_dataset.py &
 ```
 
 4. Embedding the ROIs
 ```Shell
 cd BigModel/DataPipe
 # set path inside and run
-nohup python embedded_dataset.py &
+nohup python Embedded_dataset.py &
 ```
 
 5. Running the models
