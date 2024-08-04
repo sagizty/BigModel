@@ -7,7 +7,11 @@ from training_tools import train
 from params import get_finetune_params
 from task_configs.utils import load_task_config
 from utils import seed_torch, get_exp_code, get_splits, get_loader
-from PuzzleAI.DataPipe.embedded_dataset import SlideDataset
+
+try:
+    from DataPipe.slide_dataset_tools import SlideDataset, load_task_settings
+except:
+    from PuzzleAI.DataPipe.slide_dataset_tools import SlideDataset, load_task_settings
 
 
 if __name__ == '__main__':
@@ -26,7 +30,7 @@ if __name__ == '__main__':
     args.task_config = load_task_config(args.task_cfg_path)
     print(args.task_config)
     args.task = args.task_config.get('name', 'task')
-    
+
     # set the experiment save directory
     args.save_dir = os.path.join(args.save_dir, args.task, args.exp_name)
     args.model_code, args.task_code, args.exp_code = get_exp_code(args) # get the experiment code
@@ -47,18 +51,20 @@ if __name__ == '__main__':
 
     # set the split key
     if args.pat_strat:
-        args.split_key = 'pat_id'
+        args.split_target_key = 'pat_id'
     else:
-        args.split_key = 'slide_id'
+        args.split_target_key = 'slide_id'
 
     # set up the dataset
     args.split_dir = os.path.join(args.split_dir, args.task_code) if not args.pre_split_dir else args.pre_split_dir
     os.makedirs(args.split_dir, exist_ok=True)
     print('Setting split directory: {}'.format(args.split_dir))
-    dataset = pd.read_csv(args.dataset_csv) # read the dataset csv file
+    #dataset = pd.read_csv(args.dataset_csv) # read the dataset csv file
 
     # use the slide dataset
-    DatasetClass = SlideDataset
+    DatasetClass_train =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='train')
+    DatasetClass_val =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='val')
+    DatasetClass_test =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='test')
 
     # set up the results dictionary
     results = {}
@@ -71,9 +77,11 @@ if __name__ == '__main__':
         # get the splits
         train_splits, val_splits, test_splits = get_splits(dataset, fold=fold, **vars(args))
         # instantiate the dataset
-        train_data, val_data, test_data = DatasetClass(dataset, args.root_path, train_splits, args.task_config, split_key=args.split_key) \
-                                        , DatasetClass(dataset, args.root_path, val_splits, args.task_config, split_key=args.split_key) if len(val_splits) > 0 else None \
-                                        , DatasetClass(dataset, args.root_path, test_splits, args.task_config, split_key=args.split_key) if len(test_splits) > 0 else None
+        train_data, val_data, test_data = (SlideDataset(DatasetClass_train) \
+                                        , SlideDataset(DatasetClass_train) \
+                                           # if len(val_splits) > 0 else None
+                                        , SlideDataset(DatasetClass_train))
+                                            #if len(test_splits) > 0 else None
         args.n_classes = train_data.n_classes # get the number of classes
         # get the dataloader
         train_loader, val_loader, test_loader = get_loader(train_data, val_data, test_data, **vars(args))
