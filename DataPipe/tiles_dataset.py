@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： July 28th 01:00
+WSI tile cropping dataset tools   Script  ver： Aug 4th 10:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -184,7 +184,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
         n_failed_tiles = 0
         for index, ROI_sample in enumerate(loaded_ROI_samples):
             # The estimated luminance (foreground threshold) for whole WSI is applied to ROI here to filter the tiles
-            tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, output_tiles_dir,
+            tile_info_list, n_failed_tile = extract_valid_tiles(slide_image_path, ROI_sample, output_tiles_dir,
                                                                 tile_size=tile_size,
                                                                 foreground_threshold=ROI_sample[
                                                                     "foreground_threshold"],

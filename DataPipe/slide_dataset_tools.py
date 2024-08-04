@@ -1,3 +1,8 @@
+"""
+tools for slide level dataset      Script  ver： Aug 4th 10:00
+
+build and load task config
+"""
 import os
 import pandas as pd
 import numpy as np

@@ -1,5 +1,5 @@
 """
-ROI/WSI Segmentation tools   Script  ver： July 28th 01:00
+ROI/WSI Segmentation tools   Script  ver： Aug 4th 10:00
 
 
 """

@@ -1,5 +1,5 @@
 """
-tools to process WSI     Script  ver： July 28th 01:00
+tools to process WSI     Script  ver： Aug 4th 10:00
 a WSI is a scanned whole slide image of some tissue region and many blank background
 
 Terminology:
@@ -47,6 +47,8 @@ from bbox_tools import get_ROI_bounding_box_list, Box
 from Segmentation_and_filtering_tools import *
 import traceback
 import warnings
+import multiprocessing
+
 
 # this is used to process WSI to get slide-level (for OpenSlide) at a target mpp
 def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
@@ -442,7 +444,7 @@ def convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x, chunk_scale_i
 
     target_size = target_level_tilesize * chunk_scale_in_tiles
     rel_tile_locations = generate_rel_locations(target_level_tilesize, target_size, target_size)
-    tile_locations = adjust_tile_locations(rel_tile_locations, ROI_sample_from_WSI,level0_y, level0_x)
+    tile_locations = adjust_tile_locations(rel_tile_locations, ROI_sample_from_WSI, level0_y, level0_x)
 
     # Split the a_chuck_img into tiles
     tile_images = []
@@ -477,13 +479,147 @@ def resize_tile_to_PIL_target_tile(tile_img, tile_size):
     return resized_tile_img_pil
 
 
-def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
+def process_chunk(chuck_index, chuck_location, slide_image_path, target_level_tilesize, chunk_scale_in_tiles,
+                  ROI_sample_from_WSI,
+                  foreground_threshold, occupancy_threshold, pixel_std_threshold, extreme_value_portion_th, tile_size,
+                  output_tiles_dir, ROI_image_key):
+    WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
+    level0_y, level0_x = chuck_location
+    try:
+        a_chuck_img = read_a_region_from_WSI(WSI_image_obj, level0_y, level0_x,
+                                             target_level_tilesize * chunk_scale_in_tiles,
+                                             target_level=ROI_sample_from_WSI["target_level"],
+                                             reader=WSIReader(backend="OpenSlide"))
+
+        tile_images, chuck_tile_locations = convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x,
+                                                                          chunk_scale_in_tiles,
+                                                                          target_level_tilesize,
+                                                                          ROI_sample_from_WSI)
+
+        processed_tiles = []
+        failed_tiles = []
+
+        # STEP 3: Filtering the ROIs with foreground occupancy ratio and pixel empty-value and pixel variance
+        for tile_idx_in_chuck in range(chunk_scale_in_tiles * chunk_scale_in_tiles):
+            a_tile_img = tile_images[tile_idx_in_chuck]
+            tile_location = chuck_tile_locations[tile_idx_in_chuck]
+
+            try:
+                empty_tile_bool_mark, tile_occupancy = check_an_empty_tile(a_tile_img,
+                                                                           foreground_threshold,
+                                                                           occupancy_threshold,
+                                                                           pixel_std_threshold,
+                                                                           extreme_value_portion_th)
+                # STEP 4: prepare tile
+                if empty_tile_bool_mark:
+                    processed_tiles.append((None, tile_location, True))
+                else:
+                    # Convert the cropped valid tile into PIL image with tile_size
+                    PIL_tile = resize_tile_to_PIL_target_tile(a_tile_img, tile_size)
+
+                    # Logging and save the image to h5
+                    tile_info = get_tile_info_dict(ROI_sample_from_WSI, tile_occupancy, tile_location,
+                                                   target_level_tilesize,
+                                                   rel_slide_dir=Path(ROI_sample_from_WSI['slide_id']),
+                                                   ROI_image_key=ROI_image_key)
+                    save_PIL_image(PIL_tile, output_tiles_dir / tile_info["tile_image_path"])
+
+                    processed_tiles.append((tile_info, None, False))
+
+            except Exception as e:
+                failed_tiles.append(tile_location)
+                traceback.print_exc()
+                warnings.warn(
+                    f"An error occurred while saving tile {get_tile_id(ROI_sample_from_WSI['slide_id'], tile_location)}: {e}")
+
+        return processed_tiles, failed_tiles, None  # No exception
+    except Exception as e:
+        # If an exception occurs, return the chunk location to indicate failure
+        traceback.print_exc()
+        warnings.warn(f"An error occurred while processing chunk at {chuck_location}: {e}")
+        return None, None, chuck_location
+
+
+def process_chunk_wrapper(args):
+    """Wrapper function to handle exceptions and pass results back through a queue."""
+    chuck_index, chuck_location, slide_image_path, target_level_tilesize, chunk_scale_in_tiles, \
+        ROI_sample_from_WSI, foreground_threshold, occupancy_threshold, pixel_std_threshold, \
+        extreme_value_portion_th, tile_size, output_tiles_dir, ROI_image_key = args
+
+    result_queue = multiprocessing.Queue()
+
+    try:
+        result = process_chunk(chuck_index, chuck_location, slide_image_path, target_level_tilesize,
+                               chunk_scale_in_tiles, ROI_sample_from_WSI, foreground_threshold,
+                               occupancy_threshold, pixel_std_threshold, extreme_value_portion_th,
+                               tile_size, output_tiles_dir, ROI_image_key)
+        result_queue.put(result)
+    except Exception as e:
+        traceback.print_exc()
+        warnings.warn(f"An error occurred while processing chunk {chuck_location}: {e}")
+        result_queue.put((None, None, chuck_location))  # Indicate failure
+
+    return result_queue.get()
+
+
+def extract_chuck(num_workers, chuck_locations, slide_image_path, target_level_tilesize, chunk_scale_in_tiles,
+                  ROI_sample_from_WSI, foreground_threshold, occupancy_threshold, pixel_std_threshold,
+                  extreme_value_portion_th, tile_size, output_tiles_dir, ROI_image_key, tile_progress,
+                  dataset_csv_file, failed_tiles_file, keys_to_save, metadata_keys):
+    tile_info_list = []
+    n_failed_tiles = 0
+    n_discarded = 0
+
+    with dataset_csv_file, failed_tiles_file:
+        # Initialize Pool
+        with multiprocessing.Pool(num_workers) as pool:
+            # Prepare arguments for each chunk
+            args_list = [(chuck_index, chuck_location, slide_image_path, target_level_tilesize, chunk_scale_in_tiles,
+                          ROI_sample_from_WSI, foreground_threshold, occupancy_threshold, pixel_std_threshold,
+                          extreme_value_portion_th, tile_size, output_tiles_dir, ROI_image_key)
+                         for chuck_index, chuck_location in enumerate(chuck_locations)]
+
+            # Map arguments to the pool
+            results = list(tqdm(pool.imap_unordered(process_chunk_wrapper, args_list), total=len(args_list),
+                                desc=f"Processing chunks for ROI index {ROI_sample_from_WSI['ROI_index']}",
+                                unit="chunk", disable=not tile_progress))
+
+            # Collect results
+            for result in results:
+                processed_tiles, failed_tiles, failed_location = result
+
+                if failed_location:
+                    n_failed_tiles += chunk_scale_in_tiles * chunk_scale_in_tiles
+                    descriptor = get_tile_descriptor(failed_location)
+                    failed_tiles_file.write(descriptor + '\n')
+                    continue
+
+                for tile_info, tile_location, empty_tile in processed_tiles:
+                    if empty_tile:
+                        n_discarded += 1
+                    else:
+                        if tile_info:
+                            tile_info_list.append(tile_info)
+                            dataset_row = format_csv_row(tile_info, keys_to_save, metadata_keys)
+                            dataset_csv_file.write(dataset_row + '\n')
+
+                for failed_tile in failed_tiles:
+                    n_failed_tiles += 1
+                    descriptor = get_tile_descriptor(failed_tile)
+                    failed_tiles_file.write(descriptor + '\n')
+
+    logging.info(
+        f"Percentage tiles discarded: {n_discarded / (len(chuck_locations) * chunk_scale_in_tiles * chunk_scale_in_tiles) * 100:.2f}")
+
+    return tile_info_list, n_failed_tiles, n_discarded
+
+def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                         chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path",
                         num_workers=1):
     """
-    :param WSI_image_obj:
+    :param slide_image_path:
     :param ROI_sample_from_WSI:
     :param output_tiles_dir: tiles will be saved here as a h5
 
@@ -540,13 +676,23 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
     logging.info(f"{n_tiles} tiles found")
 
     # make a list to record the Tile information dictionary for valid tiles
+    logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
+                 f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
+
+    '''  # todo multiple process STEP 2 (type a) : load tile at the location inside the chunk region
+    tile_info_list, n_failed_tiles, n_discarded = \
+        extract_chuck(num_workers, chuck_locations, slide_image_path, target_level_tilesize, chunk_scale_in_tiles,
+                      ROI_sample_from_WSI, foreground_threshold, occupancy_threshold, pixel_std_threshold,
+                      extreme_value_portion_th, tile_size, output_tiles_dir, ROI_image_key, tile_progress,
+                      dataset_csv_file, failed_tiles_file, keys_to_save, metadata_keys)
+    '''
+    # STEP 2 (type a) : load tile at the location inside the chunk region
+    # make a list to record the Tile information dictionary for valid tiles
     tile_info_list = []
     n_failed_tiles = 0
     n_discarded = 0
-
-    logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
-                 f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
-    # STEP 2 (type a) : load tile at the location inside the chunk region
+    # should put WSI_image_obj in the loop for multiple processing
+    WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
     for chuck_index in tqdm(range(len(chuck_locations)),
                             f"Processing the chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                             f"ROI index {ROI_sample_from_WSI['ROI_index']}",
@@ -554,15 +700,17 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
         chuck_location = chuck_locations[chuck_index]
         level0_y, level0_x = chuck_location
         try:
+            # should put WSI_image_obj in the loop for multiple processing
+            # WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
             a_chuck_img = read_a_region_from_WSI(WSI_image_obj, level0_y, level0_x,
                                                  target_level_tilesize * chunk_scale_in_tiles,
                                                  target_level=ROI_sample_from_WSI["target_level"],
                                                  reader=WSIReader(backend="OpenSlide"))
 
             tile_images, chuck_tile_locations = convert_a_chuck_to_many_tiles(a_chuck_img, level0_y, level0_x,
-                                                                        chunk_scale_in_tiles,
-                                                                        target_level_tilesize,
-                                                                        ROI_sample_from_WSI)
+                                                                              chunk_scale_in_tiles,
+                                                                              target_level_tilesize,
+                                                                              ROI_sample_from_WSI)
 
         except:
             # sometimes reading certain region is broken (for pixel failure) and we need to skip
@@ -617,11 +765,15 @@ def extract_valid_tiles(WSI_image_obj, ROI_sample_from_WSI, output_tiles_dir: Pa
                         dataset_row = format_csv_row(tile_info, keys_to_save, metadata_keys)
                         dataset_csv_file.write(dataset_row + '\n')
 
+    dataset_csv_file = dataset_csv_path.open('w')
+
     # STEP 2 (type b) : load tile at the location for the tiles outside the chunk region
     for tile_index in tqdm(range(len(tile_locations)),
                            f"Processing the out-of-chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                            f"ROI index {ROI_sample_from_WSI['ROI_index']}",
                            unit="tile", disable=not tile_progress):
+        # should put WSI_image_obj in the loop for multiple processing
+        # WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
         tile_location = tile_locations[tile_index]
         level0_y, level0_x = tile_location
 
@@ -733,7 +885,7 @@ def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_loc
     """
     slide_id = sample["slide_id"]
     descriptor = get_tile_descriptor(tile_location)
-    rel_image_path = f"{rel_slide_dir}/{descriptor}"+suffix
+    rel_image_path = f"{rel_slide_dir}/{descriptor}" + suffix
 
     tile_info = {
         "slide_id": slide_id,

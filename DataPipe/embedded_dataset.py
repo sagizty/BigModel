@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： July 30th 15:40
+WSI embedding dataset tools   Script  ver： Aug 4th 10:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -631,15 +631,17 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
                                                thumbnail_dir=thumbnail_dir)
         WSI_image_obj, loaded_ROI_samples = loader(sample)
 
-        # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
-        logging.info(f"Tiling slide {slide_id} ...")
-        # each ROI_sample in loaded_WSI_samples is a valid ROI region
-        n_failed_tiles = 0
-        for index, ROI_sample in enumerate(loaded_ROI_samples):
-            # process in a temp file
-            with tempfile.TemporaryDirectory() as output_tiles_dir:
+        # process in a temp file
+        with tempfile.TemporaryDirectory() as output_tiles_dir:
+            # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into output_tiles_dir
+            logging.info(f"Tiling slide {slide_id} ...")
+            # each ROI_sample in loaded_WSI_samples is a valid ROI region
+            n_failed_tiles = 0
+
+            for index, ROI_sample in enumerate(loaded_ROI_samples):
                 # The estimated luminance (foreground threshold) for WSI is applied to ROI here to filter the tiles
-                tile_info_list, n_failed_tile = extract_valid_tiles(WSI_image_obj, ROI_sample, Path(output_tiles_dir),
+                tile_info_list, n_failed_tile = extract_valid_tiles(slide_image_path, ROI_sample,
+                                                                    Path(output_tiles_dir),
                                                                     tile_size=tile_size,
                                                                     foreground_threshold=ROI_sample[
                                                                         "foreground_threshold"],
@@ -657,37 +659,37 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
                                          tile_info_list, image_key=image_key)
                 n_failed_tiles += n_failed_tile
 
-                # STEP 4 : embedding on-fly
-                # Create the dataset and dataloader
-                tile_dataset = TileEncodingDataset(output_tiles_dir, transform=transform, edge_size=tile_size)
-                tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle,
-                                             num_workers=num_workers, drop_last=False)
+            # STEP 4 : embedding on-fly
+            # Create the dataset and dataloader
+            tile_dataset = TileEncodingDataset(output_tiles_dir, transform=transform, edge_size=tile_size)
+            tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle,
+                                         num_workers=num_workers, drop_last=False)
 
-                since = time.time()
+            since = time.time()
 
-                logging.info(f'Processing {len(tile_dataset)} tiles from slide {slide_id}')
+            logging.info(f'Embedding {len(tile_dataset)} tiles from slide {slide_id}')
 
-                # Process each batch of image tiles
-                for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
-                        in tqdm(enumerate(tile_dataloader),
-                                disable=not tile_progress,
-                                total=len(tile_dataloader),
-                                unit="batch",
-                                desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
-                    patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
-                    with torch.no_grad():  # No need for gradient computation during embedding
-                        patch_feature_tensor = embedding_model(patch_image_tensor)  # Extract features
+            # Process each batch of image tiles
+            for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
+                    in tqdm(enumerate(tile_dataloader),
+                            disable=not tile_progress,
+                            total=len(tile_dataloader),
+                            unit="batch",
+                            desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
+                patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
+                with torch.no_grad():  # No need for gradient computation during embedding
+                    patch_feature_tensor = embedding_model(patch_image_tensor)  # Extract features
 
-                    # Save the features and coordinates to the HDF5 file
-                    for idx in range(patch_feature_tensor.shape[0]):
-                        hdf5_save_a_patch(target_h5path, patch_feature_tensor[idx].cpu().numpy(),
-                                          patch_type='features')
-                        hdf5_save_a_patch_coord(target_h5path,
-                                                coord_y=patch_coord_yx_tensor[idx][0].item(),
-                                                coord_x=patch_coord_yx_tensor[idx][1].item())
+                # Save the features and coordinates to the HDF5 file
+                for idx in range(patch_feature_tensor.shape[0]):
+                    hdf5_save_a_patch(target_h5path, patch_feature_tensor[idx].cpu().numpy(),
+                                      patch_type='features')
+                    hdf5_save_a_patch_coord(target_h5path,
+                                            coord_y=patch_coord_yx_tensor[idx][0].item(),
+                                            coord_x=patch_coord_yx_tensor[idx][1].item())
 
-                time_elapsed = time.time() - since
-                logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
+            time_elapsed = time.time() - since
+            logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
 
     except Exception as e:
         logging.error(f"Error processing slide {slide_id}: {e}")
@@ -841,7 +843,7 @@ if __name__ == '__main__':
     '''
 
     '''
-    # for processing slide dataset directly
+    # for processing slide dataset directly from slides
     # demo with one sample
     slide_folders = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
     sample = slide_folders[3]
@@ -855,7 +857,7 @@ if __name__ == '__main__':
                                                output_dir=output_WSI_dataset_path,
                                                thumbnail_dir=output_WSI_dataset_path,
                                                batch_size=32, shuffle=False,
-                                               num_workers=1, transform=None,
+                                               num_workers=10, transform=None,
                                                device=device,
                                                chunk_scale_in_tiles=4,
                                                tile_progress=True, overwrite=True)
@@ -865,21 +867,9 @@ if __name__ == '__main__':
                                      output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
                                      model_name='gigapath', model_weight_path='timm', overwrite=True, parallel=False)
     '''
-    # for processing slide dataset directly
-    # demo with one sample
-    slide_folders = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
-    sample = slide_folders[3]
-    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    output_WSI_dataset_path = '/data/hdd_1/BigModel/sampled_embedded_datasets'
 
-    embedding_model = Patch_embedding_model(model_name='ViT', pretrained_weight='timm')
-    embedding_model_at_certain_GPU = embedding_model.to(device)
-
-    error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
-                                               output_dir=output_WSI_dataset_path,
-                                               thumbnail_dir=output_WSI_dataset_path,
-                                               batch_size=32, shuffle=False,
-                                               num_workers=1, transform=None,
-                                               device=device,
-                                               chunk_scale_in_tiles=4,
-                                               tile_progress=True, overwrite=True)
+    # demo with multiple sample
+    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
+                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                                            model_name='gigapath', model_weight_path='timm', batch_size=256,
+                                            edge_size=224, overwrite=True)
