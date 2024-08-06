@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： Aug 6th 17:00
+WSI embedding dataset tools   Script  ver： Aug 6th 18:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -202,12 +202,12 @@ class Patch_embedding_model(nn.Module):
 
     """
 
-    def __init__(self, model_name='18', edge_size=224, pretrained_weight=None, prompt_state_dict=None,
+    def __init__(self, model_name='18', edge_size=224, model_weight_path=None, prompt_state_dict=None,
                  online_building=True):
         """
         :param model_name:
         :param edge_size:
-        :param pretrained_weight:
+        :param model_weight_path:
         :param prompt_state_dict:
         :param online_building: default True to use timm or huggingface for the weights
         
@@ -218,9 +218,9 @@ class Patch_embedding_model(nn.Module):
 
         logging.info(f'Applying pretrained model of {model_name}')
 
-        if pretrained_weight is not None and pretrained_weight != 'timm' and pretrained_weight != 'Timm':
-            print("feature extractor backbone using weight at :", pretrained_weight)
-            pretrained_weight = torch.load(pretrained_weight)
+        if model_weight_path is not None and model_weight_path != 'timm' and model_weight_path != 'Timm':
+            print("feature extractor backbone using weight at :", model_weight_path)
+            pretrained_weight = torch.load(model_weight_path)
             pretrained_backbone = False
         else:
             print("feature extractor backbone weight is using timm")
@@ -454,7 +454,7 @@ def embed_at_device(device, model_name, edge_size, model_weight_path, device_sli
     setup_logging(log_file_path)
 
     embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            pretrained_weight=model_weight_path)
+                                            model_weight_path=model_weight_path)
     compiled_model = torch.compile(embedding_model)
     embedding_model_at_certain_GPU = compiled_model.to(device)
 
@@ -758,7 +758,7 @@ def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide
 
     # Initialize CUDA in the subprocess
     embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            pretrained_weight=model_weight_path)
+                                            model_weight_path=model_weight_path)
     embedding_model = torch.compile(embedding_model)
     embedding_model = embedding_model.to(device)
     embedding_model.eval()
@@ -938,5 +938,5 @@ if __name__ == '__main__':
     # demo with multiple sample
     embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets/',
                                             output_WSI_dataset_path='/data/BigModel/embedded_datasets',
-                                            model_name='gigapath', model_weight_path='timm', batch_size=256,
+                                            model_name='gigapath', model_weight_path=None, batch_size=256,
                                             edge_size=224, overwrite=True)
