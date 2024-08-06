@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： Aug 4th 10:00
+WSI embedding dataset tools   Script  ver： Aug 6th 17:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -435,6 +435,27 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
     return None  # Return None if successful
 
 
+# Function to embed slides for a specific device
+def embed_at_device(device, model_name, edge_size, model_weight_path, device_slide_folders,
+                    num_workers,output_WSI_dataset_path,batch_size,overwrite, output_queue):
+    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
+                                            pretrained_weight=model_weight_path)
+    compiled_model = torch.compile(embedding_model)
+    embedding_model_at_certain_GPU = compiled_model.to(device)
+
+    error_wsi_infor_list_at_device = []
+    for slide_id, slide_folder in tqdm(device_slide_folders,
+                                       desc=f'Embedding slides on GPU:{device}', unit="wsi"):
+        error_wsi_infor = embedding_one_slide_from_tiles(
+            slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
+            batch_size=batch_size, device=device, num_workers=num_workers,
+            embedding_progress=False, overwrite=overwrite)
+        if error_wsi_infor:
+            error_wsi_infor_list_at_device.append(error_wsi_infor)
+    output_queue.put(error_wsi_infor_list_at_device)
+
+
+
 def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_WSI_dataset_path,
                                             model_name, model_weight_path, batch_size=256, edge_size=224,
                                             overwrite=False):
@@ -466,6 +487,8 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     ----------
     a list of (slide_id, slide_folder) if the slide encounter error in the embedding process
     """
+    multiprocessing.set_start_method('spawn', force=True)
+
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
 
@@ -480,25 +503,6 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
 
     num_workers = max(1, multiprocessing.cpu_count() // len(device_list))  # Number of CPU cores per GPU
 
-    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            pretrained_weight=model_weight_path)
-    compiled_model = torch.compile(embedding_model)
-    embedding_model_list = [compiled_model.to(device) for device in device_list]
-
-    # Function to embed slides for a specific device
-    def embed_at_device(device_index, device_list, embedding_model_list, slide_folders, output_queue):
-        embedding_model_at_certain_GPU = embedding_model_list[device_index]
-        error_wsi_infor_list_at_device = []
-        for slide_id, slide_folder in tqdm(slide_folders,
-                                           desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
-            error_wsi_infor = embedding_one_slide_from_tiles(
-                slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
-                batch_size=batch_size, device=device_list[device_index], num_workers=num_workers,
-                embedding_progress=False, overwrite=overwrite)
-            if error_wsi_infor:
-                error_wsi_infor_list_at_device.append(error_wsi_infor)
-        output_queue.put(error_wsi_infor_list_at_device)
-
     # Split slide paths among available devices
     slide_folders = list(slide_path_dict.items())
     random.shuffle(slide_folders)  # Randomly shuffle the slides
@@ -509,9 +513,10 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     output_queue = multiprocessing.Queue()
 
     for device_index, device_slide_folders in enumerate(split_slide_folders):
+        device = device_list[device_index]
         p = multiprocessing.Process(target=embed_at_device,
-                                    args=(device_index, device_list, embedding_model_list, device_slide_folders,
-                                          output_queue))
+                                    args=(device, model_name, edge_size, model_weight_path, device_slide_folders,
+                                          num_workers, output_WSI_dataset_path,batch_size,overwrite, output_queue))
         p.start()
         processes.append(p)
 
@@ -668,6 +673,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
             since = time.time()
 
             logging.info(f'Embedding {len(tile_dataset)} tiles from slide {slide_id}')
+            embedding_model.eval()
 
             # Process each batch of image tiles
             for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
@@ -705,24 +711,31 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
         return None  # Return None if successful
 
 
-def crop_and_embed_slides_at_device(device_index, device_list, embedding_model_list, slide_folders, output_queue,
+def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide_folders, output_queue,
                                     output_WSI_dataset_path, batch_size, edge_size, overwrite, tile_progress,
-                                    parallel=False):
-    embedding_model_at_certain_GPU = embedding_model_list[device_index]
+                                    parallel=False, num_workers=1):
+    # Initialize CUDA in the subprocess
+    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
+                                            pretrained_weight=model_weight_path)
+    embedding_model = torch.compile(embedding_model)
+    embedding_model = embedding_model.to(device)
+    embedding_model.eval()
+
     error_wsi_infor_list_at_device = []
-    for sample in tqdm(slide_folders, desc=f'Embedding slides on GPU:{device_list[device_index]}', unit="wsi"):
+
+    for sample in tqdm(slide_folders, desc=f'Embedding slides on GPU:{device}', unit="wsi"):
         error_wsi_infor = None
         if parallel:
             # cpu_pool_size_for_each_device
-            num_workers = (multiprocessing.cpu_count() - len(device_list)) // len(device_list)
+            pass
             # TODO: Implement parallel processing for slides assigned to one GPU
         else:
-            error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
+            error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model,
                                                        output_dir=output_WSI_dataset_path,
                                                        thumbnail_dir=output_WSI_dataset_path,
                                                        batch_size=batch_size, shuffle=False,
                                                        num_workers=1, transform=None, tile_size=edge_size,
-                                                       device=device_list[device_index],
+                                                       device=device,
                                                        chunk_scale_in_tiles=4,
                                                        tile_progress=tile_progress, overwrite=overwrite)
         if error_wsi_infor:
@@ -768,34 +781,24 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
 
-    # List of available devices (GPUs), if no GPU is available, use 'cpu'
     device_list = [f'cuda:{i}' for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else ['cpu']
-
-    # Split slide paths among available devices
     slide_folders = prepare_slides_sample_list(slide_root=input_tile_WSI_dataset_path)
-    random.shuffle(slide_folders)  # Randomly shuffle the slides
+    random.shuffle(slide_folders)
     split_slide_folders = [slide_folders[i::len(device_list)] for i in range(len(device_list))]
 
-    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            pretrained_weight=model_weight_path)
-    # embedding_model = torch.compile(embedding_model)
-    embedding_model_list = [embedding_model.to(device) for device in device_list]
-    for model in embedding_model_list:
-        model.eval()  # Set model to evaluation mode
-
-    # Use multiprocessing to parallelly process slides on each device
     processes = []
     output_queue = multiprocessing.Queue()
+    num_workers = (multiprocessing.cpu_count() - len(device_list)) // len(device_list)
 
     for device_index, device_slide_folders in enumerate(split_slide_folders):
+        device = device_list[device_index]
         p = multiprocessing.Process(target=crop_and_embed_slides_at_device,
-                                    args=(device_index, device_list, embedding_model_list, device_slide_folders,
+                                    args=(device, model_name, model_weight_path, device_slide_folders,
                                           output_queue, output_WSI_dataset_path, batch_size, edge_size,
-                                          overwrite, tile_progress, parallel))
+                                          overwrite, tile_progress, parallel, num_workers))
         p.start()
         processes.append(p)
 
-    # Join processes to ensure all embeddings are completed
     device_combined_error_wsi_infor_list = []
     for p in processes:
         p.join()
@@ -807,7 +810,6 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
             logging.error(f"Error embedding slide: {error_info}")
             error_wsi_infor_list.append(error_info)
 
-    # Return the combined error_wsi_infor_list from all GPUs (skip None in the list)
     return error_wsi_infor_list
 
 
@@ -871,6 +873,6 @@ if __name__ == '__main__':
 
     # demo with multiple sample
     embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
+                                            output_WSI_dataset_path='/data/ssd_1/BigModel/sampled_embedded_datasets',
                                             model_name='gigapath', model_weight_path='timm', batch_size=256,
                                             edge_size=224, overwrite=True)
