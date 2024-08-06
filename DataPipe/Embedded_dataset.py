@@ -62,6 +62,7 @@ except:
         from VPT_ViT_modules import build_ViT_or_VPT
         # from Inference_pipeline import load_tile_slide_encoder
 
+
 # tools for logging
 def setup_logging(log_file_path):
     logging.basicConfig(filename=log_file_path, level=logging.INFO,
@@ -215,12 +216,15 @@ class Patch_embedding_model(nn.Module):
         super(Patch_embedding_model, self).__init__()
         self.edge_size = edge_size
 
+        logging.info(f'Applying pretrained model of {model_name}')
+
         if pretrained_weight is not None and pretrained_weight != 'timm' and pretrained_weight != 'Timm':
             print("feature extractor backbone using weight at :", pretrained_weight)
             pretrained_weight = torch.load(pretrained_weight)
             pretrained_backbone = False
         else:
             print("feature extractor backbone weight is using timm")
+            logging.info("feature extractor backbone weight is using timm")
             # default set the embedding to Timm
             pretrained_backbone = True
             pretrained_weight = None
@@ -815,7 +819,7 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
     """
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
-        
+
     # Configure logging
     main_log_file = Path(output_WSI_dataset_path) / 'wsi_tile_embedding.log'
     logging.basicConfig(filename=main_log_file, level=logging.INFO,
@@ -877,7 +881,6 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
 
 
 if __name__ == '__main__':
-
     '''
     # for processing tiles dataset
     # demo with one sample
