@@ -62,6 +62,11 @@ except:
         from VPT_ViT_modules import build_ViT_or_VPT
         # from Inference_pipeline import load_tile_slide_encoder
 
+# tools for logging
+def setup_logging(log_file_path):
+    logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 # datasets for embedding step or loading embedded slide_level datasets
 
@@ -439,7 +444,11 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
 
 # Function to embed slides for a specific device
 def embed_at_device(device, model_name, edge_size, model_weight_path, device_slide_folders,
-                    num_workers,output_WSI_dataset_path,batch_size,overwrite, output_queue):
+                    num_workers, output_WSI_dataset_path, batch_size, overwrite, output_queue):
+    # Setup logging in each subprocess
+    log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
+    setup_logging(log_file_path)
+
     embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
                                             pretrained_weight=model_weight_path)
     compiled_model = torch.compile(embedding_model)
@@ -455,7 +464,6 @@ def embed_at_device(device, model_name, edge_size, model_weight_path, device_sli
         if error_wsi_infor:
             error_wsi_infor_list_at_device.append(error_wsi_infor)
     output_queue.put(error_wsi_infor_list_at_device)
-
 
 
 def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_WSI_dataset_path,
@@ -489,10 +497,19 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     ----------
     a list of (slide_id, slide_folder) if the slide encounter error in the embedding process
     """
-    multiprocessing.set_start_method('spawn', force=True)
-
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
+
+    # Configure logging
+    main_log_file = Path(output_WSI_dataset_path) / 'wsi_tile_embedding.log'
+    logging.basicConfig(filename=main_log_file, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+    multiprocessing.set_start_method('spawn', force=True)
+
+    since = time.time()
+    logging.info(f'Embedding all_slides_from_tiles_dataset at {input_tile_WSI_dataset_path}')
+    logging.info(f'Embedding output dataset folder at {output_WSI_dataset_path}')
 
     slide_dataset = Slide_loading_Dataset(input_tile_WSI_dataset_path)
     slide_path_dict = slide_dataset.slide_paths
@@ -518,7 +535,7 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
         device = device_list[device_index]
         p = multiprocessing.Process(target=embed_at_device,
                                     args=(device, model_name, edge_size, model_weight_path, device_slide_folders,
-                                          num_workers, output_WSI_dataset_path,batch_size,overwrite, output_queue))
+                                          num_workers, output_WSI_dataset_path, batch_size, overwrite, output_queue))
         p.start()
         processes.append(p)
 
@@ -533,6 +550,21 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
         if error_info:
             logging.error(f"Error embedding slide: {error_info}")
             error_wsi_infor_list.append(error_info)
+
+    # Merge logs from subprocesses into the main log file
+    for device_index, device in enumerate(device_list):
+        log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
+        if log_file_path.exists():
+            with open(log_file_path, 'r') as log_file:
+                log_content = log_file.read()
+            with open(main_log_file, 'a') as main_log:
+                main_log.write(log_content)
+            os.remove(log_file_path)
+
+    time_elapsed = time.time() - since
+    logging.info(f'Embedding for all slides completed in {time_elapsed:.2f} seconds')
+    logging.info(f'Embedding output dataset folder at {output_WSI_dataset_path}')
+    logging.info(f'error_wsi_infor_list is {error_wsi_infor_list}')
 
     # return the combined error_wsi_infor_list from all gpus (skip None in the list)
     return error_wsi_infor_list
@@ -716,6 +748,10 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide_folders, output_queue,
                                     output_WSI_dataset_path, batch_size, edge_size, overwrite, tile_progress,
                                     parallel=False, num_workers=1):
+    # Setup logging in each subprocess
+    log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
+    setup_logging(log_file_path)
+
     # Initialize CUDA in the subprocess
     embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
                                             pretrained_weight=model_weight_path)
@@ -777,11 +813,21 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
     List[Optional[str]]
         List of slide IDs that encountered errors during processing.
     """
-    multiprocessing.set_start_method('spawn', force=True)
-    tile_progress = not parallel
-
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
+        
+    # Configure logging
+    main_log_file = Path(output_WSI_dataset_path) / 'wsi_tile_embedding.log'
+    logging.basicConfig(filename=main_log_file, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+    multiprocessing.set_start_method('spawn', force=True)
+
+    since = time.time()
+    logging.info(f'Cropping and Embedding all_slides_from_tiles_dataset at {input_tile_WSI_dataset_path}')
+    logging.info(f'Cropping and Embedding output dataset folder at {output_WSI_dataset_path}')
+
+    tile_progress = not parallel
 
     device_list = [f'cuda:{i}' for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else ['cpu']
     slide_folders = prepare_slides_sample_list(slide_root=input_tile_WSI_dataset_path)
@@ -812,13 +858,26 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
             logging.error(f"Error embedding slide: {error_info}")
             error_wsi_infor_list.append(error_info)
 
+    # Merge logs from subprocesses into the main log file
+    for device_index, device in enumerate(device_list):
+        log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
+        if log_file_path.exists():
+            with open(log_file_path, 'r') as log_file:
+                log_content = log_file.read()
+            with open(main_log_file, 'a') as main_log:
+                main_log.write(log_content)
+            os.remove(log_file_path)
+
+    time_elapsed = time.time() - since
+    logging.info(f'Cropping and Embedding for all slides completed in {time_elapsed:.2f} seconds')
+    logging.info(f'Cropping and Embedding output dataset folder at {output_WSI_dataset_path}')
+    logging.info(f'error_wsi_infor_list is {error_wsi_infor_list}')
+
     return error_wsi_infor_list
 
 
 if __name__ == '__main__':
-    # Configure logging
-    logging.basicConfig(filename='wsi_tile_embedding.log', level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s:%(message)s')
+
     '''
     # for processing tiles dataset
     # demo with one sample
