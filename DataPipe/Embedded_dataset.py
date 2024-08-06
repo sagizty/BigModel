@@ -396,6 +396,8 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
             else:
                 logging.info(f">>> Skipping WSI: {slide_id} from {slide_folder} - h5 file already processed")
                 return (slide_id, slide_folder)
+        else:
+            logging.info(f">>> Processing WSI: {slide_id} from {slide_folder}")
 
         # Create the dataset and dataloader
         tile_dataset = TileEncodingDataset(slide_folder, transform=transform, edge_size=edge_size, suffix=suffix)
@@ -872,7 +874,7 @@ if __name__ == '__main__':
     '''
 
     # demo with multiple sample
-    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                                            output_WSI_dataset_path='/data/ssd_1/BigModel/sampled_embedded_datasets',
+    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets/',
+                                            output_WSI_dataset_path='/data/BigModel/embedded_datasets',
                                             model_name='gigapath', model_weight_path='timm', batch_size=256,
                                             edge_size=224, overwrite=True)
