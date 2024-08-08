@@ -25,7 +25,12 @@ now its highest magnification and lowest level (level-0), now the resolution for
 
 """
 
+import sys
 import os
+
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
 import time
 import torch
 import numpy as np
@@ -41,6 +46,7 @@ import traceback
 import warnings
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union
+import gc
 
 import numpy as np
 import pandas as pd
@@ -51,8 +57,12 @@ from monai.data.wsi_reader import WSIReader
 from openslide import OpenSlide
 from tqdm import tqdm
 
-from .wsi_tools import *
-from .segmentation_and_filtering_tools import *
+try:
+    from .wsi_tools import *
+    from .segmentation_and_filtering_tools import *
+except:
+    from PuzzleAI.DataPipe.wsi_tools import *
+    from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *
 
 
 # todo it should be designed for better pretraining management
@@ -206,6 +216,14 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
         if n_failed_tiles > 0:
             # what we want to do with slides that have some failed tiles? for now, just drop?
             logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
+
+        # Explicitly delete the large objects
+        del WSI_image_obj
+        del loaded_ROI_samples
+        del loader
+
+        # Force garbage collection
+        gc.collect()
 
         logging.info(f"Finished processing slide {slide_id}")
 

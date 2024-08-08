@@ -32,6 +32,7 @@ However
 slide = openslide.OpenSlide(wsi_path) return slide in (WHC)
 """
 import os
+import gc
 from copy import deepcopy
 import openslide
 import cv2
@@ -48,8 +49,13 @@ import traceback
 import warnings
 import multiprocessing
 
-from .bbox_tools import get_ROI_bounding_box_list, Box
-from .segmentation_and_filtering_tools import *
+try:
+    from .bbox_tools import get_ROI_bounding_box_list, Box
+    from .segmentation_and_filtering_tools import *
+except:
+    from PuzzleAI.DataPipe.bbox_tools import get_ROI_bounding_box_list, Box
+    from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *
+
 
 # this is used to process WSI to get slide-level (for OpenSlide) at a target mpp
 def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
@@ -701,6 +707,7 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
     n_discarded = 0
     # should put WSI_image_obj in the loop for multiple processing
     WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
+
     for chuck_index in tqdm(range(len(chuck_locations)),  # todo make this to be parallel in sample
                             f"Processing the chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                             f"ROI index {ROI_sample_from_WSI['ROI_index']}",
@@ -828,6 +835,11 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
     # close csv logging
     dataset_csv_file.close()
     failed_tiles_file.close()
+
+    # Explicitly delete the large objects
+    del WSI_image_obj
+    # Force garbage collection
+    gc.collect()
 
     # log ROI selection infor
     logging.info(f"Percentage tiles discarded: {n_discarded / n_tiles * 100:.2f}")
