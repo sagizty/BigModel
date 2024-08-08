@@ -1,7 +1,11 @@
 from PIL import Image
 from torchvision import transforms
 import torch
+import sys
 import os
+
+# Add the parent directory to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 try:
     from ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder, run_inference_with_tile_encoder
 except:

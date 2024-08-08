@@ -1,6 +1,11 @@
 
 import huggingface_hub
+import sys
 import os
+
+# Add the parent directory to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
 try:
     from DataPipe.wsi_tools import find_level_for_target_mpp
 except:
