@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Aug 4th 10:00
+WSI tile cropping dataset tools   Script  ver： Aug 8th 17:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -51,8 +51,8 @@ from monai.data.wsi_reader import WSIReader
 from openslide import OpenSlide
 from tqdm import tqdm
 
-from wsi_tools import *
-from segmentation_and_filtering_tools import *
+from .wsi_tools import *
+from .segmentation_and_filtering_tools import *
 
 
 # todo it should be designed for better pretraining management
@@ -194,7 +194,9 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                                 chunk_scale_in_tiles=chunk_scale_in_tiles,
                                                                 tile_progress=tile_progress,
                                                                 ROI_image_key=ROI_image_key)
-
+            if tile_info_list == None:
+                # empty ROi (finished processing earlier)
+                break
             # STEP 3: visualize the tile location overlay to WSI
             visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
                                                                          + "_roi_" + str(index) + "_tiles.jpeg"),
@@ -330,7 +332,7 @@ def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list
 
 
 # for inference
-def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir: str = '', tile_size: int = 256,
+def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir: str = '', tile_size: int = 224,
                                            image_key: str = "slide_image_path"):
     """
     This function is used to tile a single slide and save the tiles to a directory.
@@ -359,27 +361,29 @@ def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir:
 
     print(f"Processing slide {slide_image_path} with tile size {tile_size}. Saving to {save_dir}.")
 
-    slide_dir = process_one_slide_to_tiles(
+    process_one_slide_to_tiles(
         slide_sample,
+        output_dir=save_dir,
         margin=0,
         tile_size=tile_size,
         foreground_threshold=None,  # None to use automatic illuminance estimation
         occupancy_threshold=0.1,
-        output_dir=save_dir / "output",
         thumbnail_dir=save_dir / "thumbnails",
-        chunk_scale_in_tiles=20,
+        chunk_scale_in_tiles=4,
         tile_progress=True,
         image_key=image_key
     )
 
-    dataset_csv_path = slide_dir / "dataset.csv"
+    output_tiles_dir = save_dir / Path(slide_id)
+
+    dataset_csv_path = os.path.join(output_tiles_dir, "dataset.csv")
     dataset_df = pd.read_csv(dataset_csv_path)
     assert len(dataset_df) > 0
-    failed_csv_path = slide_dir / "failed_tiles.csv"
+    failed_csv_path = os.path.join(output_tiles_dir, "failed_tiles.csv")
     failed_df = pd.read_csv(failed_csv_path)
     assert len(failed_df) == 0
 
-    print(f"Slide {slide_image_path} has been tiled. {len(dataset_df)} tiles saved to {slide_dir}.")
+    print(f"Slide {slide_image_path} has been tiled. {len(dataset_df)} tiles saved to {output_tiles_dir}.")
 
 
 # todo to support loading ROI level tasks for ROI model

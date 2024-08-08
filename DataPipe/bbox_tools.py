@@ -1,5 +1,5 @@
 """
-tools for managing bbox    Script  ver： Aug 4th 10:00
+tools for managing bbox    Script  ver： Aug 8th 17:00
 """
 from dataclasses import dataclass
 from typing import Optional, Sequence, Tuple
@@ -182,7 +182,7 @@ def get_bounding_box_from_slices(slices):
     return box_list
 
 
-def get_ROI_bounding_box_list(mask: np.ndarray, maximum_top_n=5) -> Box:
+def get_ROI_bounding_box_list(mask: np.ndarray, maximum_top_n=20) -> Box:
     """Extracts a bounding box from a binary 2D array.
 
     :param mask: A 2D array with 0 (or `False`) as background and >0 (or `True`) as foreground.

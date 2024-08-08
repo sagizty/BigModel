@@ -1,5 +1,5 @@
 """
-tools to process WSI     Script  ver： Aug 4th 10:00
+tools to process WSI     Script  ver： Aug 8th 17:00
 a WSI is a scanned whole slide image of some tissue region and many blank background
 
 Terminology:
@@ -43,12 +43,13 @@ from monai.data import Dataset
 from monai.data.wsi_reader import WSIReader
 from tqdm import tqdm
 from PIL import ImageDraw, Image
-from bbox_tools import get_ROI_bounding_box_list, Box
-from segmentation_and_filtering_tools import *
+
 import traceback
 import warnings
 import multiprocessing
 
+from .bbox_tools import get_ROI_bounding_box_list, Box
+from .segmentation_and_filtering_tools import *
 
 # this is used to process WSI to get slide-level (for OpenSlide) at a target mpp
 def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
@@ -191,7 +192,8 @@ class Loader_for_get_one_WSI_sample(MapTransform):
         scale = slide_obj.level_downsamples[highest_level]
 
         # select multiple valid region instead of one, reduce the calculation cost
-        box_list = get_ROI_bounding_box_list(foreground_mask, maximum_top_n=3)
+        # fixme this maximum_top_n should be notice
+        box_list = get_ROI_bounding_box_list(foreground_mask, maximum_top_n=20)
         level0_bbox_list = []
         for bbox in box_list:
             # get bbox at level-0
@@ -613,11 +615,12 @@ def extract_chuck(num_workers, chuck_locations, slide_image_path, target_level_t
 
     return tile_info_list, n_failed_tiles, n_discarded
 
+
 def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir: Path, tile_size: int,
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                         chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path",
-                        num_workers=1):
+                        num_workers=1):  # todo make this to be parallel in sample
     """
     :param slide_image_path:
     :param ROI_sample_from_WSI:
@@ -642,27 +645,8 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
         Number of subprocesses to use for data loading (default is 1 for not multiple processing).
 
     """
-    # STEP 0: prepare log files:
-    # prepare a csv log file for ROI tiles
-    keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
-                    "tile_y", "tile_x", "occupancy")
-    # Decode the slide metadata (if got)
-    slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
-    metadata_keys = tuple("slide_" + key for key in slide_metadata)
-    # print('metadata_keys',metadata_keys)
-    csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
-    # print('csv_columns',csv_columns)
 
-    # build a recording file to log the processed files
-    dataset_csv_path = output_tiles_dir / "dataset.csv"
-    dataset_csv_file = dataset_csv_path.open('w')
-    dataset_csv_file.write(','.join(csv_columns) + '\n')  # write CSV header
-
-    failed_tiles_csv_path = output_tiles_dir / "failed_tiles.csv"
-    failed_tiles_file = failed_tiles_csv_path.open('w')
-    failed_tiles_file.write('tile_id' + '\n')  # write CSV header
-
-    # STEP 1: prepare chuck and tile locations
+    # STEP 0: prepare chuck and tile locations
     target_level_tilesize = int(tile_size * ROI_sample_from_WSI["ROI_size_scale"])
 
     # generate a list of level-0 tile location starting with "target_h" and "target_w" at target level
@@ -673,7 +657,31 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
                                                                                ROI_sample_from_WSI)
     # each chuck is chunk_scale_in_tiles^2 of tiles
     n_tiles = len(tile_locations) + len(chuck_locations) * chunk_scale_in_tiles * chunk_scale_in_tiles
-    logging.info(f"{n_tiles} tiles found")
+    logging.info(f"{n_tiles} tiles found for this ROI")
+
+    if n_tiles == 0:
+        # the ROI is empty now
+        return None, None
+    else:
+        # STEP 1: prepare log files:
+        # prepare a csv log file for ROI tiles
+        keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
+                        "tile_y", "tile_x", "occupancy")
+        # Decode the slide metadata (if got)
+        slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
+        metadata_keys = tuple("slide_" + key for key in slide_metadata)
+        # print('metadata_keys',metadata_keys)
+        csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
+        # print('csv_columns',csv_columns)
+
+        # build a recording file to log the processed files
+        dataset_csv_path = output_tiles_dir / "dataset.csv"
+        dataset_csv_file = dataset_csv_path.open('w')
+        dataset_csv_file.write(','.join(csv_columns) + '\n')  # write CSV header
+
+        failed_tiles_csv_path = output_tiles_dir / "failed_tiles.csv"
+        failed_tiles_file = failed_tiles_csv_path.open('w')
+        failed_tiles_file.write('tile_id' + '\n')  # write CSV header
 
     # make a list to record the Tile information dictionary for valid tiles
     logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
@@ -693,7 +701,7 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
     n_discarded = 0
     # should put WSI_image_obj in the loop for multiple processing
     WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(slide_image_path)
-    for chuck_index in tqdm(range(len(chuck_locations)),
+    for chuck_index in tqdm(range(len(chuck_locations)),  # todo make this to be parallel in sample
                             f"Processing the chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
                             f"ROI index {ROI_sample_from_WSI['ROI_index']}",
                             unit="chuck", disable=not tile_progress):
@@ -976,8 +984,7 @@ def is_already_processed(output_tiles_dir):
 def merge_dataset_csv_files(dataset_dir: Path) -> Path:
     """Combines all "*/dataset.csv" files into a single "dataset.csv" file in the given directory."""
     full_csv = dataset_dir / "dataset.csv"
-    # TODO change how we retrieve these filenames, probably because mounted, the operation is slow
-    #  and it seems to find many more files
+
     # print("List of files")
     # print([str(file) + '\n' for file in dataset_dir.glob("*/dataset.csv")])
     with full_csv.open('w') as full_csv_file:
