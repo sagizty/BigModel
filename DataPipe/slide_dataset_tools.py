@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 11th 23:50
+tools for slide level dataset      Script  ver： Aug 12th 01:00
 
 build and load task config
 """
@@ -11,8 +11,136 @@ from torch.utils.data import Dataset
 from pathlib import Path
 import h5py
 import yaml  # Ensure pyyaml is installed: pip install pyyaml
+from sklearn.model_selection import GroupKFold
+
+# csv data split tools:
+def write_csv_data(task_description_path, id_key, id_data, key='split', val='train'):
+    """
+    Edit the CSV file by adding (if not there, otherwise edit) a column name of key (such as 'split')
+
+    Parameters:
+    - task_description_path: Path to the CSV file.
+    - id_key: The name of the column that contains the IDs to match with id_data.
+    - id_data: A list of values corresponding to the id_key column, for which the key column should be updated.
+    - key: The name of the column to add or update. Defaults to 'split'.
+    - val: The value to set in the key column for the matching rows. Defaults to 'train'.
+    """
+
+    # Load the CSV into a DataFrame
+    df = pd.read_csv(task_description_path)
+
+    # If the key column does not exist, create it and fill with empty strings
+    if key not in df.columns:
+        df[key] = ""
+
+    # Update the rows where the id_key matches any of the values in id_data
+    df.loc[df[id_key].isin(id_data), key] = val
+
+    # Write the updated DataFrame back to the CSV
+    df.to_csv(task_description_path, index=False)
 
 
+def build_data_split_for_csv(task_description_path, slide_id_key='slide_id', test_ratio=0.2, k=1, mode='TCGA'):
+    """
+        Edit the csv file by adding n new columns to indicate the split information for k-fold
+
+        # name of the n new columns: 'split_nfold-k'
+                                    n is the total fold number and k is the fold index
+        if n == 1, only have singel fold data, we add a column of 'split'
+
+        the value is 'train' or 'val' or 'test'
+    """
+    if k > 1:
+        n_splits = k
+    else:
+        # fixme when k=1, we use single fold of 5-fold as for train val test evaluation
+        n_splits = 5
+
+    # Get a list of all WSI samples
+    all_wsi_folders = list(pd.read_csv(task_description_path)[slide_id_key])
+
+    # Index the WSIs in a dict by the patient names
+    patient_wsis = {}
+    # all_wsi_patient_names = []
+    for sample in all_wsi_folders:
+        patient_name = sample[:12] if mode == 'TCGA' else sample[:]
+        # Assuming the first 12 characters are the patient name in TCGA
+        # all_wsi_patient_names.append(patient_name)
+        if patient_name not in patient_wsis:
+            patient_wsis[patient_name] = []
+        patient_wsis[patient_name].append(sample)
+
+    # Shuffle the patient names
+    shuffled_patients = list(patient_wsis.keys())
+    random.shuffle(shuffled_patients)
+
+    # duplicate the patient with multiple samples to creat a list of samples' patient names
+    name_of_the_samples_shuffled_by_patients = []
+    list_of_the_samples_shuffled_by_patients = []
+    for patient_name in shuffled_patients:
+        for sample in patient_wsis[patient_name]:
+            name_of_the_samples_shuffled_by_patients.append(patient_name)
+            list_of_the_samples_shuffled_by_patients.append(sample)
+    assert len(name_of_the_samples_shuffled_by_patients) == len(all_wsi_folders)
+
+    # Calculate number of samples at test set
+    total_samples_num = len(all_wsi_folders)
+    test_samples_num = int(total_samples_num * test_ratio)
+    # get the patients who should be in the test set
+    last_name = name_of_the_samples_shuffled_by_patients[test_samples_num - 1]
+    # get the first name's index after testing set
+    trigger = False
+    for index in range(total_samples_num):
+        patient_name = name_of_the_samples_shuffled_by_patients[index]
+        if patient_name == last_name:
+            trigger = True
+        if trigger and patient_name != last_name:
+            break
+
+    test_data = list_of_the_samples_shuffled_by_patients[0:index]
+    test_names = name_of_the_samples_shuffled_by_patients[0:index]
+    test_patient_names_noduplicate = list(dict.fromkeys(test_names))
+
+    trainval_samples = np.array(list_of_the_samples_shuffled_by_patients[index:])
+    trainval_patients = np.array(name_of_the_samples_shuffled_by_patients[index:])
+
+    # Initialize GroupKFold
+    group_kfold = GroupKFold(n_splits=n_splits)
+
+    # Split the data
+    print('Total samples num:', len(all_wsi_folders), 'Total patients num:', len(shuffled_patients))
+    for fold, (train_idx, val_idx) in enumerate(group_kfold.split(trainval_samples, groups=trainval_patients)):
+        print(f"Fold {fold + 1}")
+        # print(f"TRAIN: {train_idx}, VALIDATION: {val_idx}")
+        train_data = list(trainval_samples[train_idx])
+        train_patient_names = list(trainval_patients[train_idx])
+        train_patient_names_noduplicate = list(dict.fromkeys(train_patient_names))
+
+        val_data = list(trainval_samples[val_idx])
+        val_patient_names = list(trainval_patients[val_idx])
+        val_patient_names_noduplicate = list(dict.fromkeys(val_patient_names))
+        print(f"TRAIN samples num: {len(train_data)}, "
+              f"TRAIN patients num: {len(train_patient_names_noduplicate)}")
+        print(f"VALIDATION samples num: {len(val_data)}, "
+              f"VALIDATION patients num: {len(val_patient_names_noduplicate)}")
+
+        if k == 1:
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=train_data, key='split', val='train')
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=val_data, key='split', val='val')
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=test_data, key='split', val='test')
+            break
+        else:
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=train_data,
+                           key='split_{}fold-{}'.format(k,fold+1), val='train')
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=val_data,
+                           key='split_{}fold-{}'.format(k,fold+1), val='val')
+            write_csv_data(task_description_path, id_key=slide_id_key, id_data=test_data,
+                           key='split_{}fold-{}'.format(k,fold+1), val='test')
+
+    print('\nTEST samples num:', len(test_data), 'TEST patients:', len(test_patient_names_noduplicate), )
+
+
+# task config tools:
 def build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='lung-mix',
                                setting='MTL', max_tiles=1000000, shuffle_tiles=True,
                                excluding_list=('WSI_name', 'split',)):
@@ -28,7 +156,7 @@ def build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='
     shuffle_tiles (bool): Whether to shuffle tiles or not. Default is True.
     excluding_list (tuple): List of columns to exclude. Default is ('WSI_name', ...).
                             the attribute starts with 'split' will be ignored as they are designed for control split
-                            EG: key: 'split_nfold-k', val:'train_nfold-k', n and l is number
+                            EG: 'split_nfold-k', n is the total fold number and k is the fold index
     """
 
     task_description = pd.read_csv(task_description_path)
@@ -39,7 +167,7 @@ def build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='
         if task in excluding_list:
             continue
         elif task[0:5] == 'split':
-            # key: 'split_nfold-k', val:'train_nfold-k', n and l is number
+            # key: 'split_nfold-k', n and l is number
             continue
         else:
             pass
@@ -89,20 +217,20 @@ def load_yaml_config(yaml_path):
     return config
 
 
-# fixme its temp start tool func
+# fixme its temp start tool func, temp hack
 def load_task_settings(root_path, task_setting_folder_name='task_settings', split_name='train'):
     """Load task settings including task description CSV and YAML configuration."""
     task_description_path = os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
     data_df = pd.read_csv(task_description_path)
     task_config = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
     slide_id_key = 'slide_id'
-    split_target_key = 'pat_id'
-    return data_df, root_path, split_name, task_config, slide_id_key, split_target_key
+    return data_df, root_path, split_name, task_config, slide_id_key
 
 
+# MTL dataset builder
 class SlideDataset(Dataset):
     def __init__(self, data_df: pd.DataFrame, root_path: str, split_name: str, task_config: dict,
-                 slide_id_key='slide_id', split_target_key='pat_id', possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
+                 slide_id_key='slide_id', split_target_key='split', possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list=['thumbnails'], **kwargs):
         """
         Slide dataset class for retrieving slide samples for different tasks.
@@ -125,14 +253,15 @@ class SlideDataset(Dataset):
         slide_id_key : str
             The key that contains the slide id
         split_target_key : str
-            The key that specifies the column name for taking the split_name
+            The key that specifies the column name for taking the split_name,
+            'split_nfold-k', n is the total fold number and k is the fold index
         """
         super(SlideDataset, self).__init__(**kwargs)
 
         self.root_path = root_path
         self.possible_suffixes = possible_suffixes
         self.task_cfg = task_config
-        self.split_target_key = split_target_key
+        self.split_target_key = split_target_key  # the key to record the fold infor
         self.slide_id_key = slide_id_key
 
         # Find valid slide paths
@@ -193,7 +322,7 @@ class SlideDataset(Dataset):
 
         return valid_slide_ids
 
-    def prepare_single_task_data_list(self, df, split_name, task_name_list=['label']):
+    def prepare_single_task_data_list(self, df, split_name_list, task_name_list=['label']):
         """
         Prepare the sample for single task.
         # fixme demo code from previous
@@ -211,8 +340,9 @@ class SlideDataset(Dataset):
         n_classes = len(label_dict)  # If 1, it's a regression task
 
         # Get the corresponding splits
+        # here split_target_key is the patient id, indication to take name form it, but its not good for multiple fold
         assert self.split_target_key in df.columns, 'No {} column found in the dataframe'.format(self.split_target_key)
-        df = df[df[self.split_target_key].isin(split_name)]
+        df = df[df[self.split_target_key].isin(split_name_list)]
         slide_ids = df[self.slide_id_key].tolist()
         if n_classes == 1:
             slide_labels = df[[task_name]].to_numpy().astype(int)  # Manual long-int encoding in df[['label']]
@@ -225,14 +355,15 @@ class SlideDataset(Dataset):
         task_dict = self.task_cfg.get('all_task_dict')
         one_hot_dict = self.task_cfg.get('one_hot_dict')
 
-        # Get the label from CSV file with WSIs assigned with the target split (such as train).
+        # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
         task_description_csv = task_description_csv[task_description_csv[self.split_target_key] == split_name]
+
         WSI_names = task_description_csv[self.slide_id_key]
 
         labels = []
         for WSI_name in WSI_names:
             task_description_list = []
-
+            # we use split_target_key to indicate fold
             loaded_task_description = task_description_csv[task_description_csv[self.slide_id_key]
                                                            == WSI_name].to_dict('records')[0]
 
@@ -259,16 +390,14 @@ class SlideDataset(Dataset):
         return task_description_csv, WSI_names, labels, None
 
     def setup_task_data(self, df, split_name, task_name_list):
-        """Prepare the sample for single task setting or multi-task setting."""
-        # todo multiple modality func
-        if len(task_name_list) == 1:
-            prepare_data_func = self.prepare_single_task_data_list
-        elif len(task_name_list) > 1:
-            prepare_data_func = self.prepare_MTL_data_list
-        else:
-            raise ValueError('Invalid task: {}'.format(task_name_list))
+        """Prepare the sample for single task setting or multi-task setting.
 
-        self.slide_data, self.slide_ids, self.labels, self.n_classes = prepare_data_func(df, split_name, task_name_list)
+        old demo self.prepare_single_task_data_list, the split is a list of wsi name
+        """
+        # todo multiple modality func
+
+        self.slide_data, self.slide_ids, self.labels, self.n_classes = (
+            self.prepare_MTL_data_list(df, split_name, task_name_list))
         # reset the embedded_slide_paths dict
         self.embedded_slide_paths = {slide_id: self.embedded_slide_paths[slide_id] for slide_id in self.slide_ids}
 
@@ -364,6 +493,7 @@ class SlideDataset(Dataset):
 
 if __name__ == '__main__':
     task_description_path = '../demo/task-settings/task_description.csv'
+    build_data_split_for_csv(task_description_path, slide_id_key='slide_id', test_ratio=0.2, k=1, mode='TCGA')
     output_dir = '../demo/task-settings'
     build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='lung-mix',
                                setting='MTL', max_tiles=1000000, shuffle_tiles=True,
