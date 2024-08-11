@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 11th 23:40
+tools for slide level dataset      Script  ver： Aug 11th 23:50
 
 build and load task config
 """
@@ -26,7 +26,9 @@ def build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='
     setting (str): Setting type (e.g., 'MTL'). Default is 'MTL'.
     max_tiles (int): Maximum number of tiles. Default is 1000000.
     shuffle_tiles (bool): Whether to shuffle tiles or not. Default is True.
-    excluding_list (tuple): List of columns to exclude. Default is ('WSI_name', 'split').
+    excluding_list (tuple): List of columns to exclude. Default is ('WSI_name', ...).
+                            the attribute starts with 'split' will be ignored as they are designed for control split
+                            EG: key: 'split_nfold-k', val:'train_nfold-k', n and l is number
     """
 
     task_description = pd.read_csv(task_description_path)
@@ -36,6 +38,11 @@ def build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='
     for task in tasks:
         if task in excluding_list:
             continue
+        elif task[0:5] == 'split':
+            # key: 'split_nfold-k', val:'train_nfold-k', n and l is number
+            continue
+        else:
+            pass
 
         content_list = task_description[task].unique()
         content_list = [x for x in content_list if not pd.isna(x)]
