@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 4th 10:00
+tools for slide level dataset      Script  ver： Aug 11th 23:40
 
 build and load task config
 """
@@ -82,17 +82,19 @@ def load_yaml_config(yaml_path):
     return config
 
 
-def load_task_settings(root_path, task_setting_folder_name='task_settings', splits='train'):
+# fixme its temp start tool func
+def load_task_settings(root_path, task_setting_folder_name='task_settings', split_name='train'):
     """Load task settings including task description CSV and YAML configuration."""
     task_description_path = os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
     data_df = pd.read_csv(task_description_path)
     task_config = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
     slide_id_key = 'slide_id'
     split_target_key = 'pat_id'
-    return data_df, root_path, splits, task_config, slide_id_key, split_target_key
+    return data_df, root_path, split_name, task_config, slide_id_key, split_target_key
+
 
 class SlideDataset(Dataset):
-    def __init__(self, data_df: pd.DataFrame, root_path: str, splits: list, task_config: dict,
+    def __init__(self, data_df: pd.DataFrame, root_path: str, split_name: str, task_config: dict,
                  slide_id_key='slide_id', split_target_key='pat_id', possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list=['thumbnails'], **kwargs):
         """
@@ -111,12 +113,12 @@ class SlideDataset(Dataset):
             The root path of the tile embeddings
         task_config : dict
             The task configuration dictionary
-        splits : list
-            The list of patient_ids/slide_ids as the split lists to build dataset
+        split_name : str
+            The key word of patient_ids/slide_ids as the split lists to build dataset
         slide_id_key : str
             The key that contains the slide id
         split_target_key : str
-            The key that specifies the column name for taking the splits
+            The key that specifies the column name for taking the split_name
         """
         super(SlideDataset, self).__init__(**kwargs)
 
@@ -136,7 +138,7 @@ class SlideDataset(Dataset):
 
         # Set up the task
         task_name_list = task_config.get('setting', ['label'])
-        self.setup_task_data(data_df, splits, task_name_list)
+        self.setup_task_data(data_df, split_name, task_name_list)
 
         # Load from settings or set default value
         self.max_tiles = task_config.get('max_tiles', 1000)
@@ -184,7 +186,7 @@ class SlideDataset(Dataset):
 
         return valid_slide_ids
 
-    def prepare_single_task_data_list(self, df, splits, task_name_list=['label']):
+    def prepare_single_task_data_list(self, df, split_name, task_name_list=['label']):
         """
         Prepare the sample for single task.
         # fixme demo code from previous
@@ -203,7 +205,7 @@ class SlideDataset(Dataset):
 
         # Get the corresponding splits
         assert self.split_target_key in df.columns, 'No {} column found in the dataframe'.format(self.split_target_key)
-        df = df[df[self.split_target_key].isin(splits)]
+        df = df[df[self.split_target_key].isin(split_name)]
         slide_ids = df[self.slide_id_key].tolist()
         if n_classes == 1:
             slide_labels = df[[task_name]].to_numpy().astype(int)  # Manual long-int encoding in df[['label']]
@@ -211,13 +213,13 @@ class SlideDataset(Dataset):
             slide_labels = df[[task_name]].to_numpy()
         return df, slide_ids, slide_labels, n_classes
 
-    def prepare_MTL_data_list(self, task_description_csv, splits, task_name_list):
+    def prepare_MTL_data_list(self, task_description_csv, split_name, task_name_list):
         """Prepare the sample for multi-label task."""
         task_dict = self.task_cfg.get('all_task_dict')
         one_hot_dict = self.task_cfg.get('one_hot_dict')
 
         # Get the label from CSV file with WSIs assigned with the target split (such as train).
-        task_description_csv = task_description_csv[task_description_csv[self.split_target_key] == splits]
+        task_description_csv = task_description_csv[task_description_csv[self.split_target_key] == split_name]
         WSI_names = task_description_csv[self.slide_id_key]
 
         labels = []
@@ -249,7 +251,7 @@ class SlideDataset(Dataset):
 
         return task_description_csv, WSI_names, labels, None
 
-    def setup_task_data(self, df, splits, task_name_list):
+    def setup_task_data(self, df, split_name, task_name_list):
         """Prepare the sample for single task setting or multi-task setting."""
         # todo multiple modality func
         if len(task_name_list) == 1:
@@ -259,7 +261,7 @@ class SlideDataset(Dataset):
         else:
             raise ValueError('Invalid task: {}'.format(task_name_list))
 
-        self.slide_data, self.slide_ids, self.labels, self.n_classes = prepare_data_func(df, splits, task_name_list)
+        self.slide_data, self.slide_ids, self.labels, self.n_classes = prepare_data_func(df, split_name, task_name_list)
         # reset the embedded_slide_paths dict
         self.embedded_slide_paths = {slide_id: self.embedded_slide_paths[slide_id] for slide_id in self.slide_ids}
 
@@ -348,6 +350,14 @@ class SlideDataset(Dataset):
         return len(self.slide_data)
 
     def __getitem__(self, idx):
+        # fixme in this current framework the model always trained with wsi batch size of 1
         slide_level_sample = self.get_embedded_sample_with_try(idx)
         return slide_level_sample
 
+
+if __name__ == '__main__':
+    task_description_path = '../demo/task-settings/task_description.csv'
+    output_dir = '../demo/task-settings'
+    build_yaml_config_from_csv(task_description_path, output_dir, dataset_name='lung-mix',
+                               setting='MTL', max_tiles=1000000, shuffle_tiles=True,
+                               excluding_list=('WSI_name', 'split',))
