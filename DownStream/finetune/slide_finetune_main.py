@@ -1,3 +1,6 @@
+'''
+MTL training panel       Script  ver： Aug 11th 00:40
+'''
 import os
 import torch
 import pandas as pd
@@ -59,29 +62,31 @@ if __name__ == '__main__':
     args.split_dir = os.path.join(args.split_dir, args.task_code) if not args.pre_split_dir else args.pre_split_dir
     os.makedirs(args.split_dir, exist_ok=True)
     print('Setting split directory: {}'.format(args.split_dir))
-    #dataset = pd.read_csv(args.dataset_csv) # read the dataset csv file
-
-    # use the slide dataset
-    DatasetClass_train =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='train')
-    DatasetClass_val =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='val')
-    DatasetClass_test =load_task_settings(args.root_path, task_setting_folder_name='task_settings', splits='test')
-
     # set up the results dictionary
     results = {}
 
     # start cross validation
     for fold in range(args.folds):
-        # set up the fold directory
-        save_dir = os.path.join(args.save_dir, f'fold_{fold}')
-        os.makedirs(save_dir, exist_ok=True)
         # get the splits
-        train_splits, val_splits, test_splits = get_splits(dataset, fold=fold, **vars(args))
+        split_target_key = 'split_{}fold-{}'.format(args.folds,fold+1) if args.folds > 1 else 'split'
+        # 'split_nfold-k', n is the total fold number and k is the fold index
+        # use the slide dataset
+        DatasetClass_train = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
+                                                split_name='train')
+        DatasetClass_val = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
+                                              split_name='val')
+        DatasetClass_test = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
+                                               split_name='test')
+
+        # set up the fold directory
+        save_dir = os.path.join(args.save_dir, f'fold_{fold}') if args.fold > 1 else args.save_dir
+        os.makedirs(save_dir, exist_ok=True)
+
         # instantiate the dataset
-        train_data, val_data, test_data = (SlideDataset(DatasetClass_train) \
-                                        , SlideDataset(DatasetClass_train) \
-                                           # if len(val_splits) > 0 else None
-                                        , SlideDataset(DatasetClass_train))
-                                            #if len(test_splits) > 0 else None
+        train_data, val_data, test_data = (SlideDataset(DatasetClass_train, split_target_key=split_target_key),
+                                           SlideDataset(DatasetClass_val, split_target_key=split_target_key),
+                                           SlideDataset(DatasetClass_test, split_target_key=split_target_key))
+        # todo config MTL
         args.n_classes = train_data.n_classes # get the number of classes
         # get the dataloader
         train_loader, val_loader, test_loader = get_loader(train_data, val_data, test_data, **vars(args))
