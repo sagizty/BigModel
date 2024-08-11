@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： Aug 6th 18:00
+WSI embedding dataset tools   Script  ver： Aug 11th 23:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -25,6 +25,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'M
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
 
+import gc
 import json
 import yaml
 import h5py
@@ -745,6 +746,14 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
             logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
 
         logging.info(f"Finished processing slide {slide_id}")
+
+        # Explicitly delete the large objects
+        del WSI_image_obj
+        del loaded_ROI_samples
+        del loader
+
+        # Force garbage collection
+        gc.collect()
 
         return None  # Return None if successful
 
