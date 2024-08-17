@@ -1,0 +1,30 @@
+all_task_dict:
+  AJCC_PATHOLOGIC_TUMOR_STAGE_reduced: list
+  FRACTION_GENOME_ALTERED: float
+  lung-cancer-subtyping: list
+  purity: float
+max_tiles: 1000000
+name: lung_mix
+one_hot_dict:
+  AJCC_PATHOLOGIC_TUMOR_STAGE_reduced:
+    Early Stage:
+    - 1
+    - 0
+    Late Stage:
+    - 0
+    - 1
+  lung-cancer-subtyping:
+    luad:
+    - 1
+    - 0
+    - 0
+    lusc:
+    - 0
+    - 1
+    - 0
+    normal:
+    - 0
+    - 0
+    - 1
+setting: MTL  # target tasks
+shuffle_tiles: true

@@ -1,0 +1,6 @@
+{
+  "purity": "float",
+  "FRACTION_GENOME_ALTERED": "float",
+  "AJCC_PATHOLOGIC_TUMOR_STAGE_reduced": "list",
+  "lung-cancer-subtyping": "list"
+}

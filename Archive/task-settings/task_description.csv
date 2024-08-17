@@ -1,0 +1,2064 @@
+WSI_name,purity,FRACTION_GENOME_ALTERED,AJCC_PATHOLOGIC_TUMOR_STAGE_reduced,lung-cancer-subtyping,split
+TCGA-05-4244-01A-01-BS1,0.44,0.4565,Late Stage,luad,Train
+TCGA-05-4244-01A-01-TS1,0.44,0.4565,Late Stage,luad,Train
+TCGA-05-4245-01A-01-BS1,,,Late Stage,luad,Train
+TCGA-05-4245-01A-01-TS1,,,Late Stage,luad,Train
+TCGA-05-4249-01A-01-BS1,0.49,0.2221,Early Stage,luad,Val
+TCGA-05-4249-01A-01-TS1,0.49,0.2221,Early Stage,luad,Val
+TCGA-05-4250-01A-01-BS1,0.5,0.2362,Late Stage,luad,Train
+TCGA-05-4250-01A-01-TS1,0.5,0.2362,Late Stage,luad,Train
+TCGA-05-4382-01A-01-BS1,0.21,0.0854,Early Stage,luad,Train
+TCGA-05-4382-01A-01-TS1,0.21,0.0854,Early Stage,luad,Train
+TCGA-05-4384-01A-01-BS1,0.49,0.0661,Late Stage,luad,Val
+TCGA-05-4384-01A-01-TS1,0.49,0.0661,Late Stage,luad,Val
+TCGA-05-4389-01A-01-BS1,0.48,0.4579,Early Stage,luad,Val
+TCGA-05-4389-01A-01-TS1,0.48,0.4579,Early Stage,luad,Val
+TCGA-05-4390-01A-01-BS1,0.57,0.3056,Early Stage,luad,Train
+TCGA-05-4390-01A-01-TS1,0.57,0.3056,Early Stage,luad,Train
+TCGA-05-4390-01A-02-BS2,0.57,0.3056,Early Stage,luad,Train
+TCGA-05-4395-01A-01-BS1,0.61,0.5598,Late Stage,luad,Train
+TCGA-05-4395-01A-01-TS1,0.61,0.5598,Late Stage,luad,Train
+TCGA-05-4396-01A-01-BS1,0.82,0.234,Late Stage,luad,Train
+TCGA-05-4396-01A-02-BS2,0.82,0.234,Late Stage,luad,Train
+TCGA-05-4397-01A-01-BS1,0.87,0.2784,Early Stage,luad,Train
+TCGA-05-4397-01A-01-TS1,0.87,0.2784,Early Stage,luad,Train
+TCGA-05-4398-01A-01-BS1,0.33,0.3046,Late Stage,luad,Train
+TCGA-05-4398-01A-01-TS1,0.33,0.3046,Late Stage,luad,Train
+TCGA-05-4402-01A-01-BS1,0.44,0.2949,Late Stage,luad,Train
+TCGA-05-4402-01A-01-TS1,0.44,0.2949,Late Stage,luad,Train
+TCGA-05-4403-01A-01-BS1,0.46,0.0272,Early Stage,luad,Train
+TCGA-05-4403-01A-01-TS1,0.46,0.0272,Early Stage,luad,Train
+TCGA-05-4405-01A-01-BS1,0.38,0.3903,Early Stage,luad,Train
+TCGA-05-4405-01A-02-BS2,0.38,0.3903,Early Stage,luad,Train
+TCGA-05-4410-01A-01-BS1,0.24,0.3183,Early Stage,luad,Val
+TCGA-05-4410-01A-02-BS2,0.24,0.3183,Early Stage,luad,Val
+TCGA-05-4415-01A-01-BS1,0.67,0.1563,Late Stage,luad,Train
+TCGA-05-4415-01A-02-BS2,0.67,0.1563,Late Stage,luad,Train
+TCGA-05-4417-01A-01-BS1,0.4,0.2699,Early Stage,luad,Train
+TCGA-05-4417-01A-02-BS2,0.4,0.2699,Early Stage,luad,Train
+TCGA-05-4418-01A-01-BS1,0.55,0.1433,Late Stage,luad,Train
+TCGA-05-4418-01A-01-TS1,0.55,0.1433,Late Stage,luad,Train
+TCGA-05-4420-01A-01-BS1,0.59,0.4499,Early Stage,luad,Train
+TCGA-05-4420-01A-01-TS1,0.59,0.4499,Early Stage,luad,Train
+TCGA-05-4422-01A-01-BS1,0.62,0.2305,Early Stage,luad,Train
+TCGA-05-4422-01A-01-TS1,0.62,0.2305,Early Stage,luad,Train
+TCGA-05-4424-01A-01-BS1,0.24,0.2161,Early Stage,luad,Train
+TCGA-05-4424-01A-02-BS2,0.24,0.2161,Early Stage,luad,Train
+TCGA-05-4425-01A-01-BS1,0.61,0.2352,Late Stage,luad,Val
+TCGA-05-4425-01A-01-TS1,0.61,0.2352,Late Stage,luad,Val
+TCGA-05-4426-01A-01-BS1,0.7,0.1445,Early Stage,luad,Val
+TCGA-05-4426-01A-01-TS1,0.7,0.1445,Early Stage,luad,Val
+TCGA-05-4427-01A-01-BS1,0.47,0.395,Early Stage,luad,Train
+TCGA-05-4427-01A-02-BS2,0.47,0.395,Early Stage,luad,Train
+TCGA-05-4430-01A-01-BS1,0.2,0.0992,Early Stage,luad,Train
+TCGA-05-4430-01A-02-BS2,0.2,0.0992,Early Stage,luad,Train
+TCGA-05-4432-01A-01-BS1,0.36,0.4286,Early Stage,luad,Train
+TCGA-05-4432-01A-01-TS1,0.36,0.4286,Early Stage,luad,Train
+TCGA-05-4433-01A-01-BS1,0.62,0.1589,Early Stage,luad,Train
+TCGA-05-4433-01A-02-BS2,0.62,0.1589,Early Stage,luad,Train
+TCGA-05-4434-01A-01-BS1,0.45,0.1237,Late Stage,luad,Train
+TCGA-05-4434-01A-01-TS1,0.45,0.1237,Late Stage,luad,Train
+TCGA-05-5420-01A-01-BS1,0.25,0.0374,Late Stage,luad,Train
+TCGA-05-5420-01A-01-TS1,0.25,0.0374,Late Stage,luad,Train
+TCGA-05-5420-11A-01-TS1,,,,normal,Train
+TCGA-05-5423-01A-01-BS1,0.59,0.3749,Early Stage,luad,Train
+TCGA-05-5423-01A-01-TS1,0.59,0.3749,Early Stage,luad,Train
+TCGA-05-5425-01A-01-BS1,0.71,0.2551,Early Stage,luad,Train
+TCGA-05-5425-01A-02-BS2,0.71,0.2551,Early Stage,luad,Train
+TCGA-05-5428-01A-01-BS1,0.63,0.5655,Early Stage,luad,Train
+TCGA-05-5428-01A-01-TS1,0.63,0.5655,Early Stage,luad,Train
+TCGA-05-5429-01A-01-BS1,0.82,0.2466,Late Stage,luad,Train
+TCGA-05-5429-01A-01-TS1,0.82,0.2466,Late Stage,luad,Train
+TCGA-05-5715-01A-01-BS1,0.73,0.32,Early Stage,luad,Train
+TCGA-05-5715-01A-01-TS1,0.73,0.32,Early Stage,luad,Train
+TCGA-18-3406-01A-01-BS1,0.48,0.2702,Early Stage,lusc,Test
+TCGA-18-3406-01A-01-TS1,0.48,0.2702,Early Stage,lusc,Test
+TCGA-18-3406-11A-01-BS1,,,,normal,Test
+TCGA-18-3406-11A-01-TS1,,,,normal,Test
+TCGA-18-3407-01A-01-BS1,0.29,0.2552,Early Stage,lusc,Test
+TCGA-18-3407-01A-01-TS1,0.29,0.2552,Early Stage,lusc,Test
+TCGA-18-3407-11A-01-BS1,,,,normal,Test
+TCGA-18-3407-11A-01-TS1,,,,normal,Test
+TCGA-18-3408-01A-01-BS1,0.76,0.2738,Early Stage,lusc,Train
+TCGA-18-3408-01A-01-TS1,0.76,0.2738,Early Stage,lusc,Train
+TCGA-18-3408-11A-01-BS1,,,,normal,Train
+TCGA-18-3408-11A-01-TS1,,,,normal,Train
+TCGA-18-3409-01A-01-BS1,0.54,0.2572,Early Stage,lusc,Train
+TCGA-18-3409-01A-01-TS1,0.54,0.2572,Early Stage,lusc,Train
+TCGA-18-3409-11A-01-BS1,,,,normal,Train
+TCGA-18-3409-11A-01-TS1,,,,normal,Train
+TCGA-18-3410-01A-01-BS1,0.65,0.5446,Early Stage,lusc,Train
+TCGA-18-3410-01A-01-TS1,0.65,0.5446,Early Stage,lusc,Train
+TCGA-18-3410-11A-01-BS1,,,,normal,Train
+TCGA-18-3410-11A-01-TS1,,,,normal,Train
+TCGA-18-3411-01A-01-BS1,0.53,0.5275,Late Stage,lusc,Val
+TCGA-18-3411-01A-01-TS1,0.53,0.5275,Late Stage,lusc,Val
+TCGA-18-3411-11A-01-BS1,,,,normal,Val
+TCGA-18-3411-11A-01-TS1,,,,normal,Val
+TCGA-18-3412-01A-01-BS1,0.78,0.6524,Early Stage,lusc,Train
+TCGA-18-3412-01A-01-TS1,0.78,0.6524,Early Stage,lusc,Train
+TCGA-18-3412-11A-01-BS1,,,,normal,Train
+TCGA-18-3412-11A-01-TS1,,,,normal,Train
+TCGA-18-3414-01A-01-BS1,0.77,0.3907,Late Stage,lusc,Test
+TCGA-18-3414-01A-01-TS1,0.77,0.3907,Late Stage,lusc,Test
+TCGA-18-3414-11A-01-BS1,,,,normal,Test
+TCGA-18-3414-11A-01-TS1,,,,normal,Test
+TCGA-18-3415-01A-01-BS1,0.48,0.6074,Early Stage,lusc,Val
+TCGA-18-3415-01A-01-TS1,0.48,0.6074,Early Stage,lusc,Val
+TCGA-18-3415-11A-01-BS1,,,,normal,Val
+TCGA-18-3415-11A-01-TS1,,,,normal,Val
+TCGA-18-3416-01A-01-BS1,0.51,0.6754,Early Stage,lusc,Train
+TCGA-18-3416-01A-01-TS1,0.51,0.6754,Early Stage,lusc,Train
+TCGA-18-3416-11A-01-BS1,,,,normal,Train
+TCGA-18-3416-11A-01-TS1,,,,normal,Train
+TCGA-18-3417-01A-01-BS1,0.31,0.4697,Late Stage,lusc,Val
+TCGA-18-3417-01A-01-TS1,0.31,0.4697,Late Stage,lusc,Val
+TCGA-18-3417-11A-01-TS1,,,,normal,Val
+TCGA-18-3419-01A-01-BS1,0.57,0.3291,Early Stage,lusc,Train
+TCGA-18-3419-01A-01-TS1,0.57,0.3291,Early Stage,lusc,Train
+TCGA-18-3421-01A-01-BS1,0.47,0.4823,Early Stage,lusc,Train
+TCGA-18-3421-01A-01-TS1,0.47,0.4823,Early Stage,lusc,Train
+TCGA-18-3421-11A-01-BS1,,,,normal,Train
+TCGA-18-3421-11A-01-TS1,,,,normal,Train
+TCGA-18-4083-01A-01-BS1,0.68,0.6112,Early Stage,lusc,Val
+TCGA-18-4083-01A-01-TS1,0.68,0.6112,Early Stage,lusc,Val
+TCGA-18-4083-11A-01-BS1,,,,normal,Val
+TCGA-18-4083-11A-01-TS1,,,,normal,Val
+TCGA-18-4086-01A-01-BS1,0.6,0.2173,Early Stage,lusc,Train
+TCGA-18-4086-01A-01-TS1,0.6,0.2173,Early Stage,lusc,Train
+TCGA-18-4086-11A-01-BS1,,,,normal,Train
+TCGA-18-4086-11A-01-TS1,,,,normal,Train
+TCGA-18-4721-01A-01-BS1,0.39,0.2381,Early Stage,lusc,Train
+TCGA-18-4721-01A-01-TS1,0.39,0.2381,Early Stage,lusc,Train
+TCGA-18-4721-11A-01-BS1,,,,normal,Train
+TCGA-18-4721-11A-01-TS1,,,,normal,Train
+TCGA-18-5592-01A-01-BS1,0.85,0.5567,Early Stage,lusc,Train
+TCGA-18-5592-01A-01-TS1,0.85,0.5567,Early Stage,lusc,Train
+TCGA-18-5592-11A-01-TS1,,,,normal,Train
+TCGA-18-5595-01A-01-TS1,0.86,0.1299,Early Stage,lusc,Train
+TCGA-18-5595-11A-01-TS1,,,,normal,Train
+TCGA-21-1070-01A-01-BS1,0.5,0.4323,Late Stage,lusc,Train
+TCGA-21-1070-01A-01-TS1,0.5,0.4323,Late Stage,lusc,Train
+TCGA-21-1071-01A-01-BS1,0.29,0.2736,Early Stage,lusc,Val
+TCGA-21-1071-01A-01-TS1,0.29,0.2736,Early Stage,lusc,Val
+TCGA-21-1072-01A-01-BS1,0.74,0.719,Early Stage,lusc,Val
+TCGA-21-1072-01A-01-TS1,0.74,0.719,Early Stage,lusc,Val
+TCGA-21-1075-01A-01-BS1,0.75,0.5746,Early Stage,lusc,Val
+TCGA-21-1075-01A-01-TS1,0.75,0.5746,Early Stage,lusc,Val
+TCGA-21-1077-01A-01-BS1,0.34,0.1839,Early Stage,lusc,Train
+TCGA-21-1077-01A-01-TS1,0.34,0.1839,Early Stage,lusc,Train
+TCGA-21-1078-01A-01-BS1,0.92,0.0205,Early Stage,lusc,Train
+TCGA-21-1078-01A-01-TS1,0.92,0.0205,Early Stage,lusc,Train
+TCGA-21-1079-01A-01-BS1,0.6,0.3891,Late Stage,lusc,Train
+TCGA-21-1079-01A-01-TS1,0.6,0.3891,Late Stage,lusc,Train
+TCGA-21-1080-01A-01-BS1,0.77,0.3465,Early Stage,lusc,Train
+TCGA-21-1080-01A-01-TS1,0.77,0.3465,Early Stage,lusc,Train
+TCGA-21-1081-01A-01-BS1,0.49,0.6962,Early Stage,lusc,Train
+TCGA-21-1081-01A-01-TS1,0.49,0.6962,Early Stage,lusc,Train
+TCGA-21-1082-01A-01-BS1,0.69,0.5828,Early Stage,lusc,Val
+TCGA-21-1082-01A-01-TS1,0.69,0.5828,Early Stage,lusc,Val
+TCGA-21-1083-01A-01-BS1,0.58,0.7367,Early Stage,lusc,Train
+TCGA-21-1083-01A-01-TS1,0.58,0.7367,Early Stage,lusc,Train
+TCGA-21-5782-01A-01-BS1,0.48,0.3733,Early Stage,lusc,Train
+TCGA-21-5782-01A-01-TS1,0.48,0.3733,Early Stage,lusc,Train
+TCGA-21-5784-01A-01-BS1,0.18,0.0395,Early Stage,lusc,Train
+TCGA-21-5784-01A-01-TS1,0.18,0.0395,Early Stage,lusc,Train
+TCGA-21-5786-01A-01-BS1,0.58,0.7311,Early Stage,lusc,Val
+TCGA-21-5786-01A-01-TS1,0.58,0.7311,Early Stage,lusc,Val
+TCGA-21-5787-01A-01-BS1,0.5,0.4027,Late Stage,lusc,Val
+TCGA-21-5787-01A-01-TS1,0.5,0.4027,Late Stage,lusc,Val
+TCGA-22-0940-01A-01-BS1,0.4,0.295,Early Stage,lusc,Train
+TCGA-22-0944-01A-01-BS1,0.66,0.3465,Early Stage,lusc,Train
+TCGA-22-0944-01A-01-TS1,0.66,0.3465,Early Stage,lusc,Train
+TCGA-22-1000-01A-01-BS1,0.18,0.0001,Early Stage,lusc,Train
+TCGA-22-1000-01A-01-TS1,0.18,0.0001,Early Stage,lusc,Train
+TCGA-22-1002-01A-01-BS1,0.38,0.194,Early Stage,lusc,Train
+TCGA-22-1002-01A-01-TS1,0.38,0.194,Early Stage,lusc,Train
+TCGA-22-1005-01A-01-BS1,0.12,0.0028,Early Stage,lusc,Val
+TCGA-22-1005-01A-01-TS1,0.12,0.0028,Early Stage,lusc,Val
+TCGA-22-1011-01A-01-TS1,0.36,0.0184,Early Stage,lusc,Test
+TCGA-22-1012-01A-01-BS1,0.32,0.4887,Early Stage,lusc,Val
+TCGA-22-1012-01A-01-TS1,0.32,0.4887,Early Stage,lusc,Val
+TCGA-22-1016-01A-01-BS1,0.33,0.2312,Early Stage,lusc,Train
+TCGA-22-1016-01A-01-TS1,0.33,0.2312,Early Stage,lusc,Train
+TCGA-22-1017-01A-01-BS1,0.34,0.2962,Early Stage,lusc,Train
+TCGA-22-1017-01A-01-TS1,0.34,0.2962,Early Stage,lusc,Train
+TCGA-22-4591-01A-01-BS1,0.73,0.5458,Late Stage,lusc,Train
+TCGA-22-4591-01A-01-TS1,0.73,0.5458,Late Stage,lusc,Train
+TCGA-22-4591-11A-01-BS1,,,,normal,Train
+TCGA-22-4591-11A-01-TS1,,,,normal,Train
+TCGA-22-4593-01A-01-BS1,0.77,0.52,Early Stage,lusc,Train
+TCGA-22-4593-01A-02-BS2,0.77,0.52,Early Stage,lusc,Train
+TCGA-22-4593-11A-01-BS1,,,,normal,Train
+TCGA-22-4593-11A-01-TS1,,,,normal,Train
+TCGA-22-4594-01A-01-BS1,0.24,0.323,Late Stage,lusc,Val
+TCGA-22-4594-01A-01-TS1,0.24,0.323,Late Stage,lusc,Val
+TCGA-22-4594-11A-01-BS1,,,,normal,Val
+TCGA-22-4594-11A-01-TS1,,,,normal,Val
+TCGA-22-4595-01A-01-BS1,0.46,0.6031,Late Stage,lusc,Val
+TCGA-22-4595-01A-01-TS1,0.46,0.6031,Late Stage,lusc,Val
+TCGA-22-4595-11A-01-BS1,,,,normal,Val
+TCGA-22-4595-11A-01-TS1,,,,normal,Val
+TCGA-22-4596-01A-01-BS1,0.69,0.0529,Early Stage,lusc,Train
+TCGA-22-4596-01A-01-TS1,0.69,0.0529,Early Stage,lusc,Train
+TCGA-22-4596-11A-01-BS1,,,,normal,Train
+TCGA-22-4596-11A-01-TS1,,,,normal,Train
+TCGA-22-4599-01A-01-BS1,0.47,0.6777,Early Stage,lusc,Train
+TCGA-22-4599-01A-01-TS1,0.47,0.6777,Early Stage,lusc,Train
+TCGA-22-4599-11A-01-BS1,,,,normal,Train
+TCGA-22-4599-11A-01-TS1,,,,normal,Train
+TCGA-22-4601-01A-01-BS1,0.78,0.4094,Late Stage,lusc,Train
+TCGA-22-4601-01A-01-TS1,0.78,0.4094,Late Stage,lusc,Train
+TCGA-22-4601-11A-01-BS1,,,,normal,Train
+TCGA-22-4601-11A-01-TS1,,,,normal,Train
+TCGA-22-4604-01A-01-BS1,0.84,0.456,Early Stage,lusc,Train
+TCGA-22-4604-01A-01-TS1,0.84,0.456,Early Stage,lusc,Train
+TCGA-22-4604-11A-01-BS1,,,,normal,Train
+TCGA-22-4604-11A-01-TS1,,,,normal,Train
+TCGA-22-4605-01A-01-BS1,0.24,0.1805,Early Stage,lusc,Train
+TCGA-22-4605-01A-02-BS2,0.24,0.1805,Early Stage,lusc,Train
+TCGA-22-4605-11A-01-BS1,,,,normal,Train
+TCGA-22-4605-11A-01-TS1,,,,normal,Train
+TCGA-22-4607-01A-01-BS1,0.63,0.385,Early Stage,lusc,Test
+TCGA-22-4607-01A-01-TS1,0.63,0.385,Early Stage,lusc,Test
+TCGA-22-4607-11A-01-BS1,,,,normal,Test
+TCGA-22-4607-11A-01-TS1,,,,normal,Test
+TCGA-22-4609-01A-01-BS1,0.42,0.3661,Early Stage,lusc,Test
+TCGA-22-4609-01A-02-BS2,0.42,0.3661,Early Stage,lusc,Test
+TCGA-22-4609-11A-01-BS1,,,,normal,Test
+TCGA-22-4609-11A-01-TS1,,,,normal,Test
+TCGA-22-4613-01A-01-TS1,0.62,0.439,Early Stage,lusc,Train
+TCGA-22-4613-11A-01-BS1,,,,normal,Train
+TCGA-22-4613-11A-01-TS1,,,,normal,Train
+TCGA-22-5471-01A-01-TS1,0.44,0.4238,Early Stage,lusc,Train
+TCGA-22-5471-11A-01-TS1,,,,normal,Train
+TCGA-22-5472-01A-01-TS1,0.65,0.2486,Early Stage,lusc,Train
+TCGA-22-5472-11A-01-TS1,,,,normal,Train
+TCGA-22-5473-01A-01-TS1,0.58,0.617,,lusc,Train
+TCGA-22-5473-11A-01-TS1,,,,normal,Train
+TCGA-22-5474-01A-01-TS1,0.55,0.3815,Early Stage,lusc,Train
+TCGA-22-5474-11A-01-TS1,,,,normal,Train
+TCGA-22-5477-01A-01-TS1,0.73,0.704,Early Stage,lusc,Test
+TCGA-22-5477-11A-01-TS1,,,,normal,Test
+TCGA-22-5478-01A-01-TS1,0.4,0.4435,Early Stage,lusc,Val
+TCGA-22-5478-11A-01-TS1,,,,normal,Val
+TCGA-22-5479-11A-01-TS1,,,,normal,Test
+TCGA-22-5480-01A-01-TS1,0.71,0.3182,Early Stage,lusc,Train
+TCGA-22-5480-11A-01-TS1,,,,normal,Train
+TCGA-22-5481-11A-01-TS1,,,,normal,Train
+TCGA-22-5482-01A-01-TS1,0.66,0.3978,Early Stage,lusc,Train
+TCGA-22-5482-11A-01-TS1,,,,normal,Train
+TCGA-22-5483-01A-01-TS1,0.7,0.749,Early Stage,lusc,Train
+TCGA-22-5483-11A-01-TS1,,,,normal,Train
+TCGA-22-5485-01A-01-TS1,0.72,0.3931,Early Stage,lusc,Train
+TCGA-22-5485-11A-01-TS1,,,,normal,Train
+TCGA-22-5489-01A-01-TS1,0.43,0.2937,Early Stage,lusc,Train
+TCGA-22-5489-11A-01-TS1,,,,normal,Train
+TCGA-22-5491-01A-01-TS1,0.67,0.4358,Early Stage,lusc,Train
+TCGA-22-5491-11A-01-TS1,,,,normal,Train
+TCGA-22-5492-01A-01-TS1,0.56,0.354,Late Stage,lusc,Train
+TCGA-22-5492-11A-01-TS1,,,,normal,Train
+TCGA-22-A5C4-01A-01-TS1,0.68,0.5068,Early Stage,lusc,Test
+TCGA-33-4532-01A-01-BS1,0.56,0.4665,Early Stage,lusc,Test
+TCGA-33-4532-01A-01-TS1,0.56,0.4665,Early Stage,lusc,Test
+TCGA-33-4532-11A-01-BS1,,,,normal,Test
+TCGA-33-4532-11A-01-TS1,,,,normal,Test
+TCGA-33-4533-01A-01-BS1,0.7,0.485,Early Stage,lusc,Train
+TCGA-33-4533-01A-01-TS1,0.7,0.485,Early Stage,lusc,Train
+TCGA-33-4533-11A-01-BS1,,,,normal,Train
+TCGA-33-4533-11A-01-TS1,,,,normal,Train
+TCGA-33-4538-01A-01-BS1,0.59,0.627,Late Stage,lusc,Test
+TCGA-33-4538-01A-01-TS1,0.59,0.627,Late Stage,lusc,Test
+TCGA-33-4538-11A-01-BS1,,,,normal,Test
+TCGA-33-4538-11A-01-TS1,,,,normal,Test
+TCGA-33-4547-01A-01-BS1,0.49,0.3885,Early Stage,lusc,Val
+TCGA-33-4547-01A-01-TS1,0.49,0.3885,Early Stage,lusc,Val
+TCGA-33-4547-11A-01-BS1,,,,normal,Val
+TCGA-33-4547-11A-01-TS1,,,,normal,Val
+TCGA-33-4566-01A-01-BS1,0.53,0.2164,Early Stage,lusc,Test
+TCGA-33-4566-01A-01-TS1,0.53,0.2164,Early Stage,lusc,Test
+TCGA-33-4566-11A-01-BS1,,,,normal,Test
+TCGA-33-4566-11A-01-TS1,,,,normal,Test
+TCGA-33-4582-01A-01-BS1,0.54,0.2933,Early Stage,lusc,Train
+TCGA-33-4582-01A-01-TS1,0.54,0.2933,Early Stage,lusc,Train
+TCGA-33-4582-11A-01-BS1,,,,normal,Train
+TCGA-33-4582-11A-01-TS1,,,,normal,Train
+TCGA-33-4583-01A-01-BS1,0.52,0.3031,Early Stage,lusc,Train
+TCGA-33-4583-01A-01-TS1,0.52,0.3031,Early Stage,lusc,Train
+TCGA-33-4583-11A-01-BS1,,,,normal,Train
+TCGA-33-4583-11A-01-TS1,,,,normal,Train
+TCGA-33-4586-01A-01-BS1,0.42,0.4821,Late Stage,lusc,Train
+TCGA-33-4586-01A-01-TS1,0.42,0.4821,Late Stage,lusc,Train
+TCGA-33-4586-11A-01-BS1,,,,normal,Train
+TCGA-33-4586-11A-01-TS1,,,,normal,Train
+TCGA-33-4587-01A-01-BS1,0.88,0.6843,Early Stage,lusc,Train
+TCGA-33-4587-01A-01-TS1,0.88,0.6843,Early Stage,lusc,Train
+TCGA-33-4587-11A-01-BS1,,,,normal,Train
+TCGA-33-4587-11A-01-TS1,,,,normal,Train
+TCGA-33-4589-01A-01-BS1,0.2,0.139,Early Stage,lusc,Val
+TCGA-33-4589-01A-01-TS1,0.2,0.139,Early Stage,lusc,Val
+TCGA-33-4589-11A-01-BS1,,,,normal,Val
+TCGA-33-4589-11A-01-TS1,,,,normal,Val
+TCGA-33-6737-01A-01-BS1,0.48,0.4436,Late Stage,lusc,Train
+TCGA-33-6737-01A-01-TS1,0.48,0.4436,Late Stage,lusc,Train
+TCGA-33-6737-11A-01-TS1,,,,normal,Train
+TCGA-33-6738-01A-01-BS1,0.53,0.4722,Late Stage,lusc,Train
+TCGA-33-6738-01A-01-TS1,0.53,0.4722,Late Stage,lusc,Train
+TCGA-33-6738-11A-01-TS1,,,,normal,Train
+TCGA-33-A5GW-01A-01-TS1,0.82,0.7874,Early Stage,lusc,Train
+TCGA-33-AAS8-01A-01-TS1,0.64,0.5586,Early Stage,lusc,Train
+TCGA-33-AAS8-11A-01-TS1,,,,normal,Train
+TCGA-33-AASB-01A-01-TSA,0.44,0.5134,Early Stage,lusc,Val
+TCGA-33-AASB-11A-01-TSA,,,,normal,Val
+TCGA-33-AASD-01A-01-TS1,0.69,0.709,Early Stage,lusc,Val
+TCGA-33-AASD-11A-01-TSA,,,,normal,Val
+TCGA-33-AASI-01A-02-TSB,0.52,0.4873,Early Stage,lusc,Train
+TCGA-33-AASI-11A-01-TS1,,,,normal,Train
+TCGA-33-AASJ-01A-01-TSA,0.6,0.5762,Early Stage,lusc,Val
+TCGA-33-AASJ-11A-01-TS1,,,,normal,Val
+TCGA-33-AASL-01A-01-TS1,0.43,0.466,Early Stage,lusc,Train
+TCGA-33-AASL-11A-01-TS1,,,,normal,Train
+TCGA-34-2596-01A-01-BS1,0.65,0.8344,Early Stage,lusc,Train
+TCGA-34-2596-01A-01-TS1,0.65,0.8344,Early Stage,lusc,Train
+TCGA-34-2596-11A-01-BS1,,,,normal,Train
+TCGA-34-2600-01A-01-BS1,0.86,0.673,Early Stage,lusc,Train
+TCGA-34-2600-01A-01-TS1,0.86,0.673,Early Stage,lusc,Train
+TCGA-34-2600-11A-01-BS1,,,,normal,Train
+TCGA-34-2600-11A-01-TS1,,,,normal,Train
+TCGA-34-2604-01A-01-BS1,0.24,0.1098,Early Stage,lusc,Train
+TCGA-34-2604-01A-01-TS1,0.24,0.1098,Early Stage,lusc,Train
+TCGA-34-2604-11A-01-BS1,,,,normal,Train
+TCGA-34-2604-11A-01-TS1,,,,normal,Train
+TCGA-34-2605-01A-01-BS1,0.36,0.5315,Late Stage,lusc,Train
+TCGA-34-2605-01A-01-TS1,0.36,0.5315,Late Stage,lusc,Train
+TCGA-34-2605-11A-01-BS1,,,,normal,Train
+TCGA-34-2605-11A-01-TS1,,,,normal,Train
+TCGA-34-2608-01A-01-BS1,0.29,0.0612,Early Stage,lusc,Train
+TCGA-34-2608-01A-02-BS2,0.29,0.0612,Early Stage,lusc,Train
+TCGA-34-2608-11A-01-BS1,,,,normal,Train
+TCGA-34-2609-01A-01-BS1,0.32,0.3844,Early Stage,lusc,Train
+TCGA-34-2609-01A-01-TS1,0.32,0.3844,Early Stage,lusc,Train
+TCGA-34-2609-11A-01-BS1,,,,normal,Train
+TCGA-34-2609-11A-01-TS1,,,,normal,Train
+TCGA-34-5231-01A-01-BS1,0.67,0.691,Early Stage,lusc,Train
+TCGA-34-5231-01A-02-BS2,0.67,0.691,Early Stage,lusc,Train
+TCGA-34-5232-01A-01-BS1,0.29,0.1499,Early Stage,lusc,Val
+TCGA-34-5232-01A-02-BS2,0.29,0.1499,Early Stage,lusc,Val
+TCGA-34-5234-01A-01-BS1,0.18,0.0002,Early Stage,lusc,Train
+TCGA-34-5234-01A-01-TS1,0.18,0.0002,Early Stage,lusc,Train
+TCGA-34-5236-01A-01-BS1,0.18,0.2159,Early Stage,lusc,Train
+TCGA-34-5236-01A-02-BS2,0.18,0.2159,Early Stage,lusc,Train
+TCGA-34-5239-01A-01-BS1,0.45,0.2422,Late Stage,lusc,Train
+TCGA-34-5239-01A-02-BS2,0.45,0.2422,Late Stage,lusc,Train
+TCGA-34-5240-01A-01-BS1,0.64,0.6309,Early Stage,lusc,Val
+TCGA-34-5240-01A-01-TS1,0.64,0.6309,Early Stage,lusc,Val
+TCGA-34-5241-01A-01-BS1,0.88,0.0986,Early Stage,lusc,Train
+TCGA-34-5241-01A-01-TS1,0.88,0.0986,Early Stage,lusc,Train
+TCGA-34-5927-01A-01-BS1,0.77,0.4569,Early Stage,lusc,Train
+TCGA-34-5927-01A-01-TS1,0.77,0.4569,Early Stage,lusc,Train
+TCGA-34-5928-01A-01-BS1,0.4,0.5559,Early Stage,lusc,Train
+TCGA-34-5928-01A-01-TS1,0.4,0.5559,Early Stage,lusc,Train
+TCGA-34-5929-01A-01-BS1,0.75,0.4438,Early Stage,lusc,Train
+TCGA-34-5929-01A-01-TS1,0.75,0.4438,Early Stage,lusc,Train
+TCGA-34-5929-11A-01-TS1,,,,normal,Train
+TCGA-34-7107-01A-01-BS1,0.59,0.5942,Early Stage,lusc,Val
+TCGA-34-7107-01A-01-TS1,0.59,0.5942,Early Stage,lusc,Val
+TCGA-34-7107-11A-01-TS1,,,,normal,Val
+TCGA-34-8454-01A-01-BS1,0.45,0.2797,Late Stage,lusc,Val
+TCGA-34-8454-01A-01-TS1,0.45,0.2797,Late Stage,lusc,Val
+TCGA-34-8454-11A-01-TS1,,,,normal,Val
+TCGA-34-8455-01A-01-BS1,0.46,0.2952,Late Stage,lusc,Val
+TCGA-34-8455-01A-01-TS1,0.46,0.2952,Late Stage,lusc,Val
+TCGA-34-8455-11A-01-TS1,,,,normal,Val
+TCGA-34-8456-01A-01-BS1,0.64,0.6472,Early Stage,lusc,Val
+TCGA-34-8456-11A-01-TS1,,,,normal,Val
+TCGA-34-A5IX-01A-01-TSA,0.36,0.6388,Early Stage,lusc,Test
+TCGA-35-3615-01A-01-BS1,0.69,0.1795,Early Stage,luad,Val
+TCGA-35-3615-01A-01-TS1,0.69,0.1795,Early Stage,luad,Val
+TCGA-35-4122-01A-01-BS1,0.21,0.0597,Early Stage,luad,Train
+TCGA-35-4122-01A-01-TS1,0.21,0.0597,Early Stage,luad,Train
+TCGA-35-4123-01A-01-BS1,0.4,0.3119,Early Stage,luad,Train
+TCGA-35-4123-01A-01-TS1,0.4,0.3119,Early Stage,luad,Train
+TCGA-35-5375-01A-01-BS1,0.58,0.5996,Late Stage,luad,Train
+TCGA-35-5375-01A-01-TS1,0.58,0.5996,Late Stage,luad,Train
+TCGA-37-3783-01A-01-BS1,0.36,0.297,Late Stage,lusc,Train
+TCGA-37-3783-01A-01-TS1,0.36,0.297,Late Stage,lusc,Train
+TCGA-37-3789-01A-01-BS1,0.62,0.342,Early Stage,lusc,Val
+TCGA-37-3789-01A-01-TS1,0.62,0.342,Early Stage,lusc,Val
+TCGA-37-3792-01A-01-BS1,0.4,0.1702,Early Stage,lusc,Train
+TCGA-37-3792-01A-01-TS1,0.4,0.1702,Early Stage,lusc,Train
+TCGA-37-4129-01A-01-BS1,0.45,0.0985,Early Stage,lusc,Train
+TCGA-37-4129-01A-01-TS1,0.45,0.0985,Early Stage,lusc,Train
+TCGA-37-4130-01A-01-BS1,0.4,0.5035,Early Stage,lusc,Train
+TCGA-37-4130-01A-01-TS1,0.4,0.5035,Early Stage,lusc,Train
+TCGA-37-4132-01A-01-BS1,0.62,0.2391,Late Stage,lusc,Val
+TCGA-37-4132-01A-01-TS1,0.62,0.2391,Late Stage,lusc,Val
+TCGA-37-4133-01A-01-BS1,0.67,0.5885,Late Stage,lusc,Train
+TCGA-37-4133-01A-01-TS1,0.67,0.5885,Late Stage,lusc,Train
+TCGA-37-4135-01A-01-BS1,0.91,0.6925,Early Stage,lusc,Val
+TCGA-37-4135-01A-01-TS1,0.91,0.6925,Early Stage,lusc,Val
+TCGA-37-4141-01A-01-BS1,0.76,0.7338,Early Stage,lusc,Val
+TCGA-37-4141-01A-02-BS2,0.76,0.7338,Early Stage,lusc,Val
+TCGA-37-5819-01A-01-BS1,0.71,0.6739,Late Stage,lusc,Train
+TCGA-37-5819-01A-01-TS1,0.71,0.6739,Late Stage,lusc,Train
+TCGA-37-A5EL-01A-01-TSA,0.77,0.5918,Early Stage,lusc,Test
+TCGA-37-A5EN-01A-02-TS2,0.54,0.5422,Late Stage,lusc,Test
+TCGA-38-4625-01A-01-BS1,0.35,0.5261,Early Stage,luad,Train
+TCGA-38-4625-01A-01-TS1,0.35,0.5261,Early Stage,luad,Train
+TCGA-38-4625-11A-01-BS1,,,,normal,Train
+TCGA-38-4625-11A-01-TS1,,,,normal,Train
+TCGA-38-4626-01A-01-BS1,0.28,0.019,,luad,Test
+TCGA-38-4626-01A-01-TS1,0.28,0.019,,luad,Test
+TCGA-38-4626-11A-01-BS1,,,,normal,Test
+TCGA-38-4626-11A-01-TS1,,,,normal,Test
+TCGA-38-4627-01A-01-BS1,0.22,0.0002,Early Stage,luad,Test
+TCGA-38-4627-01A-01-TS1,0.22,0.0002,Early Stage,luad,Test
+TCGA-38-4627-11A-01-BS1,,,,normal,Test
+TCGA-38-4627-11A-01-TS1,,,,normal,Test
+TCGA-38-4628-01A-01-BS1,0.5,0.4864,Early Stage,luad,Test
+TCGA-38-4628-01A-01-TS1,0.5,0.4864,Early Stage,luad,Test
+TCGA-38-4628-11A-01-BS1,,,,normal,Test
+TCGA-38-4628-11A-01-TS1,,,,normal,Test
+TCGA-38-4629-01A-01-BS1,0.4,0.2389,Early Stage,luad,Test
+TCGA-38-4629-01A-02-BS2,0.4,0.2389,Early Stage,luad,Test
+TCGA-38-4629-11A-01-BS1,,,,normal,Test
+TCGA-38-4629-11A-01-TS1,,,,normal,Test
+TCGA-38-4630-01A-01-BS1,0.79,0.3811,Early Stage,luad,Train
+TCGA-38-4630-01A-01-TS1,0.79,0.3811,Early Stage,luad,Train
+TCGA-38-4630-11A-01-BS1,,,,normal,Train
+TCGA-38-4630-11A-01-TS1,,,,normal,Train
+TCGA-38-4631-01A-01-BS1,0.49,0.4032,Early Stage,luad,Train
+TCGA-38-4631-01A-01-TS1,0.49,0.4032,Early Stage,luad,Train
+TCGA-38-4631-11A-01-BS1,,,,normal,Train
+TCGA-38-4631-11A-01-TS1,,,,normal,Train
+TCGA-38-4632-01A-01-BS1,0.37,0.4325,Late Stage,luad,Train
+TCGA-38-4632-01A-01-TS1,0.37,0.4325,Late Stage,luad,Train
+TCGA-38-4632-11A-01-BS1,,,,normal,Train
+TCGA-38-4632-11A-01-TS1,,,,normal,Train
+TCGA-38-6178-01A-01-BS1,0.32,0.3904,Late Stage,luad,Train
+TCGA-38-6178-01A-01-TS1,0.32,0.3904,Late Stage,luad,Train
+TCGA-38-7271-01A-01-TS1,0.26,0.0439,Early Stage,luad,Test
+TCGA-38-A44F-01A-01-TSA,0.26,0.0,Early Stage,luad,Train
+TCGA-39-5011-01A-01-BS1,0.43,0.0843,Early Stage,lusc,Val
+TCGA-39-5011-01A-01-TS1,0.43,0.0843,Early Stage,lusc,Val
+TCGA-39-5011-11A-01-TS1,,,,normal,Val
+TCGA-39-5016-01A-01-BS1,0.51,0.6401,Early Stage,lusc,Train
+TCGA-39-5016-01A-01-TS1,0.51,0.6401,Early Stage,lusc,Train
+TCGA-39-5016-11A-01-TS1,,,,normal,Train
+TCGA-39-5019-01A-01-BS1,0.55,0.286,Early Stage,lusc,Train
+TCGA-39-5019-01A-01-TS1,0.55,0.286,Early Stage,lusc,Train
+TCGA-39-5019-11A-01-TS1,,,,normal,Train
+TCGA-39-5021-01A-01-BS1,0.4,0.2476,Early Stage,lusc,Train
+TCGA-39-5021-01A-01-TS1,0.4,0.2476,Early Stage,lusc,Train
+TCGA-39-5021-11A-01-TS1,,,,normal,Train
+TCGA-39-5022-01A-01-BS1,0.26,0.0215,Early Stage,lusc,Train
+TCGA-39-5022-01A-02-BS2,0.26,0.0215,Early Stage,lusc,Train
+TCGA-39-5022-11A-01-TS1,,,,normal,Train
+TCGA-39-5024-01A-01-BS1,0.32,0.1328,Late Stage,lusc,Train
+TCGA-39-5024-01A-02-BS2,0.32,0.1328,Late Stage,lusc,Train
+TCGA-39-5024-11A-01-TS1,,,,normal,Train
+TCGA-39-5027-01A-01-BS1,0.68,0.4995,Early Stage,lusc,Train
+TCGA-39-5027-01A-02-BS2,0.68,0.4995,Early Stage,lusc,Train
+TCGA-39-5027-11A-01-TS1,,,,normal,Train
+TCGA-39-5028-01A-01-BS1,0.19,0.0701,Late Stage,lusc,Val
+TCGA-39-5028-01A-01-TS1,0.19,0.0701,Late Stage,lusc,Val
+TCGA-39-5028-11A-01-TS1,,,,normal,Val
+TCGA-39-5029-01A-01-BS1,0.54,0.3887,Late Stage,lusc,Val
+TCGA-39-5029-01A-01-TS1,0.54,0.3887,Late Stage,lusc,Val
+TCGA-39-5029-11A-01-TS1,,,,normal,Val
+TCGA-39-5030-01A-01-BS1,0.3,0.0782,Late Stage,lusc,Val
+TCGA-39-5030-01A-01-TS1,0.3,0.0782,Late Stage,lusc,Val
+TCGA-39-5030-11A-01-TS1,,,,normal,Val
+TCGA-39-5031-01A-01-BS1,0.4,0.4247,Early Stage,lusc,Train
+TCGA-39-5031-01A-01-TS1,0.4,0.4247,Early Stage,lusc,Train
+TCGA-39-5031-11A-01-TS1,,,,normal,Train
+TCGA-39-5034-01A-01-BS1,0.51,0.4569,Early Stage,lusc,Val
+TCGA-39-5034-01A-01-TS1,0.51,0.4569,Early Stage,lusc,Val
+TCGA-39-5034-11A-01-TS1,,,,normal,Val
+TCGA-39-5035-01A-01-BS1,0.44,0.394,Early Stage,lusc,Val
+TCGA-39-5035-01A-01-TS1,0.44,0.394,Early Stage,lusc,Val
+TCGA-39-5035-11A-01-TS1,,,,normal,Val
+TCGA-39-5036-01A-01-BS1,0.64,0.4163,Early Stage,lusc,Train
+TCGA-39-5036-01A-01-TS1,0.64,0.4163,Early Stage,lusc,Train
+TCGA-39-5036-11A-01-TS1,,,,normal,Train
+TCGA-39-5037-01A-01-BS1,0.49,0.4418,Early Stage,lusc,Train
+TCGA-39-5037-01A-01-TS1,0.49,0.4418,Early Stage,lusc,Train
+TCGA-39-5037-11A-01-TS1,,,,normal,Train
+TCGA-39-5039-01A-01-BS1,0.28,0.0331,Early Stage,lusc,Val
+TCGA-39-5039-01A-01-TS1,0.28,0.0331,Early Stage,lusc,Val
+TCGA-39-5039-11A-01-TS1,,,,normal,Val
+TCGA-39-5040-01A-01-BS1,0.59,0.329,Late Stage,lusc,Train
+TCGA-39-5040-01A-02-BS2,0.59,0.329,Late Stage,lusc,Train
+TCGA-39-5040-11A-01-TS1,,,,normal,Train
+TCGA-43-2576-01A-01-BS1,0.27,0.2788,Late Stage,lusc,Test
+TCGA-43-2576-01A-01-TS1,0.27,0.2788,Late Stage,lusc,Test
+TCGA-43-2576-11A-01-BS1,,,,normal,Test
+TCGA-43-2576-11A-01-TS1,,,,normal,Test
+TCGA-43-2578-01A-01-BS1,0.59,0.4834,Early Stage,lusc,Train
+TCGA-43-2578-01A-01-TS1,0.59,0.4834,Early Stage,lusc,Train
+TCGA-43-2578-11A-01-BS1,,,,normal,Train
+TCGA-43-2578-11A-01-TS1,,,,normal,Train
+TCGA-43-2581-01A-01-BS1,0.29,0.2371,Late Stage,lusc,Test
+TCGA-43-2581-01A-01-TS1,0.29,0.2371,Late Stage,lusc,Test
+TCGA-43-2581-11A-01-BS1,,,,normal,Test
+TCGA-43-2581-11A-01-TS1,,,,normal,Test
+TCGA-43-3394-01A-01-BS1,0.6,0.6657,Early Stage,lusc,Train
+TCGA-43-3394-01A-01-TS1,0.6,0.6657,Early Stage,lusc,Train
+TCGA-43-3394-11A-01-TS1,,,,normal,Train
+TCGA-43-3920-01A-01-BS1,0.52,0.5638,Early Stage,lusc,Train
+TCGA-43-3920-01A-01-TS1,0.52,0.5638,Early Stage,lusc,Train
+TCGA-43-5668-01A-01-BS1,0.34,0.3073,Early Stage,lusc,Train
+TCGA-43-5668-01A-01-TS1,0.34,0.3073,Early Stage,lusc,Train
+TCGA-43-5668-11A-01-TS1,,,,normal,Train
+TCGA-43-5670-01A-01-BS1,0.62,0.5553,Early Stage,lusc,Train
+TCGA-43-5670-11A-01-TS1,,,,normal,Train
+TCGA-43-6143-01A-01-BS1,0.86,0.6758,Early Stage,lusc,Train
+TCGA-43-6143-01A-01-TS1,0.86,0.6758,Early Stage,lusc,Train
+TCGA-43-6143-11A-01-TS1,,,,normal,Train
+TCGA-43-6647-01A-01-BS1,0.25,0.0402,Early Stage,lusc,Train
+TCGA-43-6647-01A-01-TS1,0.25,0.0402,Early Stage,lusc,Train
+TCGA-43-6647-11A-01-TS1,,,,normal,Train
+TCGA-43-6770-01A-01-BS1,0.69,0.4276,Early Stage,lusc,Train
+TCGA-43-6770-01A-01-TS1,0.69,0.4276,Early Stage,lusc,Train
+TCGA-43-6770-11A-01-TS1,,,,normal,Train
+TCGA-43-6771-01A-01-BS1,0.48,0.0423,Early Stage,lusc,Train
+TCGA-43-6771-01A-01-TS1,0.48,0.0423,Early Stage,lusc,Train
+TCGA-43-6771-11A-01-TS1,,,,normal,Train
+TCGA-43-6773-01A-03-BS3,0.21,0.0008,Early Stage,lusc,Test
+TCGA-43-6773-11A-01-TS1,,,,normal,Test
+TCGA-43-7656-01A-01-BS1,0.59,0.3366,Early Stage,lusc,Train
+TCGA-43-7656-01A-01-TS1,0.59,0.3366,Early Stage,lusc,Train
+TCGA-43-7657-01A-02-BS2,0.44,0.5132,Early Stage,lusc,Train
+TCGA-43-7657-11A-01-TS1,,,,normal,Train
+TCGA-43-7658-01A-01-TS1,0.75,0.5811,Early Stage,lusc,Test
+TCGA-43-7658-11A-01-TS1,,,,normal,Test
+TCGA-43-8115-01A-01-BS1,0.42,0.3226,Early Stage,lusc,Train
+TCGA-43-8115-01A-01-TS1,0.42,0.3226,Early Stage,lusc,Train
+TCGA-43-8115-11A-01-TS1,,,,normal,Train
+TCGA-43-8116-01A-01-TS1,0.58,0.4389,Early Stage,lusc,Train
+TCGA-43-8116-11A-01-TS1,,,,normal,Train
+TCGA-43-8118-01A-01-TS1,0.33,0.3368,Early Stage,lusc,Train
+TCGA-43-8118-11A-01-TS1,,,,normal,Train
+TCGA-43-A474-01A-01-TS1,0.61,0.5818,Early Stage,lusc,Test
+TCGA-43-A475-01A-01-TSA,0.34,0.1516,Early Stage,lusc,Train
+TCGA-43-A56U-01A-01-TS1,0.17,0.0331,Early Stage,lusc,Val
+TCGA-43-A56V-01A-01-TSA,0.57,0.5315,Late Stage,lusc,Test
+TCGA-44-2655-01A-01-BS1,0.33,0.0648,Early Stage,luad,Val
+TCGA-44-2655-01A-01-TS1,0.33,0.0648,Early Stage,luad,Val
+TCGA-44-2655-11A-01-TS1,,,,normal,Val
+TCGA-44-2656-01A-01-BS1,0.32,0.295,Early Stage,luad,Train
+TCGA-44-2656-01A-01-TS1,0.32,0.295,Early Stage,luad,Train
+TCGA-44-2656-01A-02-BS2,0.32,0.295,Early Stage,luad,Train
+TCGA-44-2656-01A-04-TS4,0.32,0.295,Early Stage,luad,Train
+TCGA-44-2656-11A-01-TS1,,,,normal,Train
+TCGA-44-2656-11A-02-TS2,,,,normal,Train
+TCGA-44-2656-11A-03-TS3,,,,normal,Train
+TCGA-44-2657-01A-01-BS1,0.34,0.0447,Early Stage,luad,Train
+TCGA-44-2657-01A-01-TS1,0.34,0.0447,Early Stage,luad,Train
+TCGA-44-2657-11A-01-TS1,,,,normal,Train
+TCGA-44-2659-01A-01-BS1,0.42,0.2823,Early Stage,luad,Train
+TCGA-44-2659-01A-01-TS1,0.42,0.2823,Early Stage,luad,Train
+TCGA-44-2659-11A-01-TS1,,,,normal,Train
+TCGA-44-2661-01A-01-BS1,0.29,0.0013,Early Stage,luad,Train
+TCGA-44-2661-01A-01-TS1,0.29,0.0013,Early Stage,luad,Train
+TCGA-44-2662-01A-01-BS1,0.26,0.1758,Early Stage,luad,Train
+TCGA-44-2662-01A-01-TS1,0.26,0.1758,Early Stage,luad,Train
+TCGA-44-2664-01A-01-BS1,,,Early Stage,luad,Train
+TCGA-44-2664-01A-01-TS1,,,Early Stage,luad,Train
+TCGA-44-2665-01A-01-BS1,0.43,0.2699,Early Stage,luad,Val
+TCGA-44-2665-01A-01-TS1,0.43,0.2699,Early Stage,luad,Val
+TCGA-44-2665-11A-01-TS1,,,,normal,Val
+TCGA-44-2666-01A-01-BS1,0.56,0.0657,Early Stage,luad,Train
+TCGA-44-2666-01A-01-TS1,0.56,0.0657,Early Stage,luad,Train
+TCGA-44-2666-01A-04-TS4,0.56,0.0657,Early Stage,luad,Train
+TCGA-44-2666-11A-02-TS2,,,,normal,Train
+TCGA-44-2666-11A-03-TS3,,,,normal,Train
+TCGA-44-2668-01A-01-BS1,0.3,0.2676,Early Stage,luad,Train
+TCGA-44-2668-01A-01-TS1,0.3,0.2676,Early Stage,luad,Train
+TCGA-44-2668-11A-01-TS1,,,,normal,Train
+TCGA-44-3396-01A-01-BS1,0.24,0.0548,Late Stage,luad,Train
+TCGA-44-3396-01A-01-TS1,0.24,0.0548,Late Stage,luad,Train
+TCGA-44-3396-11A-01-TS1,,,,normal,Train
+TCGA-44-3398-01A-01-BS1,0.19,0.0012,Early Stage,luad,Train
+TCGA-44-3398-01A-01-TS1,0.19,0.0012,Early Stage,luad,Train
+TCGA-44-3398-11B-01-TS1,,,,normal,Train
+TCGA-44-3917-01A-01-BS1,0.38,0.6041,Early Stage,luad,Val
+TCGA-44-3917-01A-01-TS1,0.38,0.6041,Early Stage,luad,Val
+TCGA-44-3917-11A-01-BS1,,,,normal,Val
+TCGA-44-3917-11A-01-TS1,,,,normal,Val
+TCGA-44-3918-01A-01-BS1,0.45,0.3246,Early Stage,luad,Train
+TCGA-44-3918-01A-01-TS1,0.45,0.3246,Early Stage,luad,Train
+TCGA-44-3918-11A-01-BS1,,,,normal,Train
+TCGA-44-3918-11A-01-TS1,,,,normal,Train
+TCGA-44-3919-01A-01-BS1,0.51,0.1658,Early Stage,luad,Train
+TCGA-44-3919-01A-02-BS2,0.51,0.1658,Early Stage,luad,Train
+TCGA-44-3919-11A-01-BS1,,,,normal,Train
+TCGA-44-3919-11A-01-TS1,,,,normal,Train
+TCGA-44-4112-01A-01-BS1,0.57,0.1701,Early Stage,luad,Train
+TCGA-44-4112-01A-01-TS1,0.57,0.1701,Early Stage,luad,Train
+TCGA-44-4112-01A-03-TSC,0.57,0.1701,Early Stage,luad,Train
+TCGA-44-4112-11A-01-BS1,,,,normal,Train
+TCGA-44-4112-11A-01-TS1,,,,normal,Train
+TCGA-44-4112-11A-02-TSB,,,,normal,Train
+TCGA-44-4112-11A-03-TSC,,,,normal,Train
+TCGA-44-5643-01A-01-BS1,0.56,0.5689,Late Stage,luad,Val
+TCGA-44-5643-01A-01-TS1,0.56,0.5689,Late Stage,luad,Val
+TCGA-44-5643-11A-01-TS1,,,,normal,Val
+TCGA-44-5644-01A-01-BS1,0.75,0.6632,Early Stage,luad,Train
+TCGA-44-5644-11A-01-TS1,,,,normal,Train
+TCGA-44-5645-01A-01-BS1,0.54,0.3035,Early Stage,luad,Train
+TCGA-44-5645-01A-01-TS1,0.54,0.3035,Early Stage,luad,Train
+TCGA-44-5645-01A-05-TSE,0.54,0.3035,Early Stage,luad,Train
+TCGA-44-5645-11A-01-TS1,,,,normal,Train
+TCGA-44-5645-11A-02-TS2,,,,normal,Train
+TCGA-44-5645-11A-03-TS3,,,,normal,Train
+TCGA-44-6144-01A-01-BS1,0.54,0.3806,Early Stage,luad,Train
+TCGA-44-6144-01A-01-TS1,0.54,0.3806,Early Stage,luad,Train
+TCGA-44-6144-11A-01-TS1,,,,normal,Train
+TCGA-44-6145-01A-01-BS1,0.31,0.027,Early Stage,luad,Train
+TCGA-44-6145-01A-01-TS1,0.31,0.027,Early Stage,luad,Train
+TCGA-44-6145-11A-01-TS1,,,,normal,Train
+TCGA-44-6146-01A-01-BS1,0.7,0.1259,Early Stage,luad,Val
+TCGA-44-6146-01A-01-TS1,0.7,0.1259,Early Stage,luad,Val
+TCGA-44-6146-01A-03-TSC,0.7,0.1259,Early Stage,luad,Val
+TCGA-44-6146-11A-01-TS1,,,,normal,Val
+TCGA-44-6146-11A-02-TS2,,,,normal,Val
+TCGA-44-6146-11A-03-TS3,,,,normal,Val
+TCGA-44-6147-01A-01-BS1,0.47,0.4589,Early Stage,luad,Train
+TCGA-44-6147-01A-01-TS1,0.47,0.4589,Early Stage,luad,Train
+TCGA-44-6147-01A-03-TS3,0.47,0.4589,Early Stage,luad,Train
+TCGA-44-6147-11A-01-TS1,,,,normal,Train
+TCGA-44-6147-11A-05-TS5,,,,normal,Train
+TCGA-44-6148-01A-01-BS1,0.3,0.0276,Early Stage,luad,Train
+TCGA-44-6148-01A-01-TS1,0.3,0.0276,Early Stage,luad,Train
+TCGA-44-6148-11A-01-TS1,,,,normal,Train
+TCGA-44-6774-01A-01-BS1,0.45,0.203,Late Stage,luad,Train
+TCGA-44-6774-11A-01-TS1,,,,normal,Train
+TCGA-44-6775-01A-01-BS1,0.27,0.2177,Early Stage,luad,Test
+TCGA-44-6775-01A-01-TS1,0.27,0.2177,Early Stage,luad,Test
+TCGA-44-6775-01A-03-TS3,0.27,0.2177,Early Stage,luad,Test
+TCGA-44-6775-11A-01-TS1,,,,normal,Test
+TCGA-44-6775-11A-02-TS2,,,,normal,Test
+TCGA-44-6775-11A-03-TS3,,,,normal,Test
+TCGA-44-6776-01A-01-BS1,0.65,0.1665,Early Stage,luad,Train
+TCGA-44-6776-01A-01-TS1,0.65,0.1665,Early Stage,luad,Train
+TCGA-44-6776-11A-01-TS1,,,,normal,Train
+TCGA-44-6777-01A-01-BS1,0.34,0.1046,Early Stage,luad,Train
+TCGA-44-6777-01A-01-TS1,0.34,0.1046,Early Stage,luad,Train
+TCGA-44-6777-11A-01-TS1,,,,normal,Train
+TCGA-44-6778-01A-01-BS1,0.25,0.3992,Early Stage,luad,Val
+TCGA-44-6778-01A-01-TS1,0.25,0.3992,Early Stage,luad,Val
+TCGA-44-6778-11A-01-TS1,,,,normal,Val
+TCGA-44-6779-01A-01-BS1,0.6,0.5993,Early Stage,luad,Train
+TCGA-44-6779-01A-01-TS1,0.6,0.5993,Early Stage,luad,Train
+TCGA-44-6779-11A-01-TS1,,,,normal,Train
+TCGA-44-7659-01A-01-BS1,0.56,0.1598,Early Stage,luad,Train
+TCGA-44-7659-01A-01-TS1,0.56,0.1598,Early Stage,luad,Train
+TCGA-44-7659-11A-01-TS1,,,,normal,Train
+TCGA-44-7660-01A-01-BS1,0.58,0.6653,Early Stage,luad,Train
+TCGA-44-7660-01A-01-TS1,0.58,0.6653,Early Stage,luad,Train
+TCGA-44-7660-11A-01-TS1,,,,normal,Train
+TCGA-44-7661-01A-01-BS1,0.29,0.0147,Early Stage,luad,Train
+TCGA-44-7661-01A-01-TS1,0.29,0.0147,Early Stage,luad,Train
+TCGA-44-7661-11A-01-TS1,,,,normal,Train
+TCGA-44-7662-01A-01-BS1,0.33,0.2739,Early Stage,luad,Val
+TCGA-44-7662-01A-01-TS1,0.33,0.2739,Early Stage,luad,Val
+TCGA-44-7662-11A-01-TS1,,,,normal,Val
+TCGA-44-7667-01A-02-BS2,0.37,0.3866,Early Stage,luad,Train
+TCGA-44-7667-11A-01-TS1,,,,normal,Train
+TCGA-44-7669-01A-01-BS1,0.5,0.4144,Early Stage,luad,Val
+TCGA-44-7669-11A-01-TS1,,,,normal,Val
+TCGA-44-7670-01A-01-BS1,0.5,0.6345,Early Stage,luad,Train
+TCGA-44-7670-01A-01-TS1,0.5,0.6345,Early Stage,luad,Train
+TCGA-44-7670-11A-01-TS1,,,,normal,Train
+TCGA-44-7671-01A-01-BS1,0.58,0.3154,Early Stage,luad,Train
+TCGA-44-7671-01A-01-TS1,0.58,0.3154,Early Stage,luad,Train
+TCGA-44-7671-11A-01-TS1,,,,normal,Train
+TCGA-44-7672-01A-01-BS1,0.21,0.0681,Early Stage,luad,Val
+TCGA-44-7672-01A-01-TS1,0.21,0.0681,Early Stage,luad,Val
+TCGA-44-7672-11A-01-TS1,,,,normal,Val
+TCGA-44-8117-01A-01-BS1,0.66,0.6349,Early Stage,luad,Val
+TCGA-44-8117-01A-01-TS1,0.66,0.6349,Early Stage,luad,Val
+TCGA-44-8117-11A-01-TS1,,,,normal,Val
+TCGA-44-8119-01A-01-BS1,0.55,0.4008,Early Stage,luad,Train
+TCGA-44-8119-01A-01-TS1,0.55,0.4008,Early Stage,luad,Train
+TCGA-44-8119-11A-01-TS1,,,,normal,Train
+TCGA-44-8120-01A-01-TS1,0.54,0.3716,Early Stage,luad,Train
+TCGA-44-8120-11A-01-TS1,,,,normal,Train
+TCGA-44-A479-01A-03-TSC,0.36,0.0803,Early Stage,luad,Train
+TCGA-44-A47A-01A-02-TSB,0.34,0.1272,Early Stage,luad,Train
+TCGA-44-A47B-01A-01-TS1,0.5,0.3063,Early Stage,luad,Test
+TCGA-44-A47F-01A-01-TSA,0.41,0.3026,Early Stage,luad,Test
+TCGA-44-A47G-01A-02-TSB,0.24,0.0003,Early Stage,luad,Train
+TCGA-44-A4SS-01A-01-TSA,0.25,0.0109,Early Stage,luad,Test
+TCGA-44-A4SU-01A-01-TSA,0.59,0.3113,Early Stage,luad,Train
+TCGA-46-3765-01A-01-BS1,0.36,0.3617,Early Stage,lusc,Train
+TCGA-46-3765-01A-01-TS1,0.36,0.3617,Early Stage,lusc,Train
+TCGA-46-3766-01A-01-BS1,0.17,0.0588,Early Stage,lusc,Train
+TCGA-46-3766-01A-01-TS1,0.17,0.0588,Early Stage,lusc,Train
+TCGA-46-3767-01A-01-BS1,0.23,0.0805,Early Stage,lusc,Train
+TCGA-46-3767-01A-01-TS1,0.23,0.0805,Early Stage,lusc,Train
+TCGA-46-3768-01A-01-BS1,0.75,0.6107,Late Stage,lusc,Val
+TCGA-46-3768-01A-01-TS1,0.75,0.6107,Late Stage,lusc,Val
+TCGA-46-3769-01A-01-BS1,0.47,0.4243,,lusc,Train
+TCGA-46-3769-01A-01-TS1,0.47,0.4243,,lusc,Train
+TCGA-46-6025-01A-01-BS1,0.54,0.5295,Early Stage,lusc,Train
+TCGA-46-6025-01A-01-TS1,0.54,0.5295,Early Stage,lusc,Train
+TCGA-46-6026-01A-01-BS1,0.9,0.4194,Early Stage,lusc,Train
+TCGA-46-6026-01A-01-TS1,0.9,0.4194,Early Stage,lusc,Train
+TCGA-49-4486-01A-01-BS1,0.73,0.1116,Early Stage,luad,Test
+TCGA-49-4486-01A-01-TS1,0.73,0.1116,Early Stage,luad,Test
+TCGA-49-4486-11A-01-BS1,,,,normal,Test
+TCGA-49-4486-11A-01-TS1,,,,normal,Test
+TCGA-49-4487-01A-01-BS1,0.17,0.1177,Early Stage,luad,Test
+TCGA-49-4487-01A-02-BS2,0.17,0.1177,Early Stage,luad,Test
+TCGA-49-4487-11A-01-BS1,,,,normal,Test
+TCGA-49-4487-11A-01-TS1,,,,normal,Test
+TCGA-49-4488-01A-01-BS1,0.45,0.4138,Early Stage,luad,Train
+TCGA-49-4488-01A-01-TS1,0.45,0.4138,Early Stage,luad,Train
+TCGA-49-4488-11A-01-BS1,,,,normal,Train
+TCGA-49-4488-11A-01-TS1,,,,normal,Train
+TCGA-49-4490-01A-01-BS1,0.26,0.2916,Late Stage,luad,Val
+TCGA-49-4490-01A-02-BS2,0.26,0.2916,Late Stage,luad,Val
+TCGA-49-4490-11A-01-BS1,,,,normal,Val
+TCGA-49-4490-11A-01-TS1,,,,normal,Val
+TCGA-49-4494-01A-01-BS1,0.46,0.1473,Late Stage,luad,Train
+TCGA-49-4494-01A-01-TS1,0.46,0.1473,Late Stage,luad,Train
+TCGA-49-4494-11A-01-BS1,,,,normal,Train
+TCGA-49-4494-11A-01-TS1,,,,normal,Train
+TCGA-49-4501-01A-01-BS1,0.43,0.3168,Early Stage,luad,Train
+TCGA-49-4501-01A-01-TS1,0.43,0.3168,Early Stage,luad,Train
+TCGA-49-4501-11A-01-BS1,,,,normal,Train
+TCGA-49-4501-11A-01-TS1,,,,normal,Train
+TCGA-49-4505-01A-01-BS1,0.45,0.473,Early Stage,luad,Train
+TCGA-49-4505-01A-01-TS1,0.45,0.473,Early Stage,luad,Train
+TCGA-49-4505-11A-01-BS1,,,,normal,Train
+TCGA-49-4505-11A-01-TS1,,,,normal,Train
+TCGA-49-4506-01A-01-BS1,0.25,0.0386,Early Stage,luad,Train
+TCGA-49-4506-01A-01-TS1,0.25,0.0386,Early Stage,luad,Train
+TCGA-49-4506-11A-01-BS1,,,,normal,Train
+TCGA-49-4506-11A-01-TS1,,,,normal,Train
+TCGA-49-4507-01A-01-BS1,0.35,0.2054,Late Stage,luad,Train
+TCGA-49-4507-01A-01-TS1,0.35,0.2054,Late Stage,luad,Train
+TCGA-49-4507-11A-01-BS1,,,,normal,Train
+TCGA-49-4507-11A-01-TS1,,,,normal,Train
+TCGA-49-4510-01A-01-BS1,0.64,0.4297,Early Stage,luad,Train
+TCGA-49-4510-01A-01-TS1,0.64,0.4297,Early Stage,luad,Train
+TCGA-49-4510-11A-01-BS1,,,,normal,Train
+TCGA-49-4510-11A-01-TS1,,,,normal,Train
+TCGA-49-4512-01A-01-BS1,0.32,0.3116,Late Stage,luad,Train
+TCGA-49-4512-01A-02-BS2,0.32,0.3116,Late Stage,luad,Train
+TCGA-49-4512-11A-01-BS1,,,,normal,Train
+TCGA-49-4512-11A-01-TS1,,,,normal,Train
+TCGA-49-4514-01A-01-BS1,0.35,0.2725,Early Stage,luad,Train
+TCGA-49-4514-01A-02-BS2,0.35,0.2725,Early Stage,luad,Train
+TCGA-49-4514-11A-01-BS1,,,,normal,Train
+TCGA-49-4514-11A-01-TS1,,,,normal,Train
+TCGA-49-6742-01A-01-BS1,0.49,0.1343,Early Stage,luad,Train
+TCGA-49-6742-01A-01-TS1,0.49,0.1343,Early Stage,luad,Train
+TCGA-49-6742-11A-01-TS1,,,,normal,Train
+TCGA-49-6743-01A-01-BS1,0.27,0.1102,Late Stage,luad,Train
+TCGA-49-6743-01A-01-TS1,0.27,0.1102,Late Stage,luad,Train
+TCGA-49-6743-11A-01-TS1,,,,normal,Train
+TCGA-49-6744-01A-01-BS1,0.37,0.0901,Early Stage,luad,Train
+TCGA-49-6744-01A-01-TS1,0.37,0.0901,Early Stage,luad,Train
+TCGA-49-6744-11A-01-TS1,,,,normal,Train
+TCGA-49-6745-01A-01-BS1,0.24,0.0919,Late Stage,luad,Train
+TCGA-49-6745-01A-01-TS1,0.24,0.0919,Late Stage,luad,Train
+TCGA-49-6745-11A-01-TS1,,,,normal,Train
+TCGA-49-6761-01A-02-BS2,0.29,0.1291,Late Stage,luad,Train
+TCGA-49-6761-11A-01-TS1,,,,normal,Train
+TCGA-49-6767-01A-01-BS1,0.43,0.335,Early Stage,luad,Val
+TCGA-49-6767-01A-01-TS1,0.43,0.335,Early Stage,luad,Val
+TCGA-49-6767-11A-01-TS1,,,,normal,Val
+TCGA-49-AAQV-01A-01-TSA,0.25,0.1747,Early Stage,luad,Train
+TCGA-49-AAQV-11A-01-TSA,,,,normal,Train
+TCGA-49-AAR0-01A-02-TSB,0.51,0.1428,Early Stage,luad,Test
+TCGA-49-AAR0-11A-01-TSA,,,,normal,Test
+TCGA-49-AAR2-01A-01-TSA,0.69,0.2466,Early Stage,luad,Val
+TCGA-49-AAR2-11A-01-TSA,,,,normal,Val
+TCGA-49-AAR3-01A-01-TSA,0.32,0.0086,Early Stage,luad,Val
+TCGA-49-AAR3-11A-01-TSA,,,,normal,Val
+TCGA-49-AAR4-01A-01-TSA,0.22,0.0166,Late Stage,luad,Train
+TCGA-49-AAR4-11A-01-TSA,,,,normal,Train
+TCGA-49-AAR9-01A-02-TSB,0.75,0.4853,Early Stage,luad,Train
+TCGA-49-AAR9-11A-01-TS1,,,,normal,Train
+TCGA-49-AARE-01A-01-TSA,0.42,0.2988,Early Stage,luad,Train
+TCGA-49-AARE-11A-01-TS1,,,,normal,Train
+TCGA-49-AARN-01A-02-TSB,0.43,0.1842,Early Stage,luad,Train
+TCGA-49-AARN-11A-01-TS1,,,,normal,Train
+TCGA-49-AARO-01A-01-TSA,0.28,0.1686,Early Stage,luad,Train
+TCGA-49-AARO-11A-01-TS1,,,,normal,Train
+TCGA-49-AARQ-01A-01-TS1,0.52,0.3585,Early Stage,luad,Val
+TCGA-49-AARQ-11A-02-TS2,,,,normal,Val
+TCGA-49-AARR-01A-01-TSA,0.64,0.0001,Early Stage,luad,Val
+TCGA-49-AARR-11A-01-TS1,,,,normal,Val
+TCGA-4B-A93V-01A-01-TSA,0.62,0.4531,Early Stage,luad,Train
+TCGA-50-5044-01A-01-BS1,0.23,0.0003,Late Stage,luad,Train
+TCGA-50-5044-01A-02-BS2,0.23,0.0003,Late Stage,luad,Train
+TCGA-50-5045-01A-01-BS1,0.22,0.085,,luad,Train
+TCGA-50-5045-01A-01-TS1,0.22,0.085,,luad,Train
+TCGA-50-5049-01A-01-BS1,0.26,0.0468,Early Stage,luad,Train
+TCGA-50-5049-01A-01-TS1,0.26,0.0468,Early Stage,luad,Train
+TCGA-50-5051-01A-01-BS1,0.59,0.5353,Late Stage,luad,Train
+TCGA-50-5051-01A-02-BS2,0.59,0.5353,Late Stage,luad,Train
+TCGA-50-5055-01A-01-BS1,0.13,0.0342,Early Stage,luad,Train
+TCGA-50-5055-01A-01-TS1,0.13,0.0342,Early Stage,luad,Train
+TCGA-50-5066-01A-01-BS1,0.27,0.0599,Early Stage,luad,Train
+TCGA-50-5066-01A-01-TS1,0.27,0.0599,Early Stage,luad,Train
+TCGA-50-5066-02A-01-BS1,0.41,0.4748,Early Stage,luad,Train
+TCGA-50-5066-02A-01-TS1,0.41,0.4748,Early Stage,luad,Train
+TCGA-50-5068-01A-01-BS1,0.24,0.0115,Early Stage,luad,Val
+TCGA-50-5068-01A-01-TS1,0.24,0.0115,Early Stage,luad,Val
+TCGA-50-5072-01A-01-BS1,0.4,0.1721,Late Stage,luad,Train
+TCGA-50-5072-01A-02-BS2,0.4,0.1721,Late Stage,luad,Train
+TCGA-50-5930-01A-01-BS1,0.95,0.1503,Late Stage,luad,Train
+TCGA-50-5930-01A-01-TS1,0.95,0.1503,Late Stage,luad,Train
+TCGA-50-5930-11A-01-TS1,,,,normal,Train
+TCGA-50-5931-01A-01-BS1,0.86,0.4539,Early Stage,luad,Val
+TCGA-50-5931-01A-01-TS1,0.86,0.4539,Early Stage,luad,Val
+TCGA-50-5931-11A-01-TS1,,,,normal,Val
+TCGA-50-5932-01A-01-BS1,0.84,0.3516,Early Stage,luad,Train
+TCGA-50-5932-01A-01-TS1,0.84,0.3516,Early Stage,luad,Train
+TCGA-50-5932-11A-01-TS1,,,,normal,Train
+TCGA-50-5933-01A-01-BS1,0.3,0.1504,Late Stage,luad,Train
+TCGA-50-5933-01A-01-TS1,0.3,0.1504,Late Stage,luad,Train
+TCGA-50-5933-11A-01-TS1,,,,normal,Train
+TCGA-50-5935-01A-01-BS1,0.39,0.4163,Early Stage,luad,Val
+TCGA-50-5935-01A-01-TS1,0.39,0.4163,Early Stage,luad,Val
+TCGA-50-5935-11A-01-TS1,,,,normal,Val
+TCGA-50-5936-01A-01-BS1,0.6,0.3737,Late Stage,luad,Train
+TCGA-50-5936-01A-01-TS1,0.6,0.3737,Late Stage,luad,Train
+TCGA-50-5936-11A-01-TS1,,,,normal,Train
+TCGA-50-5939-01A-01-BS1,0.38,0.0732,Early Stage,luad,Train
+TCGA-50-5939-01A-01-TS1,0.38,0.0732,Early Stage,luad,Train
+TCGA-50-5939-11A-01-TS1,,,,normal,Train
+TCGA-50-5941-01A-01-BS1,0.27,0.1134,Late Stage,luad,Val
+TCGA-50-5941-01A-01-TS1,0.27,0.1134,Late Stage,luad,Val
+TCGA-50-5942-01A-01-BS1,0.69,0.0483,Early Stage,luad,Train
+TCGA-50-5944-01A-01-TS1,0.57,0.406,Early Stage,luad,Test
+TCGA-50-5946-01A-01-BS1,0.75,0.5612,Early Stage,luad,Train
+TCGA-50-5946-01A-01-TS1,0.75,0.5612,Early Stage,luad,Train
+TCGA-50-5946-02A-01-BS1,0.9,0.661,Early Stage,luad,Train
+TCGA-50-5946-02A-01-TS1,0.9,0.661,Early Stage,luad,Train
+TCGA-50-6590-01A-01-BS1,0.25,0.1035,Early Stage,luad,Val
+TCGA-50-6590-01A-01-TS1,0.25,0.1035,Early Stage,luad,Val
+TCGA-50-6590-11A-01-TS1,,,,normal,Val
+TCGA-50-6591-01A-01-BS1,0.9,0.5794,Late Stage,luad,Val
+TCGA-50-6591-01A-01-TS1,0.9,0.5794,Late Stage,luad,Val
+TCGA-50-6591-11A-01-TS1,,,,normal,Val
+TCGA-50-6592-01A-01-BS1,0.28,0.0987,Early Stage,luad,Train
+TCGA-50-6592-01A-01-TS1,0.28,0.0987,Early Stage,luad,Train
+TCGA-50-6592-11A-01-TS1,,,,normal,Train
+TCGA-50-6593-01A-01-BS1,0.31,0.209,Late Stage,luad,Train
+TCGA-50-6593-01A-01-TS1,0.31,0.209,Late Stage,luad,Train
+TCGA-50-6593-11A-01-TS1,,,,normal,Train
+TCGA-50-6594-01A-01-BS1,0.6,0.4787,Late Stage,luad,Train
+TCGA-50-6594-01A-01-TS1,0.6,0.4787,Late Stage,luad,Train
+TCGA-50-6594-11A-01-TS1,,,,normal,Train
+TCGA-50-6595-01A-01-BS1,0.22,0.0248,Late Stage,luad,Train
+TCGA-50-6595-01A-01-TS1,0.22,0.0248,Late Stage,luad,Train
+TCGA-50-6595-11A-01-TS1,,,,normal,Train
+TCGA-50-6597-01A-01-BS1,0.48,0.267,Early Stage,luad,Train
+TCGA-50-6597-01A-01-TS1,0.48,0.267,Early Stage,luad,Train
+TCGA-50-6673-01A-01-BS1,0.35,0.2202,Early Stage,luad,Train
+TCGA-50-6673-01A-01-TS1,0.35,0.2202,Early Stage,luad,Train
+TCGA-50-6673-11A-01-TS1,,,,normal,Train
+TCGA-50-7109-01A-01-BS1,0.44,0.5497,Early Stage,luad,Train
+TCGA-50-7109-01A-01-TS1,0.44,0.5497,Early Stage,luad,Train
+TCGA-50-7109-11A-01-TS1,,,,normal,Train
+TCGA-50-8457-01A-01-BS1,0.6,0.0581,Early Stage,luad,Train
+TCGA-50-8457-01A-01-TS1,0.6,0.0581,Early Stage,luad,Train
+TCGA-50-8457-11A-01-TS1,,,,normal,Train
+TCGA-50-8459-01A-01-BS1,0.29,0.0065,Early Stage,luad,Train
+TCGA-50-8459-01A-01-TS1,0.29,0.0065,Early Stage,luad,Train
+TCGA-50-8459-11A-01-TS1,,,,normal,Train
+TCGA-50-8460-01A-01-BS1,0.42,0.2005,Early Stage,luad,Train
+TCGA-50-8460-01A-01-TS1,0.42,0.2005,Early Stage,luad,Train
+TCGA-50-8460-11A-01-TS1,,,,normal,Train
+TCGA-51-4079-01A-01-BS1,0.62,0.3895,Early Stage,lusc,Val
+TCGA-51-4079-01A-01-TS1,0.62,0.3895,Early Stage,lusc,Val
+TCGA-51-4079-11A-01-BS1,,,,normal,Val
+TCGA-51-4079-11A-01-TS1,,,,normal,Val
+TCGA-51-4080-01A-01-BS1,0.96,0.3449,Late Stage,lusc,Train
+TCGA-51-4080-01A-01-TS1,0.96,0.3449,Late Stage,lusc,Train
+TCGA-51-4080-11A-01-BS1,,,,normal,Train
+TCGA-51-4080-11A-01-TS1,,,,normal,Train
+TCGA-51-4081-01A-01-BS1,0.63,0.5713,Early Stage,lusc,Train
+TCGA-51-4081-01A-01-TS1,0.63,0.5713,Early Stage,lusc,Train
+TCGA-51-4081-11A-01-BS1,,,,normal,Train
+TCGA-51-4081-11A-01-TS1,,,,normal,Train
+TCGA-51-6867-01A-01-BS1,,,Early Stage,lusc,Train
+TCGA-51-6867-01A-01-TS1,,,Early Stage,lusc,Train
+TCGA-51-6867-11A-01-TS1,,,,normal,Train
+TCGA-52-7622-01A-01-TS1,0.39,0.3026,Early Stage,lusc,Test
+TCGA-52-7809-01A-01-BS1,0.52,0.4334,Early Stage,lusc,Test
+TCGA-52-7810-01A-01-BS1,0.51,0.5225,Early Stage,lusc,Train
+TCGA-52-7810-01A-01-TS1,0.51,0.5225,Early Stage,lusc,Train
+TCGA-52-7811-01A-01-BS1,0.22,0.109,Early Stage,lusc,Train
+TCGA-52-7811-01A-01-TS1,0.22,0.109,Early Stage,lusc,Train
+TCGA-52-7812-01A-01-BS1,0.56,0.319,,lusc,Train
+TCGA-52-7812-01A-01-TS1,0.56,0.319,,lusc,Train
+TCGA-53-7624-01A-01-BS1,0.69,0.6673,Late Stage,luad,Train
+TCGA-53-7624-01A-01-TS1,0.69,0.6673,Late Stage,luad,Train
+TCGA-53-7626-01A-01-BS1,0.42,0.2535,Early Stage,luad,Train
+TCGA-53-7626-01A-01-TS1,0.42,0.2535,Early Stage,luad,Train
+TCGA-53-7813-01A-01-BS1,0.36,0.2515,Late Stage,luad,Train
+TCGA-53-7813-01A-01-TS1,0.36,0.2515,Late Stage,luad,Train
+TCGA-53-A4EZ-01A-01-TSA,0.47,0.6586,Early Stage,luad,Train
+TCGA-55-1592-01A-01-BS1,0.49,0.5835,Early Stage,luad,Train
+TCGA-55-1592-01A-01-TS1,0.49,0.5835,Early Stage,luad,Train
+TCGA-55-1592-11A-01-TS1,,,,normal,Train
+TCGA-55-1594-01A-01-BS1,0.55,0.6566,Late Stage,luad,Train
+TCGA-55-1594-01A-01-TS1,0.55,0.6566,Late Stage,luad,Train
+TCGA-55-1594-11A-01-TS1,,,,normal,Train
+TCGA-55-1595-01A-01-BS1,0.52,0.6128,Early Stage,luad,Train
+TCGA-55-1595-01A-01-TS1,0.52,0.6128,Early Stage,luad,Train
+TCGA-55-1595-11A-01-TS1,,,,normal,Train
+TCGA-55-1596-01A-01-BS1,0.63,0.7496,Early Stage,luad,Train
+TCGA-55-1596-01A-01-TS1,0.63,0.7496,Early Stage,luad,Train
+TCGA-55-1596-11A-01-TS1,,,,normal,Train
+TCGA-55-5899-01A-01-TS1,0.67,0.6014,,luad,Test
+TCGA-55-6543-01A-01-BS1,0.65,0.2923,Early Stage,luad,Train
+TCGA-55-6543-01A-01-TS1,0.65,0.2923,Early Stage,luad,Train
+TCGA-55-6642-01A-01-BS1,0.37,0.1444,Early Stage,luad,Train
+TCGA-55-6642-01A-01-TS1,0.37,0.1444,Early Stage,luad,Train
+TCGA-55-6642-11A-01-TS1,,,,normal,Train
+TCGA-55-6712-01A-01-BS1,0.29,0.3129,Early Stage,luad,Train
+TCGA-55-6712-01A-01-TS1,0.29,0.3129,Early Stage,luad,Train
+TCGA-55-6968-11A-01-TS1,,,,normal,Test
+TCGA-55-6969-01A-01-BS1,0.25,0.0772,Early Stage,luad,Train
+TCGA-55-6969-01A-01-TS1,0.25,0.0772,Early Stage,luad,Train
+TCGA-55-6969-11A-01-TS1,,,,normal,Train
+TCGA-55-6970-01A-01-BS1,0.56,0.2406,Late Stage,luad,Train
+TCGA-55-6970-01A-01-TS1,0.56,0.2406,Late Stage,luad,Train
+TCGA-55-6970-11A-01-TS1,,,,normal,Train
+TCGA-55-6971-01A-01-BS1,0.23,0.0622,Early Stage,luad,Val
+TCGA-55-6971-01A-01-TS1,0.23,0.0622,Early Stage,luad,Val
+TCGA-55-6971-11A-01-TS1,,,,normal,Val
+TCGA-55-6972-01A-01-TS1,0.83,0.4609,Early Stage,luad,Train
+TCGA-55-6972-11A-01-TS1,,,,normal,Train
+TCGA-55-6975-01A-01-TS1,0.46,0.196,Early Stage,luad,Val
+TCGA-55-6975-11A-01-TS1,,,,normal,Val
+TCGA-55-6978-01A-01-BS1,0.26,0.0102,Early Stage,luad,Train
+TCGA-55-6978-01A-01-TS1,0.26,0.0102,Early Stage,luad,Train
+TCGA-55-6978-11A-01-TS1,,,,normal,Train
+TCGA-55-6979-01A-01-BS1,0.33,0.0568,Early Stage,luad,Train
+TCGA-55-6979-01A-01-TS1,0.33,0.0568,Early Stage,luad,Train
+TCGA-55-6979-11A-01-TS1,,,,normal,Train
+TCGA-55-6980-01A-01-TS1,0.31,0.1855,Early Stage,luad,Train
+TCGA-55-6980-11A-01-TS1,,,,normal,Train
+TCGA-55-6981-01A-01-BS1,0.26,0.2902,Late Stage,luad,Train
+TCGA-55-6981-01A-01-TS1,0.26,0.2902,Late Stage,luad,Train
+TCGA-55-6981-11A-01-TS1,,,,normal,Train
+TCGA-55-6982-11A-01-TS1,,,,normal,Test
+TCGA-55-6983-01A-01-TS1,0.27,0.0996,Early Stage,luad,Train
+TCGA-55-6983-11A-01-TS1,,,,normal,Train
+TCGA-55-6984-11A-01-TS1,,,,normal,Test
+TCGA-55-6985-01A-01-TS1,0.39,0.2,Early Stage,luad,Train
+TCGA-55-6985-11A-01-TS1,,,,normal,Train
+TCGA-55-6986-01A-01-TS1,0.4,0.041,Early Stage,luad,Test
+TCGA-55-6986-11A-01-TS1,,,,normal,Test
+TCGA-55-6987-01A-01-TS1,0.16,0.0706,Early Stage,luad,Train
+TCGA-55-6987-11A-01-TS1,,,,normal,Train
+TCGA-55-7281-01A-01-TS1,0.42,0.4215,Early Stage,luad,Train
+TCGA-55-7281-11A-01-TS1,,,,normal,Train
+TCGA-55-7283-01A-01-TS1,0.47,0.2525,Late Stage,luad,Train
+TCGA-55-7283-11A-01-TS1,,,,normal,Train
+TCGA-55-7570-11A-01-TS1,,,,normal,Val
+TCGA-55-7573-01A-01-BS1,0.33,0.3445,Early Stage,luad,Train
+TCGA-55-7573-01A-01-TS1,0.33,0.3445,Early Stage,luad,Train
+TCGA-55-7573-11A-01-TS1,,,,normal,Train
+TCGA-55-7574-01A-01-BS1,0.19,0.0385,Early Stage,luad,Val
+TCGA-55-7574-01A-01-TS1,0.19,0.0385,Early Stage,luad,Val
+TCGA-55-7574-11A-01-TS1,,,,normal,Val
+TCGA-55-7576-01A-01-TS1,0.47,0.4404,Early Stage,luad,Train
+TCGA-55-7576-11A-01-TS1,,,,normal,Train
+TCGA-55-7725-11A-01-TS1,,,,normal,Test
+TCGA-55-7726-11A-01-TS1,,,,normal,Test
+TCGA-55-7727-01A-01-TS1,0.56,0.2006,Late Stage,luad,Train
+TCGA-55-7727-11A-01-TS1,,,,normal,Train
+TCGA-55-7728-01A-01-BS1,0.42,0.059,Early Stage,luad,Train
+TCGA-55-7728-01A-01-TS1,0.42,0.059,Early Stage,luad,Train
+TCGA-55-7728-11A-01-TS1,,,,normal,Train
+TCGA-55-7815-01A-01-TS1,0.29,0.1318,Early Stage,luad,Train
+TCGA-55-7815-11A-01-TS1,,,,normal,Train
+TCGA-55-7816-01A-01-TS1,,,Late Stage,luad,Test
+TCGA-55-7903-01A-01-TS1,0.64,0.2587,Early Stage,luad,Train
+TCGA-55-7903-11A-01-TS1,,,,normal,Train
+TCGA-55-7907-01A-01-TS1,0.39,0.3482,Early Stage,luad,Train
+TCGA-55-7907-11A-01-TS1,,,,normal,Train
+TCGA-55-7910-01A-01-BS1,0.58,0.5284,Early Stage,luad,Train
+TCGA-55-7910-01A-01-TS1,0.58,0.5284,Early Stage,luad,Train
+TCGA-55-7910-11A-01-TS1,,,,normal,Train
+TCGA-55-7911-01A-01-TS1,0.23,0.0964,Early Stage,luad,Test
+TCGA-55-7911-11A-01-TS1,,,,normal,Test
+TCGA-55-7913-11A-01-TS1,,,,normal,Test
+TCGA-55-7914-01A-01-TS1,0.56,0.255,Early Stage,luad,Test
+TCGA-55-7914-11A-01-TS1,,,,normal,Test
+TCGA-55-7994-01A-01-BS1,0.51,0.5861,Early Stage,luad,Train
+TCGA-55-7994-01A-01-TS1,0.51,0.5861,Early Stage,luad,Train
+TCGA-55-7994-11A-01-TS1,,,,normal,Train
+TCGA-55-7995-01A-01-BS1,0.49,0.3208,Early Stage,luad,Val
+TCGA-55-7995-01A-01-TS1,0.49,0.3208,Early Stage,luad,Val
+TCGA-55-7995-11A-01-TS1,,,,normal,Val
+TCGA-55-8085-01A-01-TS1,0.56,0.2779,Early Stage,luad,Test
+TCGA-55-8089-01A-01-TS1,0.33,0.0325,Early Stage,luad,Test
+TCGA-55-8090-01A-01-TS1,0.41,0.0643,Early Stage,luad,Test
+TCGA-55-8091-01A-01-TS1,0.6,0.4845,Early Stage,luad,Test
+TCGA-55-8094-01A-01-TS1,0.79,0.6613,Late Stage,luad,Test
+TCGA-55-8096-01A-01-TS1,0.25,0.0908,Early Stage,luad,Train
+TCGA-55-8097-01A-01-TS1,0.64,0.2133,Early Stage,luad,Train
+TCGA-55-8203-01A-01-TS1,0.38,0.2835,Early Stage,luad,Test
+TCGA-55-8204-01A-01-TS1,0.34,0.2783,Early Stage,luad,Test
+TCGA-55-8205-01A-01-TS1,0.22,0.1046,Early Stage,luad,Test
+TCGA-55-8206-01A-01-TS1,0.46,0.1614,Early Stage,luad,Test
+TCGA-55-8207-01A-01-TS1,0.57,0.4614,Early Stage,luad,Test
+TCGA-55-8208-01A-01-TS1,0.24,0.0439,Early Stage,luad,Test
+TCGA-55-8299-01A-01-TS1,,0.0,Early Stage,luad,Val
+TCGA-55-8299-11A-01-TS1,,,,normal,Val
+TCGA-55-8301-01A-01-TS1,0.26,0.0758,Early Stage,luad,Test
+TCGA-55-8301-11A-01-TS1,,,,normal,Test
+TCGA-55-8302-01A-01-TS1,0.46,0.1708,Early Stage,luad,Train
+TCGA-55-8505-01A-01-TS1,0.32,0.0096,Late Stage,luad,Train
+TCGA-55-8505-11A-01-TS1,,,,normal,Train
+TCGA-55-8506-01A-01-TS1,0.45,0.3267,Early Stage,luad,Train
+TCGA-55-8506-11A-01-TS1,,,,normal,Train
+TCGA-55-8507-01A-01-TS1,0.64,0.5642,Early Stage,luad,Test
+TCGA-55-8507-11A-01-TS1,,,,normal,Test
+TCGA-55-8508-01A-01-TS1,0.38,0.1802,Early Stage,luad,Test
+TCGA-55-8508-11A-01-TS1,,,,normal,Test
+TCGA-55-8510-01A-01-TS1,0.28,0.1246,Early Stage,luad,Train
+TCGA-55-8511-01A-01-TS1,0.19,0.1225,Early Stage,luad,Train
+TCGA-55-8511-11A-01-TS1,,,,normal,Train
+TCGA-55-8512-01A-01-TS1,0.35,0.1895,Late Stage,luad,Val
+TCGA-55-8512-11A-01-TS1,,,,normal,Val
+TCGA-55-8513-01A-01-TS1,0.5,0.0,Early Stage,luad,Val
+TCGA-55-8513-11A-01-TS1,,,,normal,Val
+TCGA-55-8514-01A-01-TS1,0.54,0.8013,Early Stage,luad,Train
+TCGA-55-8514-11A-01-TS1,,,,normal,Train
+TCGA-55-8614-01A-01-TS1,0.32,0.332,Early Stage,luad,Test
+TCGA-55-8614-11A-01-TS1,,,,normal,Test
+TCGA-55-8615-01A-01-TS1,0.57,0.6786,Late Stage,luad,Train
+TCGA-55-8615-11A-01-TS1,,,,normal,Train
+TCGA-55-8616-01A-01-TS1,0.39,0.3848,Early Stage,luad,Train
+TCGA-55-8616-11A-01-TS1,,,,normal,Train
+TCGA-55-8619-01A-01-TS1,0.24,0.0,Early Stage,luad,Train
+TCGA-55-8619-11A-01-TS1,,,,normal,Train
+TCGA-55-8620-01A-01-TS1,0.62,0.3493,Late Stage,luad,Val
+TCGA-55-8620-11A-01-TS1,,,,normal,Val
+TCGA-55-8621-01A-01-TS1,0.2,0.0,Early Stage,luad,Val
+TCGA-55-8621-11A-01-TS1,,,,normal,Val
+TCGA-55-A48X-01A-01-TS1,0.28,0.0066,Early Stage,luad,Test
+TCGA-55-A48Y-01A-01-TS1,0.36,0.1886,Early Stage,luad,Test
+TCGA-55-A48Z-01A-01-TS1,0.41,0.3205,Late Stage,luad,Train
+TCGA-55-A490-01A-01-TS1,0.58,0.5419,Early Stage,luad,Test
+TCGA-55-A491-01A-01-TS1,0.45,0.477,Early Stage,luad,Test
+TCGA-55-A492-01A-01-TS1,0.54,0.2069,Early Stage,luad,Test
+TCGA-55-A493-01A-01-TS1,0.26,0.0981,Early Stage,luad,Val
+TCGA-55-A494-01A-01-TS1,0.81,0.3316,Early Stage,luad,Test
+TCGA-55-A4DF-01A-01-TS1,0.42,0.3667,Early Stage,luad,Test
+TCGA-55-A4DG-01A-01-TS1,0.41,0.4264,Early Stage,luad,Test
+TCGA-55-A57B-01A-01-TS1,0.21,0.215,Early Stage,luad,Test
+TCGA-56-1622-01A-01-BS1,0.9,0.6922,Early Stage,lusc,Train
+TCGA-56-1622-01A-01-TS1,0.9,0.6922,Early Stage,lusc,Train
+TCGA-56-1622-11A-01-TS1,,,,normal,Train
+TCGA-56-5897-01A-01-TS1,0.32,0.2066,Early Stage,lusc,Test
+TCGA-56-5898-01A-01-TS1,0.36,0.3753,Early Stage,lusc,Test
+TCGA-56-6545-01A-01-BS1,0.32,0.3498,Early Stage,lusc,Train
+TCGA-56-6545-01A-01-TS1,0.32,0.3498,Early Stage,lusc,Train
+TCGA-56-6546-01A-01-BS1,0.41,0.1258,Early Stage,lusc,Val
+TCGA-56-6546-01A-01-TS1,0.41,0.1258,Early Stage,lusc,Val
+TCGA-56-7221-01A-01-TS1,0.58,0.3509,Early Stage,lusc,Test
+TCGA-56-7222-01A-01-TS1,0.53,0.4857,Early Stage,lusc,Train
+TCGA-56-7222-11A-01-TS1,,,,normal,Train
+TCGA-56-7223-01A-01-TS1,0.94,0.6992,Late Stage,lusc,Train
+TCGA-56-7579-01A-01-TS1,0.66,0.4024,Late Stage,lusc,Train
+TCGA-56-7579-11A-01-TS1,,,,normal,Train
+TCGA-56-7580-11A-01-TS1,,,,normal,Test
+TCGA-56-7582-01A-01-TS1,0.62,0.5676,Early Stage,lusc,Train
+TCGA-56-7582-11A-01-TS1,,,,normal,Train
+TCGA-56-7730-11A-01-TS1,,,,normal,Test
+TCGA-56-7731-11A-01-TS1,,,,normal,Test
+TCGA-56-7822-01A-01-TS1,0.31,0.2545,Early Stage,lusc,Train
+TCGA-56-7822-11A-01-TS1,,,,normal,Train
+TCGA-56-8201-01A-01-TS1,0.22,0.0275,Early Stage,lusc,Test
+TCGA-56-8304-01A-01-TS1,0.54,0.4891,Early Stage,lusc,Test
+TCGA-56-8305-01A-01-TS1,0.41,0.4151,Early Stage,lusc,Val
+TCGA-56-8305-11A-01-TS1,,,,normal,Val
+TCGA-56-8307-01A-01-TS1,0.52,0.3055,Early Stage,lusc,Train
+TCGA-56-8307-11A-01-TS1,,,,normal,Train
+TCGA-56-8308-01A-01-TS1,0.44,0.4169,Early Stage,lusc,Val
+TCGA-56-8308-11A-01-TS1,,,,normal,Val
+TCGA-56-8309-01A-01-TS1,0.31,0.0591,Early Stage,lusc,Test
+TCGA-56-8309-11A-01-TS1,,,,normal,Test
+TCGA-56-8503-01A-01-TS1,0.22,0.0386,Early Stage,lusc,Test
+TCGA-56-8504-01A-01-TS1,0.35,0.2713,Early Stage,lusc,Train
+TCGA-56-8504-11A-01-TS1,,,,normal,Train
+TCGA-56-8622-01A-01-TS1,0.47,0.2327,Early Stage,lusc,Val
+TCGA-56-8622-11A-01-TS1,,,,normal,Val
+TCGA-56-8624-01A-01-TS1,0.28,0.196,Early Stage,lusc,Val
+TCGA-56-8624-11A-01-TS1,,,,normal,Val
+TCGA-56-8625-01A-01-TS1,0.37,0.3384,Late Stage,lusc,Train
+TCGA-56-8625-11A-01-TS1,,,,normal,Train
+TCGA-56-8626-01A-01-TS1,0.4,0.3335,Early Stage,lusc,Test
+TCGA-56-8628-01A-01-TS1,0.41,0.3922,Early Stage,lusc,Train
+TCGA-56-8628-11A-01-TS1,,,,normal,Train
+TCGA-56-8629-01A-01-TS1,0.62,0.6729,Early Stage,lusc,Test
+TCGA-56-8629-11A-01-TS1,,,,normal,Test
+TCGA-56-A4BW-01A-01-TS1,0.58,0.4422,Early Stage,lusc,Test
+TCGA-56-A4BY-01A-01-TS1,0.45,0.316,Early Stage,lusc,Test
+TCGA-56-A4ZJ-01A-01-TS1,0.16,0.0549,Early Stage,lusc,Test
+TCGA-56-A5DS-01A-01-TS1,0.32,0.1056,Early Stage,lusc,Test
+TCGA-56-A62T-01A-01-TS1,0.51,0.3648,Early Stage,lusc,Train
+TCGA-58-8386-01A-01-BS1,0.35,0.4461,Late Stage,lusc,Train
+TCGA-58-8386-01A-01-TS1,0.35,0.4461,Late Stage,lusc,Train
+TCGA-58-8386-11A-01-TS1,,,,normal,Train
+TCGA-58-8387-01A-01-TS1,0.38,0.3576,Early Stage,lusc,Train
+TCGA-58-8387-11A-01-TS1,,,,normal,Train
+TCGA-58-8388-01A-01-BS1,0.71,0.2964,Early Stage,lusc,Train
+TCGA-58-8388-01A-01-TS1,0.71,0.2964,Early Stage,lusc,Train
+TCGA-58-8388-11A-01-TS1,,,,normal,Train
+TCGA-58-8391-01A-01-BS1,0.62,0.586,Late Stage,lusc,Train
+TCGA-58-8391-01A-01-TS1,0.62,0.586,Late Stage,lusc,Train
+TCGA-58-8391-11A-01-TS1,,,,normal,Train
+TCGA-58-8393-01A-01-BS1,0.3,0.096,Early Stage,lusc,Val
+TCGA-58-8393-01A-01-TS1,0.3,0.096,Early Stage,lusc,Val
+TCGA-58-8393-11A-01-TS1,,,,normal,Val
+TCGA-58-A46J-01A-01-TSA,0.51,0.1112,Early Stage,lusc,Test
+TCGA-58-A46K-01A-01-TSA,0.61,0.4675,Late Stage,lusc,Test
+TCGA-58-A46L-01A-01-TSA,0.58,0.427,Late Stage,lusc,Test
+TCGA-58-A46M-01A-01-TSA,0.55,0.5811,Early Stage,lusc,Val
+TCGA-58-A46N-01A-01-TSA,0.89,0.9373,Early Stage,lusc,Test
+TCGA-60-2695-01A-01-BS1,0.81,0.7377,Early Stage,lusc,Train
+TCGA-60-2695-01A-01-TS1,0.81,0.7377,Early Stage,lusc,Train
+TCGA-60-2695-11A-01-BS1,,,,normal,Train
+TCGA-60-2695-11A-01-TS1,,,,normal,Train
+TCGA-60-2696-01A-01-BS1,0.42,0.323,Early Stage,lusc,Train
+TCGA-60-2696-01A-01-TS1,0.42,0.323,Early Stage,lusc,Train
+TCGA-60-2696-11A-01-BS1,,,,normal,Train
+TCGA-60-2696-11A-01-TS1,,,,normal,Train
+TCGA-60-2697-01A-01-BS1,0.18,0.0,Early Stage,lusc,Test
+TCGA-60-2697-01A-01-TS1,0.18,0.0,Early Stage,lusc,Test
+TCGA-60-2697-11A-01-BS1,,,,normal,Test
+TCGA-60-2697-11A-01-TS1,,,,normal,Test
+TCGA-60-2698-01A-01-BS1,0.26,0.3627,Early Stage,lusc,Test
+TCGA-60-2698-01A-01-TS1,0.26,0.3627,Early Stage,lusc,Test
+TCGA-60-2698-11A-01-BS1,,,,normal,Test
+TCGA-60-2698-11A-01-TS1,,,,normal,Test
+TCGA-60-2703-01A-01-BS1,0.26,0.126,Early Stage,lusc,Test
+TCGA-60-2703-01A-01-TS1,0.26,0.126,Early Stage,lusc,Test
+TCGA-60-2703-11A-01-BS1,,,,normal,Test
+TCGA-60-2703-11A-01-TS1,,,,normal,Test
+TCGA-60-2704-01A-01-BS1,0.21,0.0602,Early Stage,lusc,Train
+TCGA-60-2704-01A-01-TS1,0.21,0.0602,Early Stage,lusc,Train
+TCGA-60-2704-11A-01-BS1,,,,normal,Train
+TCGA-60-2704-11A-01-TS1,,,,normal,Train
+TCGA-60-2706-01A-01-BS1,0.48,0.4521,Early Stage,lusc,Test
+TCGA-60-2706-01A-01-TS1,0.48,0.4521,Early Stage,lusc,Test
+TCGA-60-2706-11A-01-BS1,,,,normal,Test
+TCGA-60-2706-11A-01-TS1,,,,normal,Test
+TCGA-60-2707-01A-01-BS1,0.6,0.3205,Early Stage,lusc,Train
+TCGA-60-2707-01A-01-TS1,0.6,0.3205,Early Stage,lusc,Train
+TCGA-60-2707-11A-01-BS1,,,,normal,Train
+TCGA-60-2707-11A-01-TS1,,,,normal,Train
+TCGA-60-2708-01A-01-BS1,0.58,0.6958,Early Stage,lusc,Train
+TCGA-60-2708-01A-01-TS1,0.58,0.6958,Early Stage,lusc,Train
+TCGA-60-2708-11A-01-BS1,,,,normal,Train
+TCGA-60-2708-11A-01-TS1,,,,normal,Train
+TCGA-60-2709-01A-01-BS1,0.15,0.0427,Early Stage,lusc,Train
+TCGA-60-2709-01A-02-BS2,0.15,0.0427,Early Stage,lusc,Train
+TCGA-60-2709-11A-01-BS1,,,,normal,Train
+TCGA-60-2709-11A-01-TS1,,,,normal,Train
+TCGA-60-2710-01A-01-BS1,0.65,0.368,Early Stage,lusc,Test
+TCGA-60-2710-01A-01-TS1,0.65,0.368,Early Stage,lusc,Test
+TCGA-60-2710-11A-01-BS1,,,,normal,Test
+TCGA-60-2710-11A-01-TS1,,,,normal,Test
+TCGA-60-2711-01A-01-BS1,0.65,0.6256,Early Stage,lusc,Val
+TCGA-60-2711-01A-01-TS1,0.65,0.6256,Early Stage,lusc,Val
+TCGA-60-2711-11A-01-BS1,,,,normal,Val
+TCGA-60-2711-11A-01-TS1,,,,normal,Val
+TCGA-60-2712-01A-01-BS1,0.36,0.2869,Early Stage,lusc,Test
+TCGA-60-2712-01A-01-TS1,0.36,0.2869,Early Stage,lusc,Test
+TCGA-60-2712-11A-01-BS1,,,,normal,Test
+TCGA-60-2712-11A-01-TS1,,,,normal,Test
+TCGA-60-2713-01A-01-BS1,0.63,0.4712,Early Stage,lusc,Train
+TCGA-60-2713-01A-01-TS1,0.63,0.4712,Early Stage,lusc,Train
+TCGA-60-2713-11A-01-BS1,,,,normal,Train
+TCGA-60-2713-11A-01-TS1,,,,normal,Train
+TCGA-60-2714-01A-01-BS1,0.34,0.4013,Early Stage,lusc,Train
+TCGA-60-2714-01A-01-TS1,0.34,0.4013,Early Stage,lusc,Train
+TCGA-60-2714-11A-01-BS1,,,,normal,Train
+TCGA-60-2714-11A-01-TS1,,,,normal,Train
+TCGA-60-2715-01A-01-BS1,0.19,0.0545,Early Stage,lusc,Train
+TCGA-60-2715-01A-01-TS1,0.19,0.0545,Early Stage,lusc,Train
+TCGA-60-2715-11A-01-BS1,,,,normal,Train
+TCGA-60-2715-11A-01-TS1,,,,normal,Train
+TCGA-60-2716-01A-01-BS1,0.68,0.0,Early Stage,lusc,Train
+TCGA-60-2716-01A-01-TS1,0.68,0.0,Early Stage,lusc,Train
+TCGA-60-2716-11A-01-BS1,,,,normal,Train
+TCGA-60-2716-11A-01-TS1,,,,normal,Train
+TCGA-60-2719-01A-01-BS1,0.79,0.8519,Early Stage,lusc,Val
+TCGA-60-2719-01A-01-TS1,0.79,0.8519,Early Stage,lusc,Val
+TCGA-60-2719-11A-01-BS1,,,,normal,Val
+TCGA-60-2719-11A-01-TS1,,,,normal,Val
+TCGA-60-2720-01A-01-BS1,0.33,0.0634,Early Stage,lusc,Train
+TCGA-60-2720-01A-01-TS1,0.33,0.0634,Early Stage,lusc,Train
+TCGA-60-2720-11A-01-TS1,,,,normal,Train
+TCGA-60-2721-01A-01-BS1,0.61,0.334,Early Stage,lusc,Train
+TCGA-60-2721-01A-01-TS1,0.61,0.334,Early Stage,lusc,Train
+TCGA-60-2721-11A-01-BS1,,,,normal,Train
+TCGA-60-2721-11A-01-TS1,,,,normal,Train
+TCGA-60-2722-01A-01-BS1,0.81,0.5892,Early Stage,lusc,Test
+TCGA-60-2722-01A-01-TS1,0.81,0.5892,Early Stage,lusc,Test
+TCGA-60-2722-11A-01-BS1,,,,normal,Test
+TCGA-60-2722-11A-01-TS1,,,,normal,Test
+TCGA-60-2723-01A-01-BS1,0.39,0.5274,Early Stage,lusc,Val
+TCGA-60-2723-01A-01-TS1,0.39,0.5274,Early Stage,lusc,Val
+TCGA-60-2723-11A-01-BS1,,,,normal,Val
+TCGA-60-2723-11A-01-TS1,,,,normal,Val
+TCGA-60-2724-01A-01-BS1,0.47,0.3257,Late Stage,lusc,Train
+TCGA-60-2724-01A-01-TS1,0.47,0.3257,Late Stage,lusc,Train
+TCGA-60-2724-11A-01-BS1,,,,normal,Train
+TCGA-60-2724-11A-01-TS1,,,,normal,Train
+TCGA-60-2725-01A-01-BS1,0.35,0.0877,Early Stage,lusc,Train
+TCGA-60-2725-01A-01-TS1,0.35,0.0877,Early Stage,lusc,Train
+TCGA-60-2725-11A-01-BS1,,,,normal,Train
+TCGA-60-2725-11A-01-TS1,,,,normal,Train
+TCGA-60-2726-01A-01-BS1,0.48,0.6693,Early Stage,lusc,Train
+TCGA-60-2726-01A-01-TS1,0.48,0.6693,Early Stage,lusc,Train
+TCGA-60-2726-11A-01-BS1,,,,normal,Train
+TCGA-60-2726-11A-01-TS1,,,,normal,Train
+TCGA-62-8394-01A-01-BS1,0.53,0.4188,Late Stage,luad,Val
+TCGA-62-8394-01A-01-TS1,0.53,0.4188,Late Stage,luad,Val
+TCGA-62-8394-11A-01-TS1,,,,normal,Val
+TCGA-62-8395-01A-01-BS1,0.65,0.2137,Early Stage,luad,Train
+TCGA-62-8395-01A-01-TS1,0.65,0.2137,Early Stage,luad,Train
+TCGA-62-8395-11A-01-TS1,,,,normal,Train
+TCGA-62-8397-01A-01-TS1,0.69,0.2308,Early Stage,luad,Train
+TCGA-62-8397-11A-01-TS1,,,,normal,Train
+TCGA-62-8398-01A-01-BS1,0.5,0.3034,Late Stage,luad,Train
+TCGA-62-8398-01A-01-TS1,0.5,0.3034,Late Stage,luad,Train
+TCGA-62-8398-11A-01-TS1,,,,normal,Train
+TCGA-62-8399-01A-01-BS1,0.5,0.4884,Late Stage,luad,Val
+TCGA-62-8399-11A-01-TS1,,,,normal,Val
+TCGA-62-8402-01A-01-TS1,0.5,0.3729,Late Stage,luad,Val
+TCGA-62-8402-11A-01-TS1,,,,normal,Val
+TCGA-62-A46O-01A-01-TSA,0.82,0.6086,Early Stage,luad,Test
+TCGA-62-A46P-01A-01-TS1,0.7,0.225,Early Stage,luad,Test
+TCGA-62-A46R-01A-01-TSA,0.42,0.3944,Early Stage,luad,Test
+TCGA-62-A46S-01A-01-TS1,0.45,0.2331,Early Stage,luad,Test
+TCGA-62-A46U-01A-01-TS1,0.25,0.1571,Early Stage,luad,Test
+TCGA-62-A46V-01A-01-TSA,0.52,0.292,Early Stage,luad,Train
+TCGA-62-A46Y-01A-01-TS1,0.48,0.1431,Late Stage,luad,Train
+TCGA-62-A470-01A-01-TS1,0.59,0.5991,Early Stage,luad,Test
+TCGA-62-A471-01A-01-TSA,0.46,0.4409,Early Stage,luad,Test
+TCGA-62-A472-01A-01-TSA,0.4,0.2944,Early Stage,luad,Test
+TCGA-63-5128-01A-01-BS1,0.72,0.7388,Early Stage,lusc,Train
+TCGA-63-5128-01A-01-TS1,0.72,0.7388,Early Stage,lusc,Train
+TCGA-63-5131-01A-01-BS1,0.54,0.5194,Early Stage,lusc,Train
+TCGA-63-5131-01A-01-TS1,0.54,0.5194,Early Stage,lusc,Train
+TCGA-63-6202-01A-01-BS1,0.42,0.2614,Early Stage,lusc,Train
+TCGA-63-6202-01A-01-TS1,0.42,0.2614,Early Stage,lusc,Train
+TCGA-63-7020-01A-01-BS1,0.48,0.5251,Early Stage,lusc,Val
+TCGA-63-7020-01A-01-TS1,0.48,0.5251,Early Stage,lusc,Val
+TCGA-63-7021-01A-01-TS1,0.26,0.0299,Early Stage,lusc,Test
+TCGA-63-7022-01A-01-BS1,0.22,0.0626,Early Stage,lusc,Train
+TCGA-63-7022-01A-01-TS1,0.22,0.0626,Early Stage,lusc,Train
+TCGA-63-7023-01A-01-BS1,0.85,0.4685,Early Stage,lusc,Train
+TCGA-63-7023-01A-01-TS1,0.85,0.4685,Early Stage,lusc,Train
+TCGA-63-A5M9-01A-01-TS1,0.6,0.7724,Early Stage,lusc,Test
+TCGA-63-A5MB-01A-01-TS1,0.65,0.734,Early Stage,lusc,Train
+TCGA-63-A5MG-01A-01-TSA,0.31,0.0612,Early Stage,lusc,Val
+TCGA-63-A5MH-01A-01-TS1,0.91,0.8513,Early Stage,lusc,Test
+TCGA-63-A5MI-01A-01-TS1,0.47,0.4486,Late Stage,lusc,Test
+TCGA-63-A5MJ-01A-01-TS1,0.44,0.42,Early Stage,lusc,Test
+TCGA-63-A5ML-01A-03-TS3,0.71,0.5044,Early Stage,lusc,Test
+TCGA-63-A5MM-01A-01-TSA,0.35,0.0856,Early Stage,lusc,Train
+TCGA-63-A5MN-01A-02-TS2,0.2,0.0,Early Stage,lusc,Test
+TCGA-63-A5MP-01A-01-TS1,0.33,0.2817,Early Stage,lusc,Train
+TCGA-63-A5MS-01A-01-TS1,0.2,0.1492,Early Stage,lusc,Test
+TCGA-63-A5MT-01A-02-TS2,0.39,0.2901,Early Stage,lusc,Train
+TCGA-63-A5MU-01A-01-TS1,0.81,0.5201,Early Stage,lusc,Test
+TCGA-63-A5MV-01A-02-TS2,0.35,0.2992,Early Stage,lusc,Train
+TCGA-63-A5MW-01A-01-TS1,0.66,0.601,Early Stage,lusc,Test
+TCGA-63-A5MY-01A-01-TSA,0.85,0.4794,Early Stage,lusc,Test
+TCGA-64-1676-01A-01-BS1,0.51,0.5188,Early Stage,luad,Train
+TCGA-64-1676-01A-01-TS1,0.51,0.5188,Early Stage,luad,Train
+TCGA-64-1677-01A-01-BS1,0.32,0.1277,Late Stage,luad,Train
+TCGA-64-1677-01A-01-TS1,0.32,0.1277,Late Stage,luad,Train
+TCGA-64-1678-01A-01-BS1,0.57,0.5476,,luad,Train
+TCGA-64-1678-01A-01-TS1,0.57,0.5476,,luad,Train
+TCGA-64-1679-01A-01-BS1,0.26,0.1979,Late Stage,luad,Train
+TCGA-64-1679-01A-02-BS2,0.26,0.1979,Late Stage,luad,Train
+TCGA-64-1680-01A-01-BS1,0.61,0.3404,Late Stage,luad,Train
+TCGA-64-1680-01A-02-BS2,0.61,0.3404,Late Stage,luad,Train
+TCGA-64-1681-01A-01-BS1,0.31,0.3458,Early Stage,luad,Train
+TCGA-64-1681-01A-01-TS1,0.31,0.3458,Early Stage,luad,Train
+TCGA-64-5774-01A-01-BS1,0.76,0.6034,Early Stage,luad,Train
+TCGA-64-5774-01A-01-TS1,0.76,0.6034,Early Stage,luad,Train
+TCGA-64-5775-01A-01-BS1,0.71,0.3238,Late Stage,luad,Val
+TCGA-64-5775-01A-01-TS1,0.71,0.3238,Late Stage,luad,Val
+TCGA-64-5778-01A-01-BS1,0.59,0.3264,Early Stage,luad,Train
+TCGA-64-5778-01A-01-TS1,0.59,0.3264,Early Stage,luad,Train
+TCGA-64-5779-01A-01-BS1,0.44,0.6682,Late Stage,luad,Train
+TCGA-64-5779-01A-01-TS1,0.44,0.6682,Late Stage,luad,Train
+TCGA-64-5781-01A-01-BS1,0.38,0.1808,Early Stage,luad,Train
+TCGA-64-5781-01A-01-TS1,0.38,0.1808,Early Stage,luad,Train
+TCGA-64-5815-01A-01-BS1,0.35,0.185,Early Stage,luad,Train
+TCGA-64-5815-01A-01-TS1,0.35,0.185,Early Stage,luad,Train
+TCGA-66-2727-01A-01-BS1,0.47,0.3638,Early Stage,lusc,Test
+TCGA-66-2727-01A-01-TS1,0.47,0.3638,Early Stage,lusc,Test
+TCGA-66-2727-11A-01-BS1,,,,normal,Test
+TCGA-66-2727-11A-01-TS1,,,,normal,Test
+TCGA-66-2734-01A-01-BS1,0.36,0.0471,Early Stage,lusc,Train
+TCGA-66-2734-01A-01-TS1,0.36,0.0471,Early Stage,lusc,Train
+TCGA-66-2734-11A-01-BS1,,,,normal,Train
+TCGA-66-2734-11A-01-TS1,,,,normal,Train
+TCGA-66-2737-01A-01-BS1,0.48,0.231,Early Stage,lusc,Train
+TCGA-66-2737-01A-01-TS1,0.48,0.231,Early Stage,lusc,Train
+TCGA-66-2742-01A-01-BS1,0.44,0.403,Late Stage,lusc,Train
+TCGA-66-2742-01A-01-TS1,0.44,0.403,Late Stage,lusc,Train
+TCGA-66-2742-11A-01-BS1,,,,normal,Train
+TCGA-66-2742-11A-01-TS1,,,,normal,Train
+TCGA-66-2744-01A-01-BS1,0.37,0.1361,Early Stage,lusc,Test
+TCGA-66-2744-01A-01-TS1,0.37,0.1361,Early Stage,lusc,Test
+TCGA-66-2744-11A-01-BS1,,,,normal,Test
+TCGA-66-2744-11A-01-TS1,,,,normal,Test
+TCGA-66-2753-01A-01-BS1,0.39,0.3281,Early Stage,lusc,Train
+TCGA-66-2753-01A-01-TS1,0.39,0.3281,Early Stage,lusc,Train
+TCGA-66-2753-11A-01-BS1,,,,normal,Train
+TCGA-66-2753-11A-01-TS1,,,,normal,Train
+TCGA-66-2754-01A-01-BS1,0.87,0.5903,Late Stage,lusc,Train
+TCGA-66-2754-01A-01-TS1,0.87,0.5903,Late Stage,lusc,Train
+TCGA-66-2754-11A-01-BS1,,,,normal,Train
+TCGA-66-2754-11A-01-TS1,,,,normal,Train
+TCGA-66-2755-01A-01-BS1,0.3,0.3397,Early Stage,lusc,Train
+TCGA-66-2755-01A-01-TS1,0.3,0.3397,Early Stage,lusc,Train
+TCGA-66-2755-11A-01-BS1,,,,normal,Train
+TCGA-66-2755-11A-01-TS1,,,,normal,Train
+TCGA-66-2756-01A-01-BS1,0.71,0.5389,Late Stage,lusc,Train
+TCGA-66-2756-01A-01-TS1,0.71,0.5389,Late Stage,lusc,Train
+TCGA-66-2756-11A-01-BS1,,,,normal,Train
+TCGA-66-2756-11A-01-TS1,,,,normal,Train
+TCGA-66-2757-01A-01-BS1,0.86,0.4916,Early Stage,lusc,Train
+TCGA-66-2757-01A-01-TS1,0.86,0.4916,Early Stage,lusc,Train
+TCGA-66-2757-11A-01-BS1,,,,normal,Train
+TCGA-66-2757-11A-01-TS1,,,,normal,Train
+TCGA-66-2758-01A-01-BS1,0.5,0.7396,Early Stage,lusc,Train
+TCGA-66-2758-01A-02-BS2,0.5,0.7396,Early Stage,lusc,Train
+TCGA-66-2758-11A-01-BS1,,,,normal,Train
+TCGA-66-2758-11A-01-TS1,,,,normal,Train
+TCGA-66-2759-01A-01-BS1,0.5,0.498,Late Stage,lusc,Test
+TCGA-66-2759-01A-01-TS1,0.5,0.498,Late Stage,lusc,Test
+TCGA-66-2759-11A-01-BS1,,,,normal,Test
+TCGA-66-2759-11A-01-TS1,,,,normal,Test
+TCGA-66-2763-01A-01-BS1,0.67,0.7082,Early Stage,lusc,Train
+TCGA-66-2763-01A-01-TS1,0.67,0.7082,Early Stage,lusc,Train
+TCGA-66-2763-11A-01-BS1,,,,normal,Train
+TCGA-66-2765-01A-01-BS1,0.51,0.3137,Early Stage,lusc,Test
+TCGA-66-2765-01A-01-TS1,0.51,0.3137,Early Stage,lusc,Test
+TCGA-66-2765-11A-01-BS1,,,,normal,Test
+TCGA-66-2765-11A-01-TS1,,,,normal,Test
+TCGA-66-2766-01A-01-BS1,0.75,0.6367,Late Stage,lusc,Train
+TCGA-66-2766-01A-01-TS1,0.75,0.6367,Late Stage,lusc,Train
+TCGA-66-2766-11A-01-BS1,,,,normal,Train
+TCGA-66-2766-11A-01-TS1,,,,normal,Train
+TCGA-66-2767-01A-01-BS1,0.27,0.3278,Late Stage,lusc,Test
+TCGA-66-2767-01A-01-TS1,0.27,0.3278,Late Stage,lusc,Test
+TCGA-66-2767-11A-01-BS1,,,,normal,Test
+TCGA-66-2767-11A-01-TS1,,,,normal,Test
+TCGA-66-2768-01A-01-BS1,0.57,0.2459,Early Stage,lusc,Val
+TCGA-66-2768-01A-01-TS1,0.57,0.2459,Early Stage,lusc,Val
+TCGA-66-2768-11A-01-BS1,,,,normal,Val
+TCGA-66-2768-11A-01-TS1,,,,normal,Val
+TCGA-66-2769-01A-01-BS1,0.32,0.338,Late Stage,lusc,Train
+TCGA-66-2769-01A-02-BS2,0.32,0.338,Late Stage,lusc,Train
+TCGA-66-2769-11A-01-BS1,,,,normal,Train
+TCGA-66-2769-11A-01-TS1,,,,normal,Train
+TCGA-66-2770-01A-01-BS1,0.64,0.3199,Early Stage,lusc,Train
+TCGA-66-2770-01A-01-TS1,0.64,0.3199,Early Stage,lusc,Train
+TCGA-66-2770-11A-01-BS1,,,,normal,Train
+TCGA-66-2770-11A-01-TS1,,,,normal,Train
+TCGA-66-2771-01A-01-BS1,0.44,0.3567,Early Stage,lusc,Test
+TCGA-66-2771-01A-01-TS1,0.44,0.3567,Early Stage,lusc,Test
+TCGA-66-2771-11A-01-BS1,,,,normal,Test
+TCGA-66-2771-11A-01-TS1,,,,normal,Test
+TCGA-66-2773-01A-01-BS1,0.41,0.4252,Early Stage,lusc,Test
+TCGA-66-2773-01A-01-TS1,0.41,0.4252,Early Stage,lusc,Test
+TCGA-66-2773-11A-01-BS1,,,,normal,Test
+TCGA-66-2773-11A-01-TS1,,,,normal,Test
+TCGA-66-2777-01A-01-BS1,0.3,0.3801,Early Stage,lusc,Train
+TCGA-66-2777-01A-01-TS1,0.3,0.3801,Early Stage,lusc,Train
+TCGA-66-2777-11A-01-BS1,,,,normal,Train
+TCGA-66-2777-11A-01-TS1,,,,normal,Train
+TCGA-66-2778-01A-01-BS1,0.38,0.3033,Late Stage,lusc,Train
+TCGA-66-2778-01A-02-BS2,0.38,0.3033,Late Stage,lusc,Train
+TCGA-66-2778-11A-01-TS1,,,,normal,Train
+TCGA-66-2780-01A-01-BS1,0.47,0.3673,Early Stage,lusc,Train
+TCGA-66-2780-01A-01-TS1,0.47,0.3673,Early Stage,lusc,Train
+TCGA-66-2780-11A-01-BS1,,,,normal,Train
+TCGA-66-2780-11A-01-TS1,,,,normal,Train
+TCGA-66-2781-01A-01-BS1,0.4,0.5878,Early Stage,lusc,Train
+TCGA-66-2781-01A-01-TS1,0.4,0.5878,Early Stage,lusc,Train
+TCGA-66-2781-11A-01-BS1,,,,normal,Train
+TCGA-66-2781-11A-01-TS1,,,,normal,Train
+TCGA-66-2782-01A-01-BS1,0.52,0.3826,Early Stage,lusc,Train
+TCGA-66-2782-01A-01-TS1,0.52,0.3826,Early Stage,lusc,Train
+TCGA-66-2782-11A-01-BS1,,,,normal,Train
+TCGA-66-2782-11A-01-TS1,,,,normal,Train
+TCGA-66-2783-01A-01-BS1,0.57,0.3125,Late Stage,lusc,Train
+TCGA-66-2783-01A-01-TS1,0.57,0.3125,Late Stage,lusc,Train
+TCGA-66-2783-11A-01-BS1,,,,normal,Train
+TCGA-66-2783-11A-01-TS1,,,,normal,Train
+TCGA-66-2785-01A-01-BS1,0.4,0.6464,Early Stage,lusc,Train
+TCGA-66-2785-01A-01-TS1,0.4,0.6464,Early Stage,lusc,Train
+TCGA-66-2785-11A-01-BS1,,,,normal,Train
+TCGA-66-2785-11A-01-TS1,,,,normal,Train
+TCGA-66-2786-01A-01-BS1,0.57,0.404,Early Stage,lusc,Test
+TCGA-66-2786-01A-01-TS1,0.57,0.404,Early Stage,lusc,Test
+TCGA-66-2786-11A-01-BS1,,,,normal,Test
+TCGA-66-2786-11A-01-TS1,,,,normal,Test
+TCGA-66-2787-01A-01-BS1,0.36,0.5107,Early Stage,lusc,Train
+TCGA-66-2787-01A-01-TS1,0.36,0.5107,Early Stage,lusc,Train
+TCGA-66-2787-11A-01-BS1,,,,normal,Train
+TCGA-66-2787-11A-01-TS1,,,,normal,Train
+TCGA-66-2788-01A-01-BS1,0.41,0.2566,Early Stage,lusc,Train
+TCGA-66-2788-01A-01-TS1,0.41,0.2566,Early Stage,lusc,Train
+TCGA-66-2788-11A-01-BS1,,,,normal,Train
+TCGA-66-2788-11A-01-TS1,,,,normal,Train
+TCGA-66-2789-01A-01-BS1,0.55,0.4025,Late Stage,lusc,Train
+TCGA-66-2789-01A-01-TS1,0.55,0.4025,Late Stage,lusc,Train
+TCGA-66-2789-11A-01-TS1,,,,normal,Train
+TCGA-66-2790-01A-01-BS1,0.57,0.396,Early Stage,lusc,Val
+TCGA-66-2790-01A-01-TS1,0.57,0.396,Early Stage,lusc,Val
+TCGA-66-2790-11A-01-BS1,,,,normal,Val
+TCGA-66-2790-11A-01-TS1,,,,normal,Val
+TCGA-66-2791-01A-01-BS1,0.45,0.4306,Late Stage,lusc,Train
+TCGA-66-2791-01A-01-TS1,0.45,0.4306,Late Stage,lusc,Train
+TCGA-66-2791-11A-01-BS1,,,,normal,Train
+TCGA-66-2791-11A-01-TS1,,,,normal,Train
+TCGA-66-2792-01A-01-BS1,0.66,0.7393,Early Stage,lusc,Test
+TCGA-66-2792-01A-01-TS1,0.66,0.7393,Early Stage,lusc,Test
+TCGA-66-2792-11A-01-BS1,,,,normal,Test
+TCGA-66-2792-11A-01-TS1,,,,normal,Test
+TCGA-66-2793-01A-01-BS1,0.85,0.8301,Late Stage,lusc,Train
+TCGA-66-2793-01A-01-TS1,0.85,0.8301,Late Stage,lusc,Train
+TCGA-66-2793-11A-01-BS1,,,,normal,Train
+TCGA-66-2793-11A-01-TS1,,,,normal,Train
+TCGA-66-2794-01A-01-BS1,0.64,0.382,Late Stage,lusc,Train
+TCGA-66-2794-01A-01-TS1,0.64,0.382,Late Stage,lusc,Train
+TCGA-66-2794-11A-01-BS1,,,,normal,Train
+TCGA-66-2794-11A-01-TS1,,,,normal,Train
+TCGA-66-2795-01A-01-BS1,0.66,0.4341,Late Stage,lusc,Train
+TCGA-66-2795-01A-02-BS2,0.66,0.4341,Late Stage,lusc,Train
+TCGA-66-2795-11A-01-BS1,,,,normal,Train
+TCGA-66-2795-11A-01-TS1,,,,normal,Train
+TCGA-66-2800-01A-01-BS1,0.52,0.5956,Late Stage,lusc,Train
+TCGA-66-2800-01A-01-TS1,0.52,0.5956,Late Stage,lusc,Train
+TCGA-66-2800-11A-01-BS1,,,,normal,Train
+TCGA-66-2800-11A-01-TS1,,,,normal,Train
+TCGA-67-3770-01A-01-TS1,0.65,0.3918,Early Stage,luad,Train
+TCGA-67-3771-01A-01-BS1,0.46,0.6308,Early Stage,luad,Train
+TCGA-67-3771-01A-01-TS1,0.46,0.6308,Early Stage,luad,Train
+TCGA-67-3772-01A-01-BS1,0.45,0.3283,Early Stage,luad,Train
+TCGA-67-3772-01A-01-TS1,0.45,0.3283,Early Stage,luad,Train
+TCGA-67-3773-01A-01-BS1,0.7,0.1224,Early Stage,luad,Train
+TCGA-67-3773-01A-01-TS1,0.7,0.1224,Early Stage,luad,Train
+TCGA-67-3774-01A-01-BS1,0.48,0.2154,Early Stage,luad,Train
+TCGA-67-3774-01A-01-TS1,0.48,0.2154,Early Stage,luad,Train
+TCGA-67-3776-01A-01-BS1,,,Early Stage,luad,Train
+TCGA-67-3776-01A-01-TS1,,,Early Stage,luad,Train
+TCGA-67-6215-01A-01-BS1,0.69,0.2122,Early Stage,luad,Train
+TCGA-67-6215-01A-01-TS1,0.69,0.2122,Early Stage,luad,Train
+TCGA-67-6216-01A-01-BS1,0.56,0.0855,Early Stage,luad,Train
+TCGA-67-6216-01A-01-TS1,0.56,0.0855,Early Stage,luad,Train
+TCGA-67-6217-01A-01-BS1,0.25,0.4314,Early Stage,luad,Train
+TCGA-67-6217-01A-01-TS1,0.25,0.4314,Early Stage,luad,Train
+TCGA-68-7755-01A-01-TS1,0.62,0.5098,Early Stage,lusc,Test
+TCGA-68-7756-01A-01-BS1,0.49,0.2772,Late Stage,lusc,Train
+TCGA-68-7756-01A-01-TS1,0.49,0.2772,Late Stage,lusc,Train
+TCGA-68-8250-01A-01-TS1,0.44,0.5704,Early Stage,lusc,Test
+TCGA-68-8251-01A-01-TS1,0.33,0.0756,Early Stage,lusc,Test
+TCGA-68-A59J-01A-02-TSB,0.45,0.5287,Early Stage,lusc,Train
+TCGA-69-7760-01A-01-TS1,0.65,0.5582,Early Stage,luad,Train
+TCGA-69-7761-01A-01-BS1,0.23,0.0782,Early Stage,luad,Val
+TCGA-69-7761-01A-01-TS1,0.23,0.0782,Early Stage,luad,Val
+TCGA-69-7763-01A-01-BS1,0.35,0.1675,Early Stage,luad,Train
+TCGA-69-7763-01A-01-TS1,0.35,0.1675,Early Stage,luad,Train
+TCGA-69-7764-01A-01-TS1,0.8,0.4944,Early Stage,luad,Test
+TCGA-69-7765-01A-01-BS1,0.41,0.1408,,luad,Train
+TCGA-69-7765-01A-01-TS1,0.41,0.1408,,luad,Train
+TCGA-69-7973-01A-01-TS1,0.55,0.4716,Early Stage,luad,Train
+TCGA-69-7974-01A-01-TS1,0.29,0.1959,Late Stage,luad,Test
+TCGA-69-7978-01A-01-TS1,0.2,0.0369,Early Stage,luad,Test
+TCGA-69-7979-01A-01-TS1,0.53,0.6272,Early Stage,luad,Test
+TCGA-69-7980-01A-01-TS1,0.55,0.4262,Early Stage,luad,Test
+TCGA-69-8253-01A-01-TS1,0.39,0.2314,Early Stage,luad,Test
+TCGA-69-8254-01A-01-TS1,0.41,0.0322,,luad,Test
+TCGA-69-8255-01A-01-TS1,0.37,0.4081,Early Stage,luad,Test
+TCGA-69-8453-01A-01-TS1,0.56,0.1046,Early Stage,luad,Test
+TCGA-69-A59K-01A-01-TSA,,0.4943,Early Stage,luad,Test
+TCGA-6A-AB49-01A-01-TS1,0.69,0.5896,Early Stage,lusc,Test
+TCGA-70-6722-01A-01-BS1,0.32,0.1633,Late Stage,lusc,Val
+TCGA-70-6722-01A-01-TS1,0.32,0.1633,Late Stage,lusc,Val
+TCGA-70-6723-01A-01-BS1,0.86,0.7224,Early Stage,lusc,Train
+TCGA-70-6723-01A-01-TS1,0.86,0.7224,Early Stage,lusc,Train
+TCGA-71-6725-01A-01-BS1,0.63,0.6934,Early Stage,luad,Train
+TCGA-71-6725-01A-01-TS1,0.63,0.6934,Early Stage,luad,Train
+TCGA-71-8520-01A-01-BS1,,,Early Stage,luad,Train
+TCGA-71-8520-01A-01-TS1,,,Early Stage,luad,Train
+TCGA-73-4658-01A-01-BS1,0.29,0.0648,Early Stage,luad,Test
+TCGA-73-4658-01A-01-TS1,0.29,0.0648,Early Stage,luad,Test
+TCGA-73-4658-11A-01-BS1,,,,normal,Test
+TCGA-73-4658-11A-01-TS1,,,,normal,Test
+TCGA-73-4659-01A-01-BS1,0.33,0.249,Late Stage,luad,Train
+TCGA-73-4659-01A-01-TS1,0.33,0.249,Late Stage,luad,Train
+TCGA-73-4659-11A-01-BS1,,,,normal,Train
+TCGA-73-4659-11A-01-TS1,,,,normal,Train
+TCGA-73-4662-01A-01-BS1,0.48,0.4929,Early Stage,luad,Val
+TCGA-73-4662-01A-01-TS1,0.48,0.4929,Early Stage,luad,Val
+TCGA-73-4662-11A-01-BS1,,,,normal,Val
+TCGA-73-4662-11A-01-TS1,,,,normal,Val
+TCGA-73-4666-01A-01-BS1,0.45,0.3709,Late Stage,luad,Train
+TCGA-73-4666-01A-01-TS1,0.45,0.3709,Late Stage,luad,Train
+TCGA-73-4666-11A-01-BS1,,,,normal,Train
+TCGA-73-4666-11A-01-TS1,,,,normal,Train
+TCGA-73-4668-01A-01-BS1,0.53,0.499,Early Stage,luad,Train
+TCGA-73-4668-01A-01-TS1,0.53,0.499,Early Stage,luad,Train
+TCGA-73-4668-11A-01-BS1,,,,normal,Train
+TCGA-73-4668-11A-01-TS1,,,,normal,Train
+TCGA-73-4670-01A-01-BS1,0.62,0.6786,Late Stage,luad,Train
+TCGA-73-4670-01A-01-TS1,0.62,0.6786,Late Stage,luad,Train
+TCGA-73-4670-11A-01-BS1,,,,normal,Train
+TCGA-73-4670-11A-01-TS1,,,,normal,Train
+TCGA-73-4675-01A-01-BS1,0.57,0.259,Late Stage,luad,Val
+TCGA-73-4675-01A-01-TS1,0.57,0.259,Late Stage,luad,Val
+TCGA-73-4675-11A-01-BS1,,,,normal,Val
+TCGA-73-4675-11A-01-TS1,,,,normal,Val
+TCGA-73-4676-01A-01-BS1,0.77,0.2108,Early Stage,luad,Test
+TCGA-73-4676-01A-01-TS1,0.77,0.2108,Early Stage,luad,Test
+TCGA-73-4676-11A-01-BS1,,,,normal,Test
+TCGA-73-4676-11A-01-TS1,,,,normal,Test
+TCGA-73-4677-01A-01-BS1,0.47,0.1813,,luad,Train
+TCGA-73-4677-01A-01-TS1,0.47,0.1813,,luad,Train
+TCGA-73-4677-11A-01-BS1,,,,normal,Train
+TCGA-73-4677-11A-01-TS1,,,,normal,Train
+TCGA-73-7498-01A-01-BS1,0.62,0.1769,Early Stage,luad,Train
+TCGA-73-7498-01A-01-TS1,0.62,0.1769,Early Stage,luad,Train
+TCGA-73-7499-01A-01-BS1,0.38,0.5723,Early Stage,luad,Train
+TCGA-73-7499-01A-01-TS1,0.38,0.5723,Early Stage,luad,Train
+TCGA-73-A9RS-01A-01-TS1,0.61,0.6599,Early Stage,luad,Test
+TCGA-75-5122-01A-01-BS1,0.32,0.0707,Early Stage,luad,Train
+TCGA-75-5122-01A-01-TS1,0.32,0.0707,Early Stage,luad,Train
+TCGA-75-5125-01A-01-BS1,0.31,0.3035,Early Stage,luad,Train
+TCGA-75-5125-01A-01-TS1,0.31,0.3035,Early Stage,luad,Train
+TCGA-75-5126-01A-01-BS1,0.24,0.0549,Late Stage,luad,Train
+TCGA-75-5126-01A-01-TS1,0.24,0.0549,Late Stage,luad,Train
+TCGA-75-5146-01A-01-BS1,0.58,0.3219,Early Stage,luad,Train
+TCGA-75-5146-01A-01-TS1,0.58,0.3219,Early Stage,luad,Train
+TCGA-75-5147-01A-01-BS1,0.4,0.414,Early Stage,luad,Train
+TCGA-75-5147-01A-01-TS1,0.4,0.414,Early Stage,luad,Train
+TCGA-75-6203-01A-01-BS1,0.26,0.0169,Late Stage,luad,Train
+TCGA-75-6203-01A-01-TS1,0.26,0.0169,Late Stage,luad,Train
+TCGA-75-6205-01A-01-TS1,0.27,0.1084,Early Stage,luad,Test
+TCGA-75-6206-01A-01-TS1,0.7,0.4203,Early Stage,luad,Train
+TCGA-75-6207-01A-01-BS1,0.64,0.3714,Late Stage,luad,Val
+TCGA-75-6207-01A-01-TS1,0.64,0.3714,Late Stage,luad,Val
+TCGA-75-6211-01A-01-BS1,0.39,0.5311,Early Stage,luad,Train
+TCGA-75-6211-01A-01-TS1,0.39,0.5311,Early Stage,luad,Train
+TCGA-75-6212-01A-01-BS1,0.43,0.2365,Early Stage,luad,Train
+TCGA-75-6212-01A-01-TS1,0.43,0.2365,Early Stage,luad,Train
+TCGA-75-7025-01A-01-TS1,0.34,0.2153,Early Stage,luad,Test
+TCGA-75-7027-01A-01-BS1,0.62,0.657,Early Stage,luad,Train
+TCGA-75-7027-01A-01-TS1,0.62,0.657,Early Stage,luad,Train
+TCGA-75-7030-01A-01-BS1,,0.0,Early Stage,luad,Train
+TCGA-75-7030-01A-01-TS1,,0.0,Early Stage,luad,Train
+TCGA-75-7031-01A-01-BS1,0.49,0.3691,Early Stage,luad,Train
+TCGA-75-7031-01A-01-TS1,0.49,0.3691,Early Stage,luad,Train
+TCGA-77-6842-01A-01-BS1,0.48,0.545,Early Stage,lusc,Train
+TCGA-77-6842-01A-01-TS1,0.48,0.545,Early Stage,lusc,Train
+TCGA-77-6842-11A-01-TS1,,,,normal,Train
+TCGA-77-6843-01A-01-BS1,0.74,0.2905,Early Stage,lusc,Train
+TCGA-77-6843-01A-01-TS1,0.74,0.2905,Early Stage,lusc,Train
+TCGA-77-6843-11A-01-TS1,,,,normal,Train
+TCGA-77-6844-01A-01-BS1,0.66,0.3654,Late Stage,lusc,Train
+TCGA-77-6844-01A-01-TS1,0.66,0.3654,Late Stage,lusc,Train
+TCGA-77-6844-11A-01-TS1,,,,normal,Train
+TCGA-77-6845-01A-01-BS1,0.78,0.7205,Early Stage,lusc,Train
+TCGA-77-6845-01A-01-TS1,0.78,0.7205,Early Stage,lusc,Train
+TCGA-77-6845-11A-01-TS1,,,,normal,Train
+TCGA-77-7138-01A-02-BS2,,0.277,Early Stage,lusc,Train
+TCGA-77-7138-11A-01-TS1,,,,normal,Train
+TCGA-77-7139-01A-01-BS1,0.72,0.5599,Early Stage,lusc,Train
+TCGA-77-7139-01A-01-TS1,0.72,0.5599,Early Stage,lusc,Train
+TCGA-77-7139-11A-01-TS1,,,,normal,Train
+TCGA-77-7140-01A-02-BS2,0.78,0.7311,Early Stage,lusc,Train
+TCGA-77-7140-11A-01-TS1,,,,normal,Train
+TCGA-77-7141-01A-01-BS1,0.61,0.6297,Early Stage,lusc,Train
+TCGA-77-7141-01A-01-TS1,0.61,0.6297,Early Stage,lusc,Train
+TCGA-77-7141-11A-01-TS1,,,,normal,Train
+TCGA-77-7142-01A-01-BS1,0.39,0.5016,Early Stage,lusc,Train
+TCGA-77-7142-01A-01-TS1,0.39,0.5016,Early Stage,lusc,Train
+TCGA-77-7142-11A-01-TS1,,,,normal,Train
+TCGA-77-7335-01A-01-BS1,0.41,0.2682,Late Stage,lusc,Train
+TCGA-77-7335-01A-01-TS1,0.41,0.2682,Late Stage,lusc,Train
+TCGA-77-7335-11A-01-TS1,,,,normal,Train
+TCGA-77-7337-01A-01-BS1,0.52,0.44,Early Stage,lusc,Train
+TCGA-77-7337-11A-01-TS1,,,,normal,Train
+TCGA-77-7338-01A-01-BS1,0.52,0.2526,Early Stage,lusc,Val
+TCGA-77-7338-01A-01-TS1,0.52,0.2526,Early Stage,lusc,Val
+TCGA-77-7338-11A-01-TS1,,,,normal,Val
+TCGA-77-7463-01A-01-BS1,0.41,0.5082,Early Stage,lusc,Test
+TCGA-77-7465-01A-01-TS1,0.68,0.8216,Early Stage,lusc,Test
+TCGA-77-8007-01A-01-BS1,0.21,0.0936,Early Stage,lusc,Val
+TCGA-77-8007-01A-01-TS1,0.21,0.0936,Early Stage,lusc,Val
+TCGA-77-8007-11A-01-TS1,,,,normal,Val
+TCGA-77-8008-01A-01-BS1,0.27,0.1001,Early Stage,lusc,Val
+TCGA-77-8008-11A-01-TS1,,,,normal,Val
+TCGA-77-8009-01A-01-BS1,0.67,0.6693,Early Stage,lusc,Train
+TCGA-77-8009-01A-01-TS1,0.67,0.6693,Early Stage,lusc,Train
+TCGA-77-8009-11A-01-TS1,,,,normal,Train
+TCGA-77-8128-01A-01-TS1,0.64,0.4808,Late Stage,lusc,Test
+TCGA-77-8130-01A-01-BS1,0.39,0.3908,Early Stage,lusc,Val
+TCGA-77-8130-01A-01-TS1,0.39,0.3908,Early Stage,lusc,Val
+TCGA-77-8131-01A-01-TS1,0.23,0.0317,Early Stage,lusc,Train
+TCGA-77-8133-01A-01-TS1,0.4,0.2672,Early Stage,lusc,Test
+TCGA-77-8136-01A-01-TS1,0.34,0.0318,Early Stage,lusc,Test
+TCGA-77-8138-01A-01-TS1,0.23,0.1155,Early Stage,lusc,Test
+TCGA-77-8139-01A-01-TS1,0.3,0.3389,Early Stage,lusc,Test
+TCGA-77-8140-01A-01-BS1,0.53,0.3965,Early Stage,lusc,Val
+TCGA-77-8140-01A-01-TS1,0.53,0.3965,Early Stage,lusc,Val
+TCGA-77-8143-01A-01-TS1,0.66,0.529,Late Stage,lusc,Test
+TCGA-77-8144-01A-01-BS1,0.57,0.2843,Early Stage,lusc,Train
+TCGA-77-8144-01A-01-TS1,0.57,0.2843,Early Stage,lusc,Train
+TCGA-77-8145-01A-01-BS1,0.41,0.3076,Late Stage,lusc,Val
+TCGA-77-8145-01A-01-TS1,0.41,0.3076,Late Stage,lusc,Val
+TCGA-77-8148-01A-01-TS1,0.68,0.6161,Late Stage,lusc,Train
+TCGA-77-8150-01A-01-TS1,0.56,0.5395,Late Stage,lusc,Test
+TCGA-77-8153-01A-01-TS1,0.76,0.6489,Early Stage,lusc,Val
+TCGA-77-8153-11A-01-TS1,,,,normal,Val
+TCGA-77-8154-01A-01-TS1,0.68,0.3853,Early Stage,lusc,Test
+TCGA-77-8156-01A-01-TS1,0.23,0.1974,Early Stage,lusc,Train
+TCGA-77-A5FZ-01A-03-TS3,0.46,0.0001,Late Stage,lusc,Test
+TCGA-77-A5G1-01A-01-TS1,0.25,0.0317,Late Stage,lusc,Test
+TCGA-77-A5G3-01A-03-TS3,0.65,0.5166,Early Stage,lusc,Test
+TCGA-77-A5GF-01A-02-TS2,0.56,0.6215,Early Stage,lusc,Train
+TCGA-77-A5GH-01A-01-TS1,0.46,0.3308,Early Stage,lusc,Test
+TCGA-78-7143-01A-01-BS1,0.52,0.1974,Early Stage,luad,Train
+TCGA-78-7143-01A-01-TS1,0.52,0.1974,Early Stage,luad,Train
+TCGA-78-7145-01A-01-BS1,0.63,0.5585,Late Stage,luad,Train
+TCGA-78-7145-01A-01-TS1,0.63,0.5585,Late Stage,luad,Train
+TCGA-78-7146-01A-01-BS1,0.68,0.5733,Late Stage,luad,Train
+TCGA-78-7146-01A-01-TS1,0.68,0.5733,Late Stage,luad,Train
+TCGA-78-7147-01A-01-BS1,0.62,0.5989,Early Stage,luad,Val
+TCGA-78-7147-01A-01-TS1,0.62,0.5989,Early Stage,luad,Val
+TCGA-78-7148-01A-01-BS1,0.6,0.2875,Early Stage,luad,Train
+TCGA-78-7148-01A-01-TS1,0.6,0.2875,Early Stage,luad,Train
+TCGA-78-7149-01A-01-BS1,0.6,0.2501,Late Stage,luad,Val
+TCGA-78-7149-01A-01-TS1,0.6,0.2501,Late Stage,luad,Val
+TCGA-78-7150-01A-01-BS1,0.46,0.4589,Early Stage,luad,Test
+TCGA-78-7152-01A-01-BS1,0.55,0.1601,Early Stage,luad,Train
+TCGA-78-7152-01A-01-TS1,0.55,0.1601,Early Stage,luad,Train
+TCGA-78-7153-01A-01-BS1,0.57,0.2107,Early Stage,luad,Val
+TCGA-78-7153-01A-01-TS1,0.57,0.2107,Early Stage,luad,Val
+TCGA-78-7154-01A-01-BS1,0.5,0.3566,Late Stage,luad,Train
+TCGA-78-7154-01A-01-TS1,0.5,0.3566,Late Stage,luad,Train
+TCGA-78-7155-01A-01-BS1,0.82,0.4353,Early Stage,luad,Train
+TCGA-78-7155-01A-01-TS1,0.82,0.4353,Early Stage,luad,Train
+TCGA-78-7156-01A-01-BS1,0.8,0.1115,Late Stage,luad,Train
+TCGA-78-7156-01A-01-TS1,0.8,0.1115,Late Stage,luad,Train
+TCGA-78-7158-01A-01-BS1,0.9,0.1432,Late Stage,luad,Train
+TCGA-78-7158-01A-01-TS1,0.9,0.1432,Late Stage,luad,Train
+TCGA-78-7159-01A-01-BS1,0.29,0.244,Early Stage,luad,Train
+TCGA-78-7159-01A-01-TS1,0.29,0.244,Early Stage,luad,Train
+TCGA-78-7160-01A-01-BS1,0.29,0.0345,Late Stage,luad,Train
+TCGA-78-7160-01A-01-TS1,0.29,0.0345,Late Stage,luad,Train
+TCGA-78-7161-01A-01-BS1,0.75,0.4864,Early Stage,luad,Train
+TCGA-78-7161-01A-01-TS1,0.75,0.4864,Early Stage,luad,Train
+TCGA-78-7162-01A-01-BS1,0.27,0.0574,Early Stage,luad,Train
+TCGA-78-7162-11A-01-TS1,,,,normal,Train
+TCGA-78-7163-01A-01-BS1,0.68,0.3872,Early Stage,luad,Train
+TCGA-78-7163-01A-01-TS1,0.68,0.3872,Early Stage,luad,Train
+TCGA-78-7163-11A-01-TS1,,,,normal,Train
+TCGA-78-7166-01A-01-BS1,0.63,0.0935,Early Stage,luad,Train
+TCGA-78-7166-01A-01-TS1,0.63,0.0935,Early Stage,luad,Train
+TCGA-78-7166-11A-01-TS1,,,,normal,Train
+TCGA-78-7167-01A-01-BS1,0.84,0.4895,Late Stage,luad,Train
+TCGA-78-7167-01A-01-TS1,0.84,0.4895,Late Stage,luad,Train
+TCGA-78-7167-11A-01-TS1,,,,normal,Train
+TCGA-78-7220-01A-01-BS1,0.61,0.5333,Late Stage,luad,Train
+TCGA-78-7220-01A-01-TS1,0.61,0.5333,Late Stage,luad,Train
+TCGA-78-7535-01A-01-BS1,0.6,0.7843,Early Stage,luad,Val
+TCGA-78-7535-01A-01-TS1,0.6,0.7843,Early Stage,luad,Val
+TCGA-78-7536-01A-01-BS1,0.78,0.7212,Late Stage,luad,Val
+TCGA-78-7536-01A-01-TS1,0.78,0.7212,Late Stage,luad,Val
+TCGA-78-7537-01A-01-BS1,0.74,0.1285,Early Stage,luad,Train
+TCGA-78-7537-01A-01-TS1,0.74,0.1285,Early Stage,luad,Train
+TCGA-78-7539-01A-01-BS1,0.52,0.3206,Early Stage,luad,Train
+TCGA-78-7539-01A-01-TS1,0.52,0.3206,Early Stage,luad,Train
+TCGA-78-7540-01A-01-BS1,0.59,0.1948,Early Stage,luad,Train
+TCGA-78-7540-01A-01-TS1,0.59,0.1948,Early Stage,luad,Train
+TCGA-78-7540-11A-01-TS1,,,,normal,Train
+TCGA-78-7542-01A-01-BS1,0.35,0.4019,Early Stage,luad,Train
+TCGA-78-7542-11A-01-TS1,,,,normal,Train
+TCGA-78-7633-01A-01-BS1,0.75,0.3107,Early Stage,luad,Val
+TCGA-78-7633-01A-01-TS1,0.75,0.3107,Early Stage,luad,Val
+TCGA-78-8640-01A-01-TS1,0.35,0.1728,Early Stage,luad,Train
+TCGA-78-8640-11A-01-TS1,,,,normal,Train
+TCGA-78-8648-01A-01-TS1,,0.0,Early Stage,luad,Train
+TCGA-78-8655-01A-01-TS1,0.46,0.2619,Early Stage,luad,Train
+TCGA-78-8660-01A-01-TS1,0.33,0.0071,Early Stage,luad,Train
+TCGA-78-8662-01A-01-BS1,0.79,0.7394,Early Stage,luad,Train
+TCGA-78-8662-01A-01-TS1,0.79,0.7394,Early Stage,luad,Train
+TCGA-79-5596-01A-02-BS2,0.69,0.311,Late Stage,lusc,Test
+TCGA-80-5611-01A-01-TS1,0.51,0.5728,Early Stage,luad,Train
+TCGA-83-5908-01A-01-BS1,0.4,0.0276,Early Stage,luad,Test
+TCGA-85-6175-01A-01-BS1,0.3,0.1427,Early Stage,lusc,Test
+TCGA-85-6560-01A-01-BS1,0.49,0.3285,Early Stage,lusc,Train
+TCGA-85-6560-01A-01-TS1,0.49,0.3285,Early Stage,lusc,Train
+TCGA-85-6561-01A-01-BS1,0.4,0.4219,Early Stage,lusc,Val
+TCGA-85-6561-01A-01-TS1,0.4,0.4219,Early Stage,lusc,Val
+TCGA-85-6798-01A-01-BS1,0.47,0.5015,Late Stage,lusc,Train
+TCGA-85-6798-01A-01-TS1,0.47,0.5015,Late Stage,lusc,Train
+TCGA-85-7696-01A-01-BS1,0.76,0.5156,Early Stage,lusc,Train
+TCGA-85-7696-01A-01-TS1,0.76,0.5156,Early Stage,lusc,Train
+TCGA-85-7697-01A-01-BS1,0.36,0.2238,Early Stage,lusc,Train
+TCGA-85-7697-01A-01-TS1,0.36,0.2238,Early Stage,lusc,Train
+TCGA-85-7698-01A-01-BS1,0.63,0.4093,Early Stage,lusc,Train
+TCGA-85-7698-01A-01-TS1,0.63,0.4093,Early Stage,lusc,Train
+TCGA-85-7699-01A-01-BS1,0.65,0.5963,Late Stage,lusc,Train
+TCGA-85-7699-01A-01-TS1,0.65,0.5963,Late Stage,lusc,Train
+TCGA-85-7710-01A-01-BS1,0.73,0.3495,Early Stage,lusc,Train
+TCGA-85-7710-11A-01-TS1,,,,normal,Train
+TCGA-85-7843-01A-01-BS1,0.41,0.5569,Early Stage,lusc,Train
+TCGA-85-7843-01A-01-TS1,0.41,0.5569,Early Stage,lusc,Train
+TCGA-85-7844-01A-01-BS1,0.33,0.3659,Early Stage,lusc,Train
+TCGA-85-7844-01A-01-TS1,0.33,0.3659,Early Stage,lusc,Train
+TCGA-85-7950-01A-01-BS1,0.52,0.665,Early Stage,lusc,Val
+TCGA-85-7950-01A-01-TS1,0.52,0.665,Early Stage,lusc,Val
+TCGA-85-8048-01A-01-BS1,0.18,0.0431,Early Stage,lusc,Train
+TCGA-85-8048-01A-01-TS1,0.18,0.0431,Early Stage,lusc,Train
+TCGA-85-8049-01A-01-BS1,0.2,0.0748,Early Stage,lusc,Train
+TCGA-85-8049-01A-01-TS1,0.2,0.0748,Early Stage,lusc,Train
+TCGA-85-8052-01A-01-TS1,0.37,0.4015,Early Stage,lusc,Train
+TCGA-85-8070-01A-01-TS1,0.95,0.5889,Early Stage,lusc,Train
+TCGA-85-8071-01A-01-TS1,0.86,0.3896,Early Stage,lusc,Test
+TCGA-85-8276-01A-01-BS1,0.26,0.2521,Early Stage,lusc,Train
+TCGA-85-8276-01A-01-TS1,0.26,0.2521,Early Stage,lusc,Train
+TCGA-85-8277-01A-01-TS1,0.56,0.3491,Late Stage,lusc,Train
+TCGA-85-8287-01A-01-BS1,0.34,0.2729,Early Stage,lusc,Train
+TCGA-85-8287-01A-01-TS1,0.34,0.2729,Early Stage,lusc,Train
+TCGA-85-8288-01A-01-BS1,0.61,0.3602,Early Stage,lusc,Val
+TCGA-85-8288-01A-01-TS1,0.61,0.3602,Early Stage,lusc,Val
+TCGA-85-8350-01A-01-BS1,0.32,0.3406,Early Stage,lusc,Train
+TCGA-85-8350-01A-01-TS1,0.32,0.3406,Early Stage,lusc,Train
+TCGA-85-8351-01A-01-BS1,0.49,0.3811,Early Stage,lusc,Train
+TCGA-85-8351-01A-01-TS1,0.49,0.3811,Early Stage,lusc,Train
+TCGA-85-8353-01A-01-BS1,0.41,0.1369,Late Stage,lusc,Test
+TCGA-85-8355-01A-01-BS1,0.23,0.0158,Early Stage,lusc,Train
+TCGA-85-8355-01A-01-TS1,0.23,0.0158,Early Stage,lusc,Train
+TCGA-85-8479-01A-01-BS1,0.67,0.4985,Early Stage,lusc,Train
+TCGA-85-8479-01A-01-TS1,0.67,0.4985,Early Stage,lusc,Train
+TCGA-85-8481-01A-01-TS1,0.29,0.1349,Early Stage,lusc,Test
+TCGA-85-8582-01A-01-BS1,0.21,0.0923,Early Stage,lusc,Test
+TCGA-85-8584-01A-01-TS1,0.39,0.2428,Early Stage,lusc,Test
+TCGA-85-8664-01A-01-BS1,0.65,0.5906,Early Stage,lusc,Test
+TCGA-85-8666-01A-01-BS1,0.27,0.1398,Early Stage,lusc,Val
+TCGA-85-8666-01A-01-TS1,0.27,0.1398,Early Stage,lusc,Val
+TCGA-85-A4JC-01A-01-TSA,0.48,0.0681,Early Stage,lusc,Test
+TCGA-85-A4PA-01A-01-TSA,0.43,0.0002,Early Stage,lusc,Test
+TCGA-85-A4QQ-01A-04-TSD,0.56,0.3055,Early Stage,lusc,Test
+TCGA-85-A50Z-01A-02-TSB,0.36,0.3291,Early Stage,lusc,Train
+TCGA-85-A510-01A-01-TSA,0.55,0.5965,Early Stage,lusc,Test
+TCGA-85-A511-01A-02-TSB,0.25,0.0769,Early Stage,lusc,Test
+TCGA-85-A513-01A-01-TSA,0.24,0.1081,Early Stage,lusc,Test
+TCGA-85-A53L-01A-02-TSB,0.43,0.4421,Early Stage,lusc,Train
+TCGA-85-A5B5-01A-02-TSB,0.8,0.7277,Early Stage,lusc,Test
+TCGA-86-6562-01A-01-BS1,0.46,0.3789,Early Stage,luad,Train
+TCGA-86-6562-01A-01-TS1,0.46,0.3789,Early Stage,luad,Train
+TCGA-86-6851-01A-01-BS1,0.32,0.1787,Early Stage,luad,Val
+TCGA-86-6851-01A-01-TS1,0.32,0.1787,Early Stage,luad,Val
+TCGA-86-7701-01A-01-BS1,0.42,0.1685,Late Stage,luad,Train
+TCGA-86-7701-01A-01-TS1,0.42,0.1685,Late Stage,luad,Train
+TCGA-86-7711-01A-01-BS1,0.33,0.4361,Early Stage,luad,Train
+TCGA-86-7711-11A-01-TS1,,,,normal,Train
+TCGA-86-7713-01A-01-BS1,0.65,0.3677,Early Stage,luad,Val
+TCGA-86-7713-11A-01-TS1,,,,normal,Val
+TCGA-86-7714-01A-01-BS1,0.67,0.0639,Late Stage,luad,Test
+TCGA-86-7953-01A-01-BS1,0.35,0.3506,Early Stage,luad,Train
+TCGA-86-7953-01A-01-TS1,0.35,0.3506,Early Stage,luad,Train
+TCGA-86-7954-01A-01-BS1,0.27,0.2595,Early Stage,luad,Train
+TCGA-86-7954-01A-01-TS1,0.27,0.2595,Early Stage,luad,Train
+TCGA-86-7954-11A-01-TS1,,,,normal,Train
+TCGA-86-7955-01A-01-TS1,0.73,0.6063,Early Stage,luad,Test
+TCGA-86-8054-01A-01-BS1,0.74,0.6,Early Stage,luad,Train
+TCGA-86-8054-01A-01-TS1,0.74,0.6,Early Stage,luad,Train
+TCGA-86-8055-01A-01-BS1,0.28,0.1831,Early Stage,luad,Train
+TCGA-86-8055-01A-01-TS1,0.28,0.1831,Early Stage,luad,Train
+TCGA-86-8056-01A-01-BS1,0.37,0.1241,Late Stage,luad,Val
+TCGA-86-8056-01A-01-TS1,0.37,0.1241,Late Stage,luad,Val
+TCGA-86-8073-01A-01-BS1,0.43,0.2307,Early Stage,luad,Train
+TCGA-86-8073-01A-01-TS1,0.43,0.2307,Early Stage,luad,Train
+TCGA-86-8074-01A-01-BS1,0.51,0.4639,Early Stage,luad,Train
+TCGA-86-8074-01A-01-TS1,0.51,0.4639,Early Stage,luad,Train
+TCGA-86-8075-01A-01-BS1,0.3,0.2397,Early Stage,luad,Train
+TCGA-86-8075-01A-01-TS1,0.3,0.2397,Early Stage,luad,Train
+TCGA-86-8278-01A-01-BS1,0.56,0.2129,Early Stage,luad,Train
+TCGA-86-8278-01A-01-TS1,0.56,0.2129,Early Stage,luad,Train
+TCGA-86-8279-01A-01-BS1,0.5,0.5986,Early Stage,luad,Train
+TCGA-86-8279-01A-01-TS1,0.5,0.5986,Early Stage,luad,Train
+TCGA-86-8280-01A-01-BS1,0.45,0.2915,Early Stage,luad,Train
+TCGA-86-8280-01A-01-TS1,0.45,0.2915,Early Stage,luad,Train
+TCGA-86-8281-01A-01-BS1,0.54,0.1486,Early Stage,luad,Train
+TCGA-86-8281-01A-01-TS1,0.54,0.1486,Early Stage,luad,Train
+TCGA-86-8358-01A-01-BS1,0.72,0.5293,Early Stage,luad,Train
+TCGA-86-8358-01A-01-TS1,0.72,0.5293,Early Stage,luad,Train
+TCGA-86-8359-01A-01-BS1,0.44,0.3875,Late Stage,luad,Train
+TCGA-86-8359-01A-01-TS1,0.44,0.3875,Late Stage,luad,Train
+TCGA-86-8585-01A-01-BS1,0.29,0.082,Early Stage,luad,Val
+TCGA-86-8585-01A-01-TS1,0.29,0.082,Early Stage,luad,Val
+TCGA-86-8668-01A-01-BS1,0.41,0.189,Early Stage,luad,Train
+TCGA-86-8668-01A-01-TS1,0.41,0.189,Early Stage,luad,Train
+TCGA-86-8669-01A-01-BS1,0.57,0.2898,Early Stage,luad,Train
+TCGA-86-8669-01A-01-TS1,0.57,0.2898,Early Stage,luad,Train
+TCGA-86-8671-01A-01-BS1,1.0,0.0023,Early Stage,luad,Train
+TCGA-86-8671-01A-01-TS1,1.0,0.0023,Early Stage,luad,Train
+TCGA-86-8673-01A-01-BS1,0.4,0.2147,Early Stage,luad,Val
+TCGA-86-8673-01A-01-TS1,0.4,0.2147,Early Stage,luad,Val
+TCGA-86-8674-01A-01-BS1,0.58,0.1477,Early Stage,luad,Test
+TCGA-86-A456-01A-01-TSA,0.36,0.03,Early Stage,luad,Val
+TCGA-86-A4D0-01A-01-TSA,0.79,0.3059,Early Stage,luad,Train
+TCGA-86-A4JF-01A-01-TSA,0.25,0.1097,Early Stage,luad,Test
+TCGA-86-A4P7-01A-01-TSA,0.19,0.0145,Early Stage,luad,Test
+TCGA-86-A4P8-01A-01-TSA,0.46,0.0001,Late Stage,luad,Train
+TCGA-90-7766-01A-01-BS1,0.59,0.3529,Early Stage,lusc,Test
+TCGA-90-7766-11A-01-TS1,,,,normal,Test
+TCGA-90-7767-01A-01-BS1,0.54,0.5976,Early Stage,lusc,Train
+TCGA-90-7767-01A-01-TS1,0.54,0.5976,Early Stage,lusc,Train
+TCGA-90-7767-11A-01-TS1,,,,normal,Train
+TCGA-90-7769-01A-01-BS1,0.73,0.5379,Early Stage,lusc,Train
+TCGA-90-7769-01A-01-TS1,0.73,0.5379,Early Stage,lusc,Train
+TCGA-90-7769-11A-01-TS1,,,,normal,Train
+TCGA-90-7964-01A-01-BS1,0.71,0.3762,Early Stage,lusc,Train
+TCGA-90-7964-11A-01-TS1,,,,normal,Train
+TCGA-90-A4ED-01A-03-TS3,0.38,0.2732,Early Stage,lusc,Test
+TCGA-90-A4EE-01A-01-TS1,0.42,0.4792,Early Stage,lusc,Train
+TCGA-90-A59Q-01A-01-TS1,0.28,0.243,Early Stage,lusc,Test
+TCGA-91-6828-01A-01-BS1,0.37,0.2487,Early Stage,luad,Val
+TCGA-91-6828-01A-01-TS1,0.37,0.2487,Early Stage,luad,Val
+TCGA-91-6828-11A-01-TS1,,,,normal,Val
+TCGA-91-6829-01A-01-BS1,0.49,0.402,Early Stage,luad,Train
+TCGA-91-6829-11A-01-TS1,,,,normal,Train
+TCGA-91-6830-01A-01-BS1,0.28,0.0451,Early Stage,luad,Train
+TCGA-91-6830-01A-01-TS1,0.28,0.0451,Early Stage,luad,Train
+TCGA-91-6830-11A-01-TS1,,,,normal,Train
+TCGA-91-6831-01A-01-BS1,0.5,0.459,Early Stage,luad,Val
+TCGA-91-6831-01A-01-TS1,0.5,0.459,Early Stage,luad,Val
+TCGA-91-6831-11A-01-TS1,,,,normal,Val
+TCGA-91-6835-01A-01-BS1,0.21,0.0486,Early Stage,luad,Train
+TCGA-91-6835-01A-01-TS1,0.21,0.0486,Early Stage,luad,Train
+TCGA-91-6835-11A-01-TS1,,,,normal,Train
+TCGA-91-6836-01A-01-BS1,0.67,0.5486,Early Stage,luad,Train
+TCGA-91-6836-11A-01-TS1,,,,normal,Train
+TCGA-91-6840-01A-01-BS1,0.62,0.6193,Early Stage,luad,Train
+TCGA-91-6840-01A-01-TS1,0.62,0.6193,Early Stage,luad,Train
+TCGA-91-6847-01A-01-BS1,0.85,0.5998,Early Stage,luad,Train
+TCGA-91-6847-01A-01-TS1,0.85,0.5998,Early Stage,luad,Train
+TCGA-91-6847-11A-01-TS1,,,,normal,Train
+TCGA-91-6848-01A-01-BS1,0.31,0.2565,Late Stage,luad,Train
+TCGA-91-6848-01A-01-TS1,0.31,0.2565,Late Stage,luad,Train
+TCGA-91-6848-11A-01-TS1,,,,normal,Train
+TCGA-91-6849-01A-01-BS1,0.62,0.1555,Late Stage,luad,Train
+TCGA-91-6849-01A-01-TS1,0.62,0.1555,Late Stage,luad,Train
+TCGA-91-6849-11A-01-TS1,,,,normal,Train
+TCGA-91-7771-01A-01-BS1,0.32,0.2558,Early Stage,luad,Train
+TCGA-91-7771-01A-01-TS1,0.32,0.2558,Early Stage,luad,Train
+TCGA-91-8496-01A-01-BS1,0.5,0.2102,Early Stage,luad,Train
+TCGA-91-8496-01A-01-TS1,0.5,0.2102,Early Stage,luad,Train
+TCGA-91-8496-11A-01-TS1,,,,normal,Train
+TCGA-91-8497-01A-01-BS1,0.45,0.0872,Early Stage,luad,Train
+TCGA-91-8497-01A-01-TS1,0.45,0.0872,Early Stage,luad,Train
+TCGA-91-8499-01A-01-BS1,0.77,0.6447,Early Stage,luad,Train
+TCGA-91-8499-01A-01-TS1,0.77,0.6447,Early Stage,luad,Train
+TCGA-91-8499-11A-01-TS1,,,,normal,Train
+TCGA-91-A4BC-01A-01-TSA,0.22,0.0734,Early Stage,luad,Train
+TCGA-91-A4BD-01A-01-TSA,0.55,0.137,Early Stage,luad,Test
+TCGA-92-7340-01A-01-BS1,0.39,0.0764,Early Stage,lusc,Train
+TCGA-92-7340-11A-01-TS1,,,,normal,Train
+TCGA-92-7341-01A-02-BS2,0.51,0.5248,Early Stage,lusc,Train
+TCGA-92-7341-11A-01-TS1,,,,normal,Train
+TCGA-92-8063-01A-01-TS1,0.51,0.4013,Late Stage,lusc,Test
+TCGA-92-8064-01A-01-TS1,0.31,0.0984,,lusc,Test
+TCGA-92-8065-01A-01-TS1,0.5,0.3877,Early Stage,lusc,Test
+TCGA-93-7347-01A-01-BS1,0.3,0.016,Early Stage,luad,Train
+TCGA-93-7347-01A-01-TS1,0.3,0.016,Early Stage,luad,Train
+TCGA-93-7347-11A-01-TS1,,,,normal,Train
+TCGA-93-7348-01A-01-BS1,0.45,0.0547,Early Stage,luad,Train
+TCGA-93-7348-11A-01-TS1,,,,normal,Train
+TCGA-93-8067-01A-01-TS1,0.32,0.3251,Early Stage,luad,Test
+TCGA-93-A4JN-01A-01-TSA,0.37,0.2203,Late Stage,luad,Test
+TCGA-93-A4JO-01A-02-TS2,0.2,0.0324,Early Stage,luad,Test
+TCGA-93-A4JP-01A-01-TSA,0.27,0.0381,Late Stage,luad,Test
+TCGA-93-A4JQ-01A-01-TSA,0.2,0.0418,Early Stage,luad,Test
+TCGA-94-7033-01A-01-BS1,0.44,0.3461,Early Stage,lusc,Train
+TCGA-94-7033-01A-01-TS1,0.44,0.3461,Early Stage,lusc,Train
+TCGA-94-7557-01A-01-TS1,0.46,0.4163,Early Stage,lusc,Test
+TCGA-94-7943-01A-01-TS1,0.58,0.6404,Early Stage,lusc,Test
+TCGA-94-8035-01A-01-TS1,0.48,0.3302,Early Stage,lusc,Train
+TCGA-94-8490-01A-01-TS1,0.79,0.3444,Early Stage,lusc,Test
+TCGA-94-8491-01A-01-TS1,0.52,0.3968,Early Stage,lusc,Train
+TCGA-94-A4VJ-01A-01-TSA,0.53,0.4113,Early Stage,lusc,Test
+TCGA-94-A5I4-01A-01-TS1,0.59,0.7777,Early Stage,lusc,Train
+TCGA-94-A5I6-01A-02-TSB,0.38,0.3309,Early Stage,lusc,Test
+TCGA-95-7039-01A-01-BS1,0.41,0.4482,Early Stage,luad,Train
+TCGA-95-7039-01A-01-TS1,0.41,0.4482,Early Stage,luad,Train
+TCGA-95-7043-01A-01-BS1,0.76,0.5315,Early Stage,luad,Train
+TCGA-95-7043-01A-01-TS1,0.76,0.5315,Early Stage,luad,Train
+TCGA-95-7562-01A-01-TS1,0.55,0.4101,Early Stage,luad,Train
+TCGA-95-7567-01A-01-TS1,0.53,0.3249,Early Stage,luad,Train
+TCGA-95-7944-01A-01-TS1,0.41,0.0624,Early Stage,luad,Test
+TCGA-95-7947-01A-01-TS1,0.66,0.4074,Early Stage,luad,Test
+TCGA-95-7948-01A-01-TS1,0.71,0.3733,Early Stage,luad,Test
+TCGA-95-8039-01A-01-TS1,0.47,0.1139,Early Stage,luad,Test
+TCGA-95-8494-01A-01-TS1,0.53,0.4034,Early Stage,luad,Test
+TCGA-95-A4VK-01A-01-TSA,0.57,0.1907,Late Stage,luad,Test
+TCGA-95-A4VN-01A-01-TSA,0.18,0.1669,Early Stage,luad,Test
+TCGA-95-A4VP-01A-02-TSB,0.3,0.143,Late Stage,luad,Test
+TCGA-96-7544-01A-01-BS1,0.58,0.4232,Early Stage,lusc,Train
+TCGA-96-7544-01A-01-TS1,0.58,0.4232,Early Stage,lusc,Train
+TCGA-96-7545-01A-01-BS1,0.4,0.1263,Early Stage,lusc,Test
+TCGA-96-8169-01A-01-TS1,0.42,0.3719,Early Stage,lusc,Test
+TCGA-96-8170-01A-01-TS1,0.35,0.2691,Early Stage,lusc,Test
+TCGA-96-A4JL-01A-01-TSA,0.38,0.2198,Early Stage,lusc,Train
+TCGA-97-7546-01A-01-TS1,0.67,0.0936,Early Stage,luad,Test
+TCGA-97-7547-01A-01-TS1,0.55,0.348,Early Stage,luad,Train
+TCGA-97-7552-01A-01-BS1,0.18,0.0037,Early Stage,luad,Train
+TCGA-97-7552-01A-01-TS1,0.18,0.0037,Early Stage,luad,Train
+TCGA-97-7553-01A-01-BS1,0.29,0.0369,Early Stage,luad,Test
+TCGA-97-7554-01A-01-BS1,0.29,0.3163,Late Stage,luad,Val
+TCGA-97-7554-01A-01-TS1,0.29,0.3163,Late Stage,luad,Val
+TCGA-97-7937-01A-01-TS1,0.59,0.4496,Early Stage,luad,Val
+TCGA-97-7938-01A-01-TS1,0.61,0.2176,Early Stage,luad,Val
+TCGA-97-7941-01A-01-TS1,0.36,0.0268,Early Stage,luad,Train
+TCGA-97-8171-01A-01-TS1,0.82,0.2181,Late Stage,luad,Test
+TCGA-97-8172-01A-01-TS1,0.32,0.1214,Early Stage,luad,Test
+TCGA-97-8174-01A-01-TS1,0.3,0.2982,Early Stage,luad,Test
+TCGA-97-8175-01A-01-TS1,0.43,0.1336,Early Stage,luad,Test
+TCGA-97-8176-01A-01-TS1,0.53,0.1748,Late Stage,luad,Test
+TCGA-97-8177-01A-01-TS1,0.25,0.1677,Early Stage,luad,Test
+TCGA-97-8179-01A-01-TS1,0.48,0.4389,Early Stage,luad,Val
+TCGA-97-8547-01A-01-TS1,0.48,0.3273,Late Stage,luad,Test
+TCGA-97-8552-01A-01-TS1,0.27,0.3121,Early Stage,luad,Train
+TCGA-97-A4LX-01A-01-TS1,0.2,0.0346,Early Stage,luad,Test
+TCGA-97-A4M0-01A-01-TSA,0.55,0.2992,Early Stage,luad,Test
+TCGA-97-A4M1-01A-01-TS1,0.36,0.2459,Early Stage,luad,Test
+TCGA-97-A4M2-01A-01-TSA,0.37,0.0002,Early Stage,luad,Train
+TCGA-97-A4M3-01A-01-TS1,0.69,0.237,Early Stage,luad,Test
+TCGA-97-A4M5-01A-01-TS1,0.25,0.0418,Early Stage,luad,Test
+TCGA-97-A4M6-01A-01-TSA,0.43,0.3427,Early Stage,luad,Train
+TCGA-97-A4M7-01A-01-TSA,0.37,0.2386,Early Stage,luad,Test
+TCGA-98-7454-01A-01-BS1,0.25,0.0206,Early Stage,lusc,Train
+TCGA-98-7454-01A-01-TS1,0.25,0.0206,Early Stage,lusc,Train
+TCGA-98-7454-11A-01-TS1,,,,normal,Train
+TCGA-98-8020-11A-01-TS1,,,,normal,Test
+TCGA-98-8022-01A-01-TS1,0.42,0.4052,Early Stage,lusc,Test
+TCGA-98-8022-11A-01-TS1,,,,normal,Test
+TCGA-98-8023-01A-01-TS1,0.29,0.111,Late Stage,lusc,Train
+TCGA-98-8023-11A-01-TS1,,,,normal,Train
+TCGA-98-A538-01A-01-TS1,0.45,0.4545,Early Stage,lusc,Test
+TCGA-98-A539-01A-03-TS3,0.3,0.2549,Early Stage,lusc,Test
+TCGA-98-A53B-01A-01-TS1,0.36,0.5032,Early Stage,lusc,Test
+TCGA-98-A53C-01A-01-TS1,0.47,0.0004,Early Stage,lusc,Test
+TCGA-98-A53H-01A-01-TS1,0.43,0.0,Early Stage,lusc,Test
+TCGA-98-A53I-01A-03-TS3,0.52,0.4183,Early Stage,lusc,Test
+TCGA-99-7458-01A-01-BS1,0.36,0.0061,Late Stage,luad,Train
+TCGA-99-7458-01A-01-TS1,0.36,0.0061,Late Stage,luad,Train
+TCGA-99-8025-01A-01-TS1,0.43,0.5108,Late Stage,luad,Test
+TCGA-99-8028-01A-01-TS1,0.18,0.0181,Early Stage,luad,Train
+TCGA-99-8028-11A-01-TS1,,,,normal,Train
+TCGA-99-8032-01A-01-TS1,0.31,0.1856,Early Stage,luad,Train
+TCGA-99-8032-11A-01-TS1,,,,normal,Train
+TCGA-99-8033-01A-01-TS1,0.29,0.093,Late Stage,luad,Train
+TCGA-99-8033-11A-01-TS1,,,,normal,Train
+TCGA-99-AA5R-01A-01-TS1,0.96,0.0007,Early Stage,luad,Test
+TCGA-J2-8192-01A-01-BS1,0.41,0.0667,Early Stage,luad,Train
+TCGA-J2-8192-01A-01-TS1,0.41,0.0667,Early Stage,luad,Train
+TCGA-J2-8192-11A-01-TS1,,,,normal,Train
+TCGA-J2-8194-01A-01-BS1,0.44,0.274,Early Stage,luad,Val
+TCGA-J2-8194-01A-01-TS1,0.44,0.274,Early Stage,luad,Val
+TCGA-J2-8194-11A-01-TS1,,,,normal,Val
+TCGA-J2-A4AD-01A-01-TSA,0.57,0.3196,Early Stage,luad,Test
+TCGA-J2-A4AE-01A-02-TSB,0.52,0.1859,Early Stage,luad,Test
+TCGA-J2-A4AG-01A-01-TSA,0.31,0.0236,Early Stage,luad,Train
+TCGA-L3-A4E7-01A-01-TSA,0.46,0.2592,Early Stage,lusc,Test
+TCGA-L3-A524-01A-01-TS1,0.59,0.5644,Early Stage,lusc,Train
+TCGA-L4-A4E5-01A-01-TSA,0.66,0.5246,Early Stage,luad,Test
+TCGA-L4-A4E6-01A-01-TSA,,0.0,Early Stage,luad,Test
+TCGA-L9-A443-01A-01-TSA,0.48,0.3508,Early Stage,luad,Test
+TCGA-L9-A444-01A-02-TS2,0.37,0.3499,Early Stage,luad,Test
+TCGA-L9-A50W-01A-01-TS1,0.76,0.2589,Early Stage,luad,Test
+TCGA-L9-A5IP-01A-02-TS2,0.53,0.2286,Late Stage,luad,Test
+TCGA-L9-A743-01A-04-TS4,0.09,0.0135,Early Stage,luad,Test
+TCGA-L9-A7SV-01A-01-TS1,0.83,0.6218,Early Stage,luad,Test
+TCGA-L9-A8F4-01A-01-TS1,0.32,0.1304,Early Stage,luad,Test
+TCGA-LA-A446-01A-02-TSB,0.41,0.5557,Early Stage,lusc,Test
+TCGA-LA-A7SW-01A-01-TS1,0.48,0.4446,Late Stage,lusc,Val
+TCGA-MN-A4N1-01A-01-TSA,0.48,0.4939,Early Stage,luad,Test
+TCGA-MN-A4N4-01A-01-TSA,0.34,0.3552,Early Stage,luad,Test
+TCGA-MN-A4N5-01A-01-TS1,0.38,0.4335,Early Stage,luad,Train
+TCGA-MP-A4SV-01A-01-TSA,0.36,0.1932,Early Stage,luad,Test
+TCGA-MP-A4SW-01A-02-TSB,0.46,0.2806,Early Stage,luad,Test
+TCGA-MP-A4SY-01A-02-TSB,0.35,0.0944,Early Stage,luad,Test
+TCGA-MP-A4T2-01A-01-TSA,0.48,0.3007,Early Stage,luad,Test
+TCGA-MP-A4T4-01A-01-TSA,,0.0677,Early Stage,luad,Test
+TCGA-MP-A4T6-01A-03-TSC,,0.7107,Late Stage,luad,Train
+TCGA-MP-A4T7-01A-01-TSA,0.34,0.2738,Late Stage,luad,Test
+TCGA-MP-A4T8-01A-01-TSA,0.59,0.3599,Late Stage,luad,Train
+TCGA-MP-A4T9-01A-01-TSA,0.18,0.0198,Late Stage,luad,Val
+TCGA-MP-A4TA-01A-02-TSB,0.33,0.0176,Early Stage,luad,Train
+TCGA-MP-A4TC-01A-01-TS1,0.45,0.1356,Late Stage,luad,Test
+TCGA-MP-A4TD-01A-03-TS3,,0.2191,Late Stage,luad,Test
+TCGA-MP-A4TE-01A-02-TS2,0.68,0.4476,Early Stage,luad,Test
+TCGA-MP-A4TF-01A-01-TS1,0.29,0.4141,Early Stage,luad,Test
+TCGA-MP-A4TH-01A-03-TSC,0.4,0.1862,Early Stage,luad,Test
+TCGA-MP-A4TI-01A-02-TSB,0.22,0.0114,Early Stage,luad,Test
+TCGA-MP-A4TJ-01A-05-TSE,,0.0474,Early Stage,luad,Train
+TCGA-MP-A4TK-01A-01-TSA,0.34,0.1971,Early Stage,luad,Test
+TCGA-MP-A5C7-01A-01-TSA,0.87,0.2166,Early Stage,luad,Train
+TCGA-NC-A5HD-01A-01-TS1,0.61,0.6868,Early Stage,lusc,Test
+TCGA-NC-A5HE-01A-01-TSA,0.32,0.1975,Early Stage,lusc,Test
+TCGA-NC-A5HF-01A-01-TS1,0.75,0.3843,Late Stage,lusc,Test
+TCGA-NC-A5HG-01A-01-TS1,0.75,0.7151,Late Stage,lusc,Test
+TCGA-NC-A5HH-01A-01-TS1,0.77,0.4311,Early Stage,lusc,Test
+TCGA-NC-A5HI-01A-01-TS1,0.6,0.3649,Early Stage,lusc,Train
+TCGA-NC-A5HJ-01A-01-TS1,0.17,0.0431,Early Stage,lusc,Test
+TCGA-NC-A5HK-01A-01-TSA,0.48,0.6674,Early Stage,lusc,Test
+TCGA-NC-A5HL-01A-01-TS1,0.5,0.491,Early Stage,lusc,Test
+TCGA-NC-A5HM-01A-01-TSA,0.69,0.5954,Early Stage,lusc,Test
+TCGA-NC-A5HN-01A-01-TS1,0.82,0.6277,Early Stage,lusc,Test
+TCGA-NC-A5HO-01A-01-TS1,0.63,0.4192,Late Stage,lusc,Train
+TCGA-NC-A5HP-01A-01-TS1,0.53,0.4623,Late Stage,lusc,Test
+TCGA-NC-A5HQ-01A-01-TSA,0.5,0.6606,Late Stage,lusc,Test
+TCGA-NC-A5HR-01A-02-TS2,0.66,0.6558,Early Stage,lusc,Test
+TCGA-NC-A5HT-01A-01-TS1,0.73,0.4029,Late Stage,lusc,Train
+TCGA-NJ-A4YF-01A-01-TSA,0.55,0.6545,Early Stage,luad,Test
+TCGA-NJ-A4YG-01A-02-TSB,0.32,0.1185,Early Stage,luad,Train
+TCGA-NJ-A4YI-01A-01-TS1,0.58,0.2579,Late Stage,luad,Test
+TCGA-NJ-A4YP-01A-01-TS1,0.23,0.1272,Early Stage,luad,Test
+TCGA-NJ-A4YQ-01A-01-TS1,0.29,0.1044,Early Stage,luad,Train
+TCGA-NJ-A55A-01A-01-TSA,0.21,0.0004,Early Stage,luad,Test
+TCGA-NJ-A55O-01A-01-TSA,,0.0194,Early Stage,luad,Test
+TCGA-NJ-A55R-01A-01-TSA,0.23,0.076,Early Stage,luad,Test
+TCGA-NJ-A7XG-01A-01-TSA,0.62,0.4205,Late Stage,luad,Test
+TCGA-NK-A5CR-01A-01-TSA,0.61,0.4836,Early Stage,lusc,Test
+TCGA-NK-A5CT-01A-03-TSC,0.5,0.3805,Early Stage,lusc,Test
+TCGA-NK-A5CX-01A-01-TS1,0.51,0.1545,Early Stage,lusc,Test
+TCGA-NK-A7XE-01A-01-TS1,0.53,0.3365,Late Stage,lusc,Test
+TCGA-O1-A52J-01A-01-TS1,0.5,0.5443,Early Stage,luad,Test
+TCGA-O2-A52Q-01A-01-TSA,0.52,0.449,Late Stage,lusc,Test
+TCGA-O2-A52S-01A-01-TS1,0.75,0.5598,Late Stage,lusc,Test
+TCGA-O2-A52V-01A-03-TSC,0.37,0.2382,Early Stage,lusc,Val
+TCGA-O2-A52W-01A-01-TS1,0.36,0.542,Early Stage,lusc,Test
+TCGA-O2-A5IB-01A-01-TS1,0.93,0.4405,Late Stage,lusc,Train
+TCGA-S2-AA1A-01A-01-TSA,0.32,0.0598,Early Stage,luad,Train
