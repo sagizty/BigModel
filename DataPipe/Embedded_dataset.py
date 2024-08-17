@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： Aug 11th 23:00
+WSI embedding dataset tools   Script  ver： Aug 17th 21:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -51,18 +51,13 @@ from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 from Tiles_dataset import *
 
 try:
-    from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
-    from ..ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
+    from ..ModelBase import Get_ROI_model
+    # from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
+    # from ..ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
 except:
-    try:
-        from VPT_ViT_modules import build_ViT_or_VPT
-        from Inference_pipeline import load_tile_slide_encoder
-    except ModuleNotFoundError:
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
-        # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
-        from VPT_ViT_modules import build_ViT_or_VPT
-        # from Inference_pipeline import load_tile_slide_encoder
-
+    from PuzzleAI.ModelBase import Get_ROI_model
+    # from PuzzleAI.ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
+    # from PuzzleAI.ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
 
 # tools for logging
 def setup_logging(log_file_path):
@@ -194,7 +189,8 @@ class Slide_loading_Dataset(Dataset):
         return slide_folder
 
 
-# todo call from ROI models
+# fixme notice now no this one longer in use, we call from ROI models
+'''
 # class for setting up embedding model
 class Patch_embedding_model(nn.Module):
     """
@@ -337,6 +333,7 @@ class Patch_embedding_model(nn.Module):
         return x
 
 
+'''
 # functions for embedding the tiles from tiles_dataset
 def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
                                    embedding_model_at_certain_GPU: torch.nn.Module,
@@ -454,9 +451,9 @@ def embed_at_device(device, model_name, edge_size, model_weight_path, device_sli
     # Setup logging in each subprocess
     log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
     setup_logging(log_file_path)
-
-    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            model_weight_path=model_weight_path)
+    # Patch_embedding_model(model_name=model_name, edge_size=edge_size, model_weight_path=model_weight_path)
+    embedding_model = Get_ROI_model.get_model(num_classes=0, edge_size=edge_size,
+                                              model_idx=model_name, pretrained_backbone=model_weight_path)
     compiled_model = torch.compile(embedding_model)
     embedding_model_at_certain_GPU = compiled_model.to(device)
 
@@ -767,8 +764,9 @@ def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide
     setup_logging(log_file_path)
 
     # Initialize CUDA in the subprocess
-    embedding_model = Patch_embedding_model(model_name=model_name, edge_size=edge_size,
-                                            model_weight_path=model_weight_path)
+    embedding_model = Get_ROI_model.get_model(num_classes=0, edge_size=edge_size,
+                                              model_idx=model_name, pretrained_backbone=model_weight_path)
+    # Patch_embedding_model(model_name=model_name, edge_size=edge_size, model_weight_path=model_weight_path)
     embedding_model = torch.compile(embedding_model)
     embedding_model = embedding_model.to(device)
     embedding_model.eval()
