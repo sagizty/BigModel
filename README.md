@@ -1,4 +1,5 @@
-# Fundational model pipeline via learning Prov-GigaPath
+# Fundational model pipeline for WSI + ROI
+<img width="555" alt="Screenshot 2024-08-17 at 12 08 03 PM" src="https://github.com/user-attachments/assets/0114b72e-3fb8-470d-9648-43e09260ff97">
 
 ## Install
 
@@ -34,9 +35,11 @@ nohup python Embedded_dataset.py &
 
 5. Running the models
    
-todo
+## TODO
 
-## A whole-slide foundation model for digital pathology from real-world data
+We have many framework fix is upgrading and fixing.
+
+# GigaPath: A whole-slide foundation model for digital pathology from real-world data
 
 [[`Model`](https://huggingface.co/prov-gigapath/prov-gigapath)] [[`Paper`](https://aka.ms/gigapath)] [[`BibTeX`](#Citation)]
 
