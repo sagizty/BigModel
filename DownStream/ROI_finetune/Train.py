@@ -1,5 +1,5 @@
 """
-Training     Script  ver： Aug 17th 12:00
+Training     Script  ver： Aug 18th 23:00
 dataset structure: ImageNet
 image folder dataset is used.
 """
@@ -488,13 +488,6 @@ def main(args):
 
     # model info
     model_idx = args.model_idx  # the model we are going to use. by the format of Model_size_other_info
-    # structural parameter
-    drop_rate = args.drop_rate
-    attn_drop_rate = args.attn_drop_rate
-    drop_path_rate = args.drop_path_rate
-    use_cls_token = False if args.cls_token_off else True
-    use_pos_embedding = False if args.pos_embedding_off else True
-    use_att_module = None if args.att_module == 'None' else args.att_module
 
     # pretrained_backbone
     pretrained_backbone = False if args.backbone_PT_off else True
@@ -685,8 +678,7 @@ def main(args):
 
     else:
         # get model: randomly initiate model, except the backbone CNN(when pretrained_backbone is True)
-        model = get_model(num_classes, edge_size, model_idx, drop_rate, attn_drop_rate, drop_path_rate,
-                          pretrained_backbone, use_cls_token, use_pos_embedding, use_att_module)
+        model = get_model(num_classes, edge_size, model_idx, pretrained_backbone)
 
         # Manually get the model pretrained on the Imagenet1000
         if Pre_Trained_model_path is not None:
@@ -778,7 +770,7 @@ def main(args):
         raise
 
     if enable_sam:
-        from utils.sam import SAM
+        from Utils.sam import SAM
 
         if opt_name == 'SGD':
             base_optimizer = torch.optim.SGD  # define an optimizer for the "sharpness-aware" update

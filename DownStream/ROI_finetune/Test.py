@@ -1,5 +1,5 @@
 """
-Testing ROI models  Script  ver： Aug 17th 12:00
+Testing ROI models  Script  ver： Aug 18th 23:00
 """
 import sys,os
 # Add the parent directory to the sys.path
@@ -18,14 +18,15 @@ from __future__ import print_function, division
 import argparse
 import json
 import time
-
+import torch
+import torch.nn as nn
 import torchvision
 from tensorboardX import SummaryWriter
 
 
 def test_model(model, test_dataloader, criterion, class_names, test_dataset_size, model_idx, test_model_idx, edge_size,
                check_minibatch=100, device=None, draw_path='../imaging_results', enable_attention_check=None,
-               enable_visualize_check=True, MIL_Stripe=False, writer=None):
+               enable_visualize_check=True, writer=None):
     """
     Testing iteration
 
@@ -139,15 +140,10 @@ def test_model(model, test_dataloader, criterion, class_names, test_dataset_size
 
             if enable_attention_check:
                 try:
-                    if MIL_Stripe:
-                        check_SAA(inputs, labels, model, model_idx, edge_size, class_names, model_type='MIL_structures',
-                                  num_images=1,
-                                  pic_name='GradCAM_' + str(epoch_idx) + '_I_' + str(index + 1),
-                                  draw_path=draw_path, writer=writer)
-                    else:
-                        check_SAA(inputs, labels, model, model_idx, edge_size, class_names, num_images=1,
-                                  pic_name='GradCAM_' + str(epoch_idx) + '_I_' + str(index + 1),
-                                  draw_path=draw_path, writer=writer)
+                    check_SAA(inputs, labels, model, model_idx, edge_size, class_names, num_images=1,
+                              pic_name='GradCAM_' + str(epoch_idx) + '_I_' + str(index + 1),
+                              draw_path=draw_path, writer=writer)
+
                 except:
                     print('model:', model_idx, ' with edge_size', edge_size, 'is not supported yet')
             else:
@@ -256,16 +252,6 @@ def main(args):
 
     model_idx = args.model_idx  # the model we are going to use. by the format of Model_size_other_info
 
-    MIL_Stripe = args.MIL_Stripe
-
-    # structural parameter
-    drop_rate = args.drop_rate
-    attn_drop_rate = args.attn_drop_rate
-    drop_path_rate = args.drop_path_rate
-    use_cls_token = False if args.cls_token_off else True
-    use_pos_embedding = False if args.pos_embedding_off else True
-    use_att_module = None if args.att_module == 'None' else args.att_module
-
     # PATH info
     draw_root = args.draw_root
     model_path = args.model_path
@@ -274,18 +260,14 @@ def main(args):
     # Pre_Trained model basic for prompt turned model's test
     Pre_Trained_model_path = args.Pre_Trained_model_path  # None
 
-    # CLS_ is for the CLS trained models, MIL_Stripe will be MIL_structures trained and use Stripe to test
-    test_model_idx = 'CLS_' + model_idx + '_test' if not MIL_Stripe else 'MIL_Stripe_' + model_idx + '_test'
-    # NOTICE: MIL_structures model should only be tested in stripe model in this test.py
-
+    # CLS_ is for the CLS trained models
+    test_model_idx = 'CLS_' + model_idx + '_test'
     draw_path = os.path.join(draw_root, test_model_idx)
 
-    # load Finetuning trained model by its task-based saving name,
-    # also support MIL_structures-SI model but the MIL_Stripe is required
+    # load Finetuning trained model by its task-based saving name
     if model_path_by_hand is None:
         # CLS_ is for the CLS training, MIL_structures will be MIL_structures training
-        save_model_path = os.path.join(model_path, 'CLS_' + model_idx + '.pth') \
-            if not MIL_Stripe else os.path.join(model_path, 'MIL_' + model_idx + '.pth')
+        save_model_path = os.path.join(model_path, 'CLS_' + model_idx + '.pth')
     else:
         save_model_path = model_path_by_hand
 
@@ -347,25 +329,19 @@ def main(args):
     # get model
     pretrained_backbone = False  # model is trained already, pretrained backbone weight is useless here
 
-    if MIL_Stripe:
-        from MIL_structures import MIL_model
-        model = MIL_model.build_MIL_model(model_idx, edge_size, pretrained_backbone, num_classes=len(class_names))
-
+    if PromptTuning is None:
+        model = get_model(num_classes, edge_size, model_idx, pretrained_backbone)
     else:
-        if PromptTuning is None:
-            model = get_model(num_classes, edge_size, model_idx, drop_rate, attn_drop_rate, drop_path_rate,
-                              pretrained_backbone, use_cls_token, use_pos_embedding, use_att_module)
+        if Pre_Trained_model_path is not None and os.path.exists(Pre_Trained_model_path):
+            base_state_dict = torch.load(Pre_Trained_model_path)
         else:
-            if Pre_Trained_model_path is not None and os.path.exists(Pre_Trained_model_path):
-                base_state_dict = torch.load(Pre_Trained_model_path)
-            else:
-                base_state_dict = 'timm'
-                print('base_state_dict of timm')
+            base_state_dict = 'timm'
+            print('base_state_dict of timm')
 
-            print('Test the PromptTuning of ', model_idx)
-            print('Prompt VPT type:', PromptTuning)
-            model = build_promptmodel(num_classes, edge_size, model_idx, Prompt_Token_num=Prompt_Token_num,
-                                      VPT_type=PromptTuning, base_state_dict=base_state_dict)
+        print('Test the PromptTuning of ', model_idx)
+        print('Prompt VPT type:', PromptTuning)
+        model = build_promptmodel(num_classes, edge_size, model_idx, Prompt_Token_num=Prompt_Token_num,
+                                  VPT_type=PromptTuning, base_state_dict=base_state_dict)
 
     try:
         if PromptTuning is None:
@@ -376,10 +352,7 @@ def main(args):
             else:
                 model.load_prompt(torch.load(save_model_path))
 
-        print("model loaded")
-        if MIL_Stripe:
-            model = model.Stripe()
-        print("model :", model_idx)
+        print("model loaded :", model_idx)
 
     except:
         try:
@@ -392,9 +365,6 @@ def main(args):
                     model.load_state_dict(torch.load(save_model_path))
                 else:
                     model.load_prompt(torch.load(save_model_path))
-
-            if MIL_Stripe:
-                model = model.Stripe()
             print("DataParallel model loaded")
         except:
             print("model loading erro!!")
@@ -445,7 +415,7 @@ def main(args):
     test_model(model, test_dataloader, criterion, class_names, test_dataset_size, model_idx=model_idx,
                test_model_idx=test_model_idx, edge_size=edge_size, check_minibatch=check_minibatch,
                device=device, draw_path=draw_path, enable_attention_check=enable_attention_check,
-               enable_visualize_check=enable_visualize_check, MIL_Stripe=MIL_Stripe, writer=writer)
+               enable_visualize_check=enable_visualize_check, writer=writer)
 
 
 def get_args_parser():
