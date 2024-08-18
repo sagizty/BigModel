@@ -1,5 +1,5 @@
 """
-Build ROI level models  Script  ver： Aug 17th 12:00
+Build ROI level models    Script  ver： Aug 18th 23:00
 """
 import timm
 from pprint import pprint
@@ -17,9 +17,9 @@ from torchvision import models
 
 
 # get model
-def get_model(num_classes=1000, edge_size=224, model_idx=None, pretrained_backbone=True):
+def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=True):
     """
-    :param num_classes: classification required number of your dataset
+    :param num_classes: classification required number of your dataset, 0 for taking the feature
     :param edge_size: the input edge size of the dataloder
     :param model_idx: the model we are going to use. by the format of Model_size_other_info
 
@@ -27,6 +27,10 @@ def get_model(num_classes=1000, edge_size=224, model_idx=None, pretrained_backbo
 
     :return: prepared model
     """
+    if os.path.exists(pretrained_backbone):
+        pretrained_backbone_weight = pretrained_backbone
+        pretrained_backbone = False
+
     if model_idx[0:5] == 'ViT_h':
         # Transfer learning for ViT
         model_names = timm.list_models('*vit*')
@@ -250,15 +254,72 @@ def get_model(num_classes=1000, edge_size=224, model_idx=None, pretrained_backbo
         pprint(model_names)
         model = timm.create_model(model_idx[0:18], pretrained=pretrained_backbone, num_classes=num_classes)
 
+    # prov-gigapath feature embedding ViT
+    elif model_idx[0:8] == 'gigapath':
+        # ref: https://www.nature.com/articles/s41586-024-07441-w
+        if pretrained_backbone:
+            # fixme if failed, use your own hugging face token and register for the project gigapath
+            os.environ["HF_TOKEN"] = "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"
+            model = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
+        else:
+            # Model configuration from your JSON
+            config = {
+                "architecture": "vit_giant_patch14_dinov2",
+                "num_classes": 0,
+                "num_features": 1536,
+                "global_pool": "token",
+                "model_args": {
+                    "img_size": 224,
+                    "in_chans": 3,
+                    "patch_size": 16,
+                    "embed_dim": 1536,
+                    "depth": 40,
+                    "num_heads": 24,
+                    "init_values": 1e-05,
+                    "mlp_ratio": 5.33334,
+                    "num_classes": 0
+                }
+            }
+
+            # Create the model using timm
+            model = timm.create_model(
+                config['architecture'],
+                pretrained=False,  # Set to True if you want to load pretrained weights
+                img_size=config['model_args']['img_size'],
+                in_chans=config['model_args']['in_chans'],
+                patch_size=config['model_args']['patch_size'],
+                embed_dim=config['model_args']['embed_dim'],
+                depth=config['model_args']['depth'],
+                num_heads=config['model_args']['num_heads'],
+                init_values=config['model_args']['init_values'],
+                mlp_ratio=config['model_args']['mlp_ratio'],
+                num_classes=config['model_args']['num_classes']
+            )
+
     else:
         print('\nThe model', model_idx, 'with the edge size of', edge_size)
         print("is not defined in the script！！", '\n')
         return -1
 
     try:
+        # Print the model to verify
+        print(model)
+
+        if os.path.exists(pretrained_backbone_weight):
+            missing_keys, unexpected_keys = model.load_state_dict(pretrained_backbone_weight, False)
+            if len(missing_keys) > 0:
+                for k in missing_keys:
+                    print("Missing ", k)
+
+            if len(unexpected_keys) > 0:
+                for k in unexpected_keys:
+                    print("Unexpected ", k)
+
         img = torch.randn(1, 3, edge_size, edge_size)
         preds = model(img)  # (1, class_number)
         print('test model output：', preds)
+
+        print("ROI model param #", sum(p.numel() for p in model.parameters()))
     except:
         print("Problem exist in the model defining process！！")
         return -1
