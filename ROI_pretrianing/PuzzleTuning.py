@@ -1,5 +1,5 @@
 """
-Puzzle Tuning    Script  ver： Jun 26th 20:00
+PuzzleTuning pretraining   Script  ver： Aug 18th 23:00
 
 Paper:
 https://arxiv.org/abs/2311.06712
@@ -95,7 +95,7 @@ def main(args):
         transforms.RandomVerticalFlip(),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
     dataset_train = datasets.ImageFolder(os.path.join(args.data_path), transform=transform_train)  # , 'train'
