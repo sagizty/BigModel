@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools   Script  ver： Aug 17th 21:00
+WSI embedding dataset tools     Script  ver： Aug 19th 20:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -191,7 +191,7 @@ class Slide_loading_Dataset(Dataset):
 
 # fixme notice now no this one longer in use, we call from ROI models
 '''
-# class for setting up embedding model
+# class for tasks_to_run up embedding model
 class Patch_embedding_model(nn.Module):
     """
     each tile is embedded to a token based on pre-trained model
@@ -894,7 +894,7 @@ if __name__ == '__main__':
     # demo with one sample
     
     dataset = Slide_loading_Dataset(root_path='/data/hdd_1/BigModel/sampled_tiles_datasets')
-    slide_folder = dataset.slide_paths[dataset.slide_ids[0]]
+    slide_folder = dataset.slide_paths[dataset.labeled_slide_names[0]]
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     embedding_model = Patch_embedding_model(model_name='ViT', pretrained_weight='timm')
@@ -944,7 +944,7 @@ if __name__ == '__main__':
     '''
 
     # demo with multiple sample
-    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets/',
-                                            output_WSI_dataset_path='/data/BigModel/embedded_datasets',
+    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets/',
+                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets/',
                                             model_name='gigapath', model_weight_path=None, batch_size=256,
                                             edge_size=224, overwrite=True)
