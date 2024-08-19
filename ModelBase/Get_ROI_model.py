@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Aug 18th 23:00
+Build ROI level models    Script  ver： Aug 19th 20:00
 """
 import timm
 from pprint import pprint
@@ -27,8 +27,16 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
 
     :return: prepared model
     """
-    if os.path.exists(pretrained_backbone):
-        pretrained_backbone_weight = pretrained_backbone
+    if pretrained_backbone == True or pretrained_backbone == False:
+        pretrained_backbone_weight = None
+    elif pretrained_backbone == None:
+        pretrained_backbone = False
+        pretrained_backbone_weight = None
+    else:  # str path
+        if os.path.exists(pretrained_backbone):
+            pretrained_backbone_weight = pretrained_backbone
+        else:
+            pretrained_backbone_weight = None
         pretrained_backbone = False
 
     if model_idx[0:5] == 'ViT_h':
@@ -300,11 +308,11 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         print('\nThe model', model_idx, 'with the edge size of', edge_size)
         print("is not defined in the script！！", '\n')
         return -1
-
-    try:
         # Print the model to verify
         print(model)
 
+    # load state
+    try:
         if os.path.exists(pretrained_backbone_weight):
             missing_keys, unexpected_keys = model.load_state_dict(pretrained_backbone_weight, False)
             if len(missing_keys) > 0:
@@ -314,6 +322,12 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             if len(unexpected_keys) > 0:
                 for k in unexpected_keys:
                     print("Unexpected ", k)
+    except:
+        pass
+
+    try:
+        # Print the model to verify
+        print(model)
 
         img = torch.randn(1, 3, edge_size, edge_size)
         preds = model(img)  # (1, class_number)
