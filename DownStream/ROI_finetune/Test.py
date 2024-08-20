@@ -1,9 +1,13 @@
 """
-Testing ROI models  Script  ver： Aug 18th 23:00
+Testing ROI models    Script  ver： Aug 21th 00:00
 """
-import sys,os
-# Add the parent directory to the sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import os
+import sys
+from pathlib import Path
+# For convinience
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
+
 try:
     from ModelBase.Get_ROI_model import get_model,build_promptmodel
     from Utils.data_augmentation import *
@@ -281,14 +285,14 @@ def main(args):
     num_classes = args.num_classes  # default 0 for auto-fit
     edge_size = args.edge_size  # 1000 224 384
 
-    # validating setting
+    # validating tasks_to_run
     batch_size = args.batch_size  # 10
     criterion = nn.CrossEntropyLoss()
 
     # Data Augmentation is not used in validating or testing
     data_transforms = data_augmentation(data_augmentation_mode, edge_size=edge_size)
 
-    # test setting is the same as the validate dataset's setting
+    # test tasks_to_run is the same as the validate dataset's tasks_to_run
     test_datasets = torchvision.datasets.ImageFolder(test_dataroot, data_transforms['val'])
     test_dataset_size = len(test_datasets)
     # skip minibatch none to draw 20 figs
@@ -378,7 +382,7 @@ def main(args):
         else:
             print('we dont have more GPU idx here, try to use gpu_idx=0')
             try:
-                # setting 0 for: only card idx 0 is sighted for this code
+                # tasks_to_run 0 for: only card idx 0 is sighted for this code
                 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
             except:
                 print("GPU distributing ERRO occur use CPU instead")
@@ -386,12 +390,12 @@ def main(args):
     else:
         # Decide which device we want to run on
         try:
-            # setting k for: only card idx k is sighted for this code
+            # tasks_to_run k for: only card idx k is sighted for this code
             os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_idx)
         except:
             print('we dont have that GPU idx here, try to use gpu_idx=0')
             try:
-                # setting 0 for: only card idx 0 is sighted for this code
+                # tasks_to_run 0 for: only card idx 0 is sighted for this code
                 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
             except:
                 print("GPU distributing ERRO occur use CPU instead")
@@ -409,7 +413,7 @@ def main(args):
     # nohup tensorboard --logdir=/home/MSHT/runs --host=0.0.0.0 --port=7777 &
     # tensorboard --logdir=/home/ZTY/runs --host=0.0.0.0 --port=7777
 
-    print("*********************************{}*************************************".format('setting'))
+    print("*********************************{}*************************************".format('tasks_to_run'))
     print(args)
 
     test_model(model, test_dataloader, criterion, class_names, test_dataset_size, model_idx=model_idx,
@@ -478,7 +482,7 @@ def get_args_parser():
     parser.add_argument('--num_classes', default=0, type=int, help='classification number, default 0 for auto-fit')
     parser.add_argument('--edge_size', default=384, type=int, help='edge size of input image')  # 224 256 384 1000
 
-    # Test setting parameters
+    # Test tasks_to_run parameters
     parser.add_argument('--batch_size', default=1, type=int, help='testing batch_size default 1')
     # check_minibatch for painting pics
     parser.add_argument('--check_minibatch', default=None, type=int, help='check batch_size')

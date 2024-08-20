@@ -1,11 +1,15 @@
 """
-Training     Script  ver： Aug 18th 23:00
+Training       Script  ver： Aug 21th 00:00
 dataset structure: ImageNet
 image folder dataset is used.
 """
-import sys,os
-# Add the parent directory to the sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import os
+import sys
+from pathlib import Path
+# For convinience
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up two levels
+
 try:
     from ModelBase.Get_ROI_model import get_model,build_promptmodel
     from Utils.Offline_augmentation_dataset import AmbiguousImageFolderDataset
@@ -596,7 +600,7 @@ def main(args):
 
         notify.send_log()
 
-    print("*********************************{}*************************************".format('setting'))
+    print("*********************************{}*************************************".format('tasks_to_run'))
     print(args)
 
     # start tensorboard backend
@@ -616,7 +620,7 @@ def main(args):
         else:
             print('we dont have more GPU idx here, try to use gpu_idx=0')
             try:
-                os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # setting k for: only card idx k is sighted for this code
+                os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # tasks_to_run k for: only card idx k is sighted for this code
                 gpu_use = 0
             except:
                 print("GPU distributing ERRO occur use CPU instead")
@@ -625,13 +629,13 @@ def main(args):
     else:
         # Decide which device we want to run on
         try:
-            # setting k for: only card idx k is sighted for this code
+            # tasks_to_run k for: only card idx k is sighted for this code
             os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_idx)
             gpu_use = gpu_idx
         except:
             print('we dont have that GPU idx here, try to use gpu_idx=0')
             try:
-                # setting 0 for: only card idx 0 is sighted for this code
+                # tasks_to_run 0 for: only card idx 0 is sighted for this code
                 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
                 gpu_use = 0
             except:
@@ -732,7 +736,7 @@ def main(args):
         fix_position_ratio_scheduler = None
 
     else:
-        # setting puzzle_patch_size and fix_position_ratio schedulers
+        # tasks_to_run puzzle_patch_size and fix_position_ratio schedulers
         puzzle_patch_size_scheduler = patch_scheduler(total_epoches=num_epochs,
                                                       warmup_epochs=0,
                                                       edge_size=edge_size,
@@ -847,7 +851,7 @@ def get_args_parser():
     # 'SimAM', 'CBAM', 'SE' 'None'
     parser.add_argument('--att_module', default='SimAM', type=str, help='use which att_module in model structure')
 
-    # backbone_PT_off  by default is false, in default setting the backbone weight is required
+    # backbone_PT_off  by default is false, in default tasks_to_run the backbone weight is required
     parser.add_argument('--backbone_PT_off', action='store_true', help='use a freash backbone weight in training')
 
     # Environment parameters
@@ -870,7 +874,7 @@ def get_args_parser():
     parser.add_argument('--enable_attention_check', action='store_true', help='check and save attention map')
     parser.add_argument('--enable_visualize_check', action='store_true', help='check and save pics')
 
-    # Tuning setting
+    # Tuning tasks_to_run
     # PromptTuning
     parser.add_argument('--PromptTuning', default=None, type=str,
                         help='use Prompt Tuning strategy instead of Finetuning')
@@ -936,7 +940,7 @@ def get_args_parser():
 
 
 if __name__ == '__main__':
-    # setting up the random seed
+    # tasks_to_run up the random seed
     setup_seed(42)
 
     parser = get_args_parser()
