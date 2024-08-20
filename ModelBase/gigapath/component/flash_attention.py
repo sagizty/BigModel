@@ -1,21 +1,24 @@
 # Copyright (c) 2023 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
 
-
 from typing import Any, Optional
 import torch
 
 if torch.cuda.is_available():
     try:
         if torch.cuda.get_device_capability()[0] > 7:
+            # print('CUDA device capability (the major and minor version)',torch.cuda.get_device_capability())
             from flash_attn.flash_attn_interface import flash_attn_func as _flash_attn_func
+            # pip install flash-attn
 
             def flash_attn_func(q, k, v, dropout=0.0, bias=None, softmax_scale=None, is_causal=False):
                 assert bias is None
-                attn, lse, _ = _flash_attn_func(q, k, v, dropout_p=dropout, softmax_scale=softmax_scale, causal=is_causal, return_attn_probs=True)
+                attn, lse, _ = _flash_attn_func(q, k, v, dropout_p=dropout, softmax_scale=softmax_scale,
+                                                causal=is_causal, return_attn_probs=True)
                 return attn, lse
 
         else:
+            print('false')
             from xformers.ops.fmha import (
                 cutlass,
                 Inputs,
@@ -120,4 +123,5 @@ if torch.cuda.is_available():
     except ModuleNotFoundError:
         flash_attn_func = None
 else:
+    print('cuda not avaliable')
     flash_attn_func = None
