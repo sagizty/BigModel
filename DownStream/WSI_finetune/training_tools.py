@@ -1,10 +1,11 @@
+
 import os
 import sys
 from pathlib import Path
 
 # For convinience
 this_file_dir = Path(__file__).resolve().parent
-sys.path.append(str(this_file_dir.parent))
+sys.path.append(str(this_file_dir.parent.parent))  # Go up two levels
 
 import time
 import wandb
@@ -171,8 +172,8 @@ def evaluate(loader, model, fp16_scaler, loss_fn, epoch, args):
 
     # set the evaluation records
     records = get_records_array(len(loader), args.n_classes)
-    # get the task setting
-    task_setting = args.task_config.get('setting', 'multi_class')
+    # get the task tasks_to_run
+    task_setting = args.task_config.get('tasks_to_run', 'multi_class')
     with torch.no_grad():
         for batch_idx, batch in enumerate(loader):
             # load the batch and transform this batch

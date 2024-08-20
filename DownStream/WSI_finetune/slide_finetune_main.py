@@ -70,22 +70,17 @@ if __name__ == '__main__':
         # get the splits
         split_target_key = 'split_{}fold-{}'.format(args.folds,fold+1) if args.folds > 1 else 'split'
         # 'split_nfold-k', n is the total fold number and k is the fold index
-        # use the slide dataset
-        DatasetClass_train = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
-                                                split_name='train')
-        DatasetClass_val = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
-                                              split_name='val')
-        DatasetClass_test = load_task_settings(args.root_path, task_setting_folder_name='task_settings',
-                                               split_name='test')
-
         # set up the fold directory
         save_dir = os.path.join(args.save_dir, f'fold_{fold}') if args.fold > 1 else args.save_dir
         os.makedirs(save_dir, exist_ok=True)
 
         # instantiate the dataset
-        train_data, val_data, test_data = (SlideDataset(DatasetClass_train, split_target_key=split_target_key),
-                                           SlideDataset(DatasetClass_val, split_target_key=split_target_key),
-                                           SlideDataset(DatasetClass_test, split_target_key=split_target_key))
+        train_data, val_data, test_data = (SlideDataset(args.root_path, task_setting_folder_name='task_settings',
+                                                split_name='train', split_target_key=split_target_key),
+                                           SlideDataset(args.root_path, task_setting_folder_name='task_settings',
+                                              split_name='val', split_target_key=split_target_key),
+                                           SlideDataset(args.root_path, task_setting_folder_name='task_settings',
+                                               split_name='test', split_target_key=split_target_key))
         # todo config MTL
         task_name_list = train_data.task_name_list
         # build heads? fixme
