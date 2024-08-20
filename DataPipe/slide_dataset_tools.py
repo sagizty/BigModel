@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 19th 20:00
+tools for slide level dataset      Script  ver： Aug 21th 01:00
 
 build and load task config
 """
@@ -224,7 +224,7 @@ def build_task_config_settings(df, new_labels, one_hot_table={}, all_task_dict={
     return one_hot_table, all_task_dict, selected_new_labels
 
 
-def build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name='lung-mix',
+def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset_name='lung-mix',
                                tasks_to_run=None, max_tiles=1000000, shuffle_tiles=True,
                                excluding_list=('WSI_name', 'split',)):
     """
@@ -232,7 +232,7 @@ def build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name='l
 
     Parameters:
     task_description_csv (str): Path to the task_description .csv file.
-    output_dir (str): Output directory for the YAML file. (task-settings path)
+    task_settings_path (str): Output directory for the YAML file. (task-settings path)
 
     dataset_name (str): Name of the dataset. Default is 'lung-mix'.
     tasks_to_run (str): Setting type (e.g., 'MTL'). Default is 'MTL'.
@@ -250,7 +250,6 @@ def build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name='l
 
     one_hot_table, all_task_dict = {}, {}
     excluding_list = list(excluding_list)
-    excluding_list.append(slide_id_key)
 
     # select columns in csv to be used as the labels.
     # By default, all columns except slide_id_key will be used as label.
@@ -272,10 +271,10 @@ def build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name='l
         'shuffle_tiles': shuffle_tiles
     }
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists(task_settings_path):
+        os.makedirs(task_settings_path)
 
-    yaml_output_path = os.path.join(output_dir, 'task_configs.yaml')
+    yaml_output_path = os.path.join(task_settings_path, 'task_configs.yaml')
     if os.path.exists(yaml_output_path):
         os.remove(yaml_output_path)
 
@@ -327,13 +326,13 @@ class SlideDataset(Dataset):
 
         everytime it get a sample WSI:
         ----------
-        sample = {'image_features': data_dict['image_features'],
-                  'image_features_lens': data_dict['image_features_lens'],
-                  'pad_mask': data_dict['pad_mask'],
-                  'coords_yx': data_dict['coords_yx'],
-                  'slide_id': slide_id,
-                  'task_name_list':self.task_name_list,
-                  'task_description_list': task_description_list}
+        sample = {'image_features': image features [N, D] tensor,
+              'image_features_lens': data_dict['image_features_lens'],
+              'pad_mask': data_dict['pad_mask'],
+              'coords_yx': [N, 2] tensor,
+              'slide_id': slide_id,
+              'task_name_list': self.task_name_list,
+              'task_description_list': task_description_list}
         """
         super(SlideDataset, self).__init__(**kwargs)
 
@@ -597,7 +596,7 @@ class SlideDataset(Dataset):
         return slide_level_sample
 
 
-def WSI_collate_fn(batch):  # todo havent designed for dic version
+def WSI_collate_fn(batch):  # todo havent designed for dictionary version
     # Filter out bad data (data loader return -1)
     cleaned_batch = [data for data in batch if data != -1]  # -1 for not valid return from dataset
     # If after filtering, the batch is empty, return None
