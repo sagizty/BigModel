@@ -1,5 +1,5 @@
 '''
-MTL training panel       Script  ver： Aug 14th 01:00
+MTL training panel       Script  ver： Aug 21th 14:00
 '''
 import os
 import torch
@@ -8,11 +8,11 @@ import numpy as np
 
 from training_tools import train
 from params import get_finetune_params
-from task_configs.utils import load_task_config
-from utils import seed_torch, get_exp_code, get_splits, get_loader
+from DownStream.MTL.task_configs import load_task_config
+from utils import seed_torch, get_exp_code, get_loader
 
 try:
-    from DataPipe.slide_dataset_tools import SlideDataset, load_task_settings
+    from DownStream.MTL.slide_dataset_tools import SlideDataset, load_task_settings
 except:
     from PuzzleAI.DataPipe.slide_dataset_tools import SlideDataset, load_task_settings
 
