@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Aug 8th 17:00
+WSI tile cropping dataset tools   Script  ver： Aug 21th 14:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -25,11 +25,13 @@ now its highest magnification and lowest level (level-0), now the resolution for
 
 """
 
-import sys
 import os
+import sys
+from pathlib import Path
 
-# Add the parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# For convinience
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 import time
 import torch
@@ -58,8 +60,8 @@ from openslide import OpenSlide
 from tqdm import tqdm
 
 try:
-    from .wsi_tools import *
-    from .segmentation_and_filtering_tools import *
+    from wsi_tools import *
+    from segmentation_and_filtering_tools import *
 except:
     from PuzzleAI.DataPipe.wsi_tools import *
     from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *
@@ -138,7 +140,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
     :param sample: Slide information dictionary, returned by the input slide dataset.
 
     :param output_dir: Root directory for the output dataset; outputs for a single slide will be
-    saved inside `output_dir/slide_id/`.
+    saved inside `task_settings_path/slide_id/`.
     :param thumbnail_dir:
 
     :param margin: Margin around the foreground bounding box, in pixels at lowest resolution.

@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Aug 19th 20:00
+WSI embedding dataset tools     Script  ver： Aug 21th 14:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -16,14 +16,13 @@ to embed the tiles, a model and its weights need to be set:
  we use Patch_embedding_model to achieve that
 
 """
-import sys
 import os
+import sys
+from pathlib import Path
 
-# Add the parent directory to the system path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'ROI_models')))
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ModelBase', 'gigapath')))
+# For convinience
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 import gc
 import json
@@ -51,13 +50,10 @@ from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 from Tiles_dataset import *
 
 try:
-    from ..ModelBase import Get_ROI_model
-    # from ..ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
-    # from ..ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
+    from ModelBase import Get_ROI_model
 except:
     from PuzzleAI.ModelBase import Get_ROI_model
-    # from PuzzleAI.ModelBase.ROI_models.VPT_ViT_modules import build_ViT_or_VPT
-    # from PuzzleAI.ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder
+
 
 # tools for logging
 def setup_logging(log_file_path):
@@ -596,8 +592,8 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
         Slide information dictionary, returned by the input slide dataset.
     embedding_model: torch.nn.Module
         Pretrained model to be used for extracting features from the image tiles.
-    output_dir: Path
-        Root directory for the output dataset; outputs for a single slide will be saved inside `output_dir/slide_id/`.
+    task_settings_path: Path
+        Root directory for the output dataset; outputs for a single slide will be saved inside `task_settings_path/slide_id/`.
     thumbnail_dir: Optional[Path], optional
         Root directory for all thumbnails.
     batch_size: int, optional
@@ -929,7 +925,7 @@ if __name__ == '__main__':
     embedding_model_at_certain_GPU = embedding_model.to(device)
 
     error_wsi_infor = crop_and_embed_one_slide(sample, embedding_model_at_certain_GPU,
-                                               output_dir=output_WSI_dataset_path,
+                                               task_settings_path=output_WSI_dataset_path,
                                                thumbnail_dir=output_WSI_dataset_path,
                                                batch_size=32, shuffle=False,
                                                num_workers=10, transform=None,
