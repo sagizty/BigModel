@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Aug 21th 01:00
+Build WSI level models     Script  ver： Aug 21th 14:00
 """
 import os
 import torch
