@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Aug 21th 14:00
+Build WSI level models     Script  ver： Aug 21th 18:30
 """
 import os
 import torch
@@ -115,7 +115,7 @@ class MTL_Model_builder(nn.Module):
 
 
 def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536,
-                         MTL_heads=None,latent_feature_dim=128):
+                         MTL_heads: List[nn.Module] = None, latent_feature_dim=128):
     assert MTL_heads is not None
     slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
     MTL_Model = MTL_Model_builder(slide_backbone, MTL_module=None, MTL_heads=MTL_heads,
