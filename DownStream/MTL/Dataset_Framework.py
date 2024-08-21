@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Aug 21th 14:00
+MTL dataset framework       Script  ver： Aug 21st 19:00
 '''
 
 
@@ -373,14 +373,13 @@ if __name__ == '__main__':
     task_setting_folder_name = 'task-settings'
     mode = 'TCGA'
 
-    build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=0.2, k=1,
-                             mode=mode, key=split_target_key)
-    output_dir = os.path.join(root_path, task_setting_folder_name)
-    build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name='lung-mix',
-                               tasks_to_run=['CMS', 'COL3A1'],
-                               max_tiles=1000000, shuffle_tiles=True,
-                               excluding_list=(slide_id_key, split_target_key))
-    # instantiate the dataset
+    dataset_name = 'lung-mix',
+    tasks_to_run = ['CMS', 'COL3A1']
+
+    build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
+                                 slide_id_key, split_target_key, task_setting_folder_name, mode)
+
+    # check the dataset
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
                                  split_name='train', slide_id_key=slide_id_key,

@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 21th 14:00
+tools for slide level dataset      Script  ver： Aug 21st 19:00
 
 build and load task config
 """
@@ -290,3 +290,31 @@ def load_yaml_config(yaml_path):
         config = yaml.safe_load(file)
     return config
 
+
+def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
+                                 tasks_to_run, slide_id_key, split_target_key='fold_information',
+                                 task_setting_folder_name='task-settings',
+                                 mode='TCGA', test_ratio=0.2, k=1):
+    build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
+                             mode=mode, key=split_target_key)
+    output_dir = os.path.join(root_path, task_setting_folder_name)
+    build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name=dataset_name,
+                               tasks_to_run=tasks_to_run,
+                               max_tiles=1000000, shuffle_tiles=True,
+                               excluding_list=(slide_id_key, split_target_key))
+
+
+if __name__ == '__main__':
+    root_path = '/data/BigModel/embedded_datasets/'
+    task_description_csv = \
+        '/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv'
+    slide_id_key = 'patient_id'
+    split_target_key = 'fold_information'
+    task_setting_folder_name = 'task-settings'
+    mode = 'TCGA'
+
+    dataset_name = 'lung-mix',
+    tasks_to_run = ['CMS', 'COL3A1']
+
+    build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
+                                 slide_id_key, split_target_key, task_setting_folder_name, mode)
