@@ -104,7 +104,6 @@ class MTL_Model_builder(nn.Module):
                  shape [B, output_dim] (output_dim may vary depending on the task).
         """
         slide_latent = self.backbone(image_features, img_coords)[0]  # fixme take from the list of embeddings
-        print(slide_latent)
         MTL_tokens = self.MTL_module(self.embedding_converter(slide_latent))
 
         WSI_tasks_pred = []
