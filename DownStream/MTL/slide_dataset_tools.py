@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 21st 19:00
+tools for slide level dataset      Script  ver： Aug 22nd 15:00
 
 build and load task config
 """
@@ -284,10 +284,22 @@ def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset
     return all_task_dict, one_hot_table
 
 
+'''
 def load_yaml_config(yaml_path):
     """Load the YAML configuration file."""
     with open(yaml_path, 'r') as file:
         config = yaml.safe_load(file)
+    return config
+    The error you're encountering suggests that the YAML file contains a Python tuple, which yaml.safe_load 
+    doesn't know how to handle by default. By default, yaml.safe_load does not allow the loading of arbitrary 
+    Python objects, including tuples, for security reasons.
+
+To solve this issue, you can use yaml.Loader instead of SafeLoader, which supports loading Python objects like tuples. 
+'''
+
+def load_yaml_config(file_path):
+    with open(file_path, 'r') as file:
+        config = yaml.load(file, Loader=yaml.Loader)
     return config
 
 

@@ -1,5 +1,5 @@
 """
-MTL Task settings   Script  ver： Aug 21th 14:00
+MTL Task settings   Script  ver： Aug 22nd 15:00
 
 flexible to multiple-tasks and missing labels
 """
@@ -50,7 +50,7 @@ def task_filter_auto(task_config_path, latent_feature_dim=128):
 
     try:
         with open(task_config_path, 'r') as file:
-            config = yaml.safe_load(file)
+            config = yaml.load(file, Loader=yaml.Loader)
             task_idx_or_name_list = config.get('tasks_to_run')
             all_task_dict = config.get('all_task_dict')
             all_task_one_hot_describe = config.get('one_hot_table')
