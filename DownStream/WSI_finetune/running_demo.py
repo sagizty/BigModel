@@ -1,5 +1,5 @@
 '''
-MTL training panel       Script  ver： Aug 22nd 15:00
+MTL training panel       Script  ver： Aug 22nd 15:30
 '''
 import os
 import sys
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     mode = 'TCGA'
     dataset_name = 'lung-mix',
     tasks_to_run = ['CMS', 'COL3A1']
+    max_tiles = 10000  # fixme should be bigger
 
     '''
     build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
@@ -43,15 +44,15 @@ if __name__ == '__main__':
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
                                  split_name='train', slide_id_key=slide_id_key,
-                                 split_target_key=split_target_key, mode=mode)
+                                 split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
     Val_dataset = SlideDataset(root_path, task_description_csv,
                                task_setting_folder_name=task_setting_folder_name,
                                split_name='val', slide_id_key=slide_id_key,
-                               split_target_key=split_target_key, mode=mode)
+                               split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
     Test_dataset = SlideDataset(root_path, task_description_csv,
                                 task_setting_folder_name=task_setting_folder_name,
                                 split_name='test', slide_id_key=slide_id_key,
-                                split_target_key=split_target_key, mode=mode)
+                                split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
 
     # print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {
@@ -87,7 +88,8 @@ if __name__ == '__main__':
     model = build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536,
                                  MTL_heads=MTL_heads, latent_feature_dim=latent_feature_dim)
     model = model.to(device)
-    model = torch.compile(model)
+    # this have bug for gigapath intrain, but ok with val, possible issue with Triton
+    # model = torch.compile(model)
     model.eval()  # Set model to evaluation mode to save GPU RAM (here we are just testing)
 
     sample_count = 0
@@ -105,7 +107,6 @@ if __name__ == '__main__':
                 # label = label.to(device, non_blocking=True).long()
 
                 with torch.no_grad():  # No need for gradient computation during embedding
-
                     with torch.cuda.amp.autocast(dtype=torch.float16):
                         slide_embeds = model(image_features, coords_yx)
                         # layer_outputs = {"layer_{}_embed".format(i): slide_embeds[i].cpu() for i in range(len(slide_embeds))}
