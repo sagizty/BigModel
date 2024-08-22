@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Aug 22nd 15:00
+MTL dataset framework       Script  ver： Aug 22nd 15:30
 '''
 
 
@@ -27,7 +27,10 @@ class SlideDataset(Dataset):
                  split_name: str = 'train',
                  slide_id_key='slide_id', split_target_key='split',
                  possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
-                 stopping_folder_name_list=['thumbnails', ], dataset_type='MTL', mode: str = 'TCGA', **kwargs):
+                 stopping_folder_name_list=['thumbnails', ],
+                 dataset_type='MTL', mode: str = 'TCGA',
+                 max_tiles=1000,
+                 **kwargs):
         """
         Slide dataset class for retrieving slide samples for different tasks.
 
@@ -101,7 +104,7 @@ class SlideDataset(Dataset):
         self.setup_task_data(task_description_data_df, self.task_name_list, dataset_type=dataset_type)
 
         # Load from settings or set default value
-        self.max_tiles = self.task_cfg.get('max_tiles', 1000)
+        self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 1000)
         self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False)
         print('Dataset has been initialized with ' + str(len(self.slide_ids)) +
               ' slides for split:', split_name)
