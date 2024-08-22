@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Aug 22nd 19:30
+MTL dataset framework       Script  ver： Aug 22nd 20:00
 '''
 
 import os
@@ -82,7 +82,7 @@ class SlideDataset(Dataset):
 
         # Find valid slide paths that have tile encodings
         self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[slide_id_key].values,
-                                                                 stopping_folder_name_list, mode)
+                                                                 stopping_folder_name_list, self.mode)
 
         if self.mode == 'TCGA':
             # in tcga csv, we only have slide_id_key indicating the label to the patient,
