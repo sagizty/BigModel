@@ -43,15 +43,15 @@ if __name__ == '__main__':
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
                                  split_name='train', slide_id_key=slide_id_key,
-                                 split_target_key=split_target_key,mode=mode)
+                                 split_target_key=split_target_key, mode=mode)
     Val_dataset = SlideDataset(root_path, task_description_csv,
                                task_setting_folder_name=task_setting_folder_name,
                                split_name='val', slide_id_key=slide_id_key,
                                split_target_key=split_target_key, mode=mode)
     Test_dataset = SlideDataset(root_path, task_description_csv,
-                               task_setting_folder_name=task_setting_folder_name,
-                               split_name='test', slide_id_key=slide_id_key,
-                               split_target_key=split_target_key, mode=mode)
+                                task_setting_folder_name=task_setting_folder_name,
+                                split_name='test', slide_id_key=slide_id_key,
+                                split_target_key=split_target_key, mode=mode)
 
     # print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {
@@ -62,8 +62,8 @@ if __name__ == '__main__':
                                            collate_fn=MTL_WSI_collate_fn,
                                            shuffle=False, num_workers=2, drop_last=True),
         'Test': torch.utils.data.DataLoader(Test_dataset, batch_size=1,
-                                           collate_fn=MTL_WSI_collate_fn,
-                                           shuffle=False, num_workers=2, drop_last=True)}
+                                            collate_fn=MTL_WSI_collate_fn,
+                                            shuffle=False, num_workers=2, drop_last=True)}
     dataset_sizes = {'Train': len(Train_dataset), 'Val': len(Val_dataset), 'Test': len(Test_dataset)}
     # print(sample)
     '''
@@ -88,10 +88,10 @@ if __name__ == '__main__':
                                  MTL_heads=MTL_heads, latent_feature_dim=latent_feature_dim)
     model = model.to(device)
     model = torch.compile(model)
-    model.eval()  # Set model to evaluation mode
+    model.eval()  # Set model to evaluation mode to save GPU RAM (here we are just testing)
 
-    sample_count=0
-    failed_sample=[]
+    sample_count = 0
+    failed_sample = []
 
     for phase in ['Train', 'Val', 'Test']:
         # example with a sample
