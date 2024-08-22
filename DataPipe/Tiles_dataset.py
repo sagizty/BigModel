@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Aug 21th 14:00
+WSI tile cropping dataset tools   Script  ver： Aug 22nd 21:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -412,11 +412,36 @@ def tile_ROI_loadding_dataset(slide_image_path):
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Build split and task configs.')
+
+    parser.add_argument('--WSI_dataset_path', type=str,
+                        default='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
+                        help='Root path for the datasets')
+    parser.add_argument('--tiled_WSI_dataset_path', type=str,
+                        default='/data/hdd_1/BigModel/sampled_tiles_datasets',
+                        help='Root path for the datasets')
+    parser.add_argument('--edge_size', type=int, default=224,
+                        help='edge size of tile')
+
+    parser.add_argument('--target_mpp', type=float, default=0.5,
+                        help='target_mpp')
+
+    parser.add_argument('--overwrite', action='store_true',
+                        help='overwrite previous embedding at the path')
+
+    args = parser.parse_args()
+
     # Configure logging
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
-    # I have put the demo below:
-    # TCGA-READ
-    slides_sample_list = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
-    prepare_tiles_dataset_for_all_slides(slides_sample_list, root_output_dir='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                                         tile_size=224, target_mpp=0.5, overwrite=False, parallel=True)
+
+    slides_sample_list = prepare_slides_sample_list(slide_root=args.WSI_dataset_path)
+
+    prepare_tiles_dataset_for_all_slides(slides_sample_list,
+                                         root_output_dir=args.tiled_WSI_dataset_path,
+                                         tile_size=args.edge_size,
+                                         target_mpp=args.target_mpp,
+                                         overwrite=args.overwrite,
+                                         parallel=True)

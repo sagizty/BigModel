@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Aug 21th 14:00
+WSI embedding dataset tools     Script  ver： Aug 22nd 21:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -475,7 +475,7 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
 
     Arguments:
     ----------
-    input_tile_WSI_dataset_path : str
+    input_raw_WSI_dataset_path : str
         Path to the root directory containing slide folders.
     output_WSI_dataset_path : str
         Path to the directory where the embedded slides will be saved.
@@ -789,7 +789,7 @@ def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide
     output_queue.put(error_wsi_infor_list_at_device)
 
 
-def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Path],
+def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path],
                                      output_WSI_dataset_path: Union[str, Path],
                                      model_name: str, model_weight_path: str,
                                      batch_size: int = 32, edge_size: int = 224,
@@ -799,7 +799,7 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
 
     Parameters
     ----------
-    input_tile_WSI_dataset_path : Union[str, Path]
+    input_raw_WSI_dataset_path : Union[str, Path]
         Path to the input dataset containing the tiles of WSIs.
     output_WSI_dataset_path : Union[str, Path]
         Path to save the output embedded tiles.
@@ -832,13 +832,13 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
     multiprocessing.set_start_method('spawn', force=True)
 
     since = time.time()
-    logging.info(f'Cropping and Embedding all_slides_from_tiles_dataset at {input_tile_WSI_dataset_path}')
+    logging.info(f'Cropping and Embedding all_slides_from_tiles_dataset at {input_raw_WSI_dataset_path}')
     logging.info(f'Cropping and Embedding output dataset folder at {output_WSI_dataset_path}')
 
     tile_progress = not parallel
 
     device_list = [f'cuda:{i}' for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else ['cpu']
-    slide_folders = prepare_slides_sample_list(slide_root=input_tile_WSI_dataset_path)
+    slide_folders = prepare_slides_sample_list(slide_root=input_raw_WSI_dataset_path)
     random.shuffle(slide_folders)
     split_slide_folders = [slide_folders[i::len(device_list)] for i in range(len(device_list))]
 
@@ -885,6 +885,35 @@ def embedding_all_slides_from_slides(input_tile_WSI_dataset_path: Union[str, Pat
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Build split and task configs.')
+
+    parser.add_argument('--WSI_dataset_path', type=str,
+                        default='/data/hdd_1/BigModel/sampled_tiles_datasets/',
+                        help='Root path for the datasets')
+    parser.add_argument('--embedded_WSI_dataset_path', type=str,
+                        default='/data/hdd_1/BigModel/sampled_embedded_datasets/',
+                        help='Root path for the datasets')
+
+    parser.add_argument('--model_name', type=str, default='gigapath',
+                        help='name of the embedding model')
+    parser.add_argument('--model_weight_path', type=str, default=None,
+                        help='path of the embedding model weight')
+
+    parser.add_argument('--edge_size', type=int, default=224,
+                        help='edge size of tile')
+
+    parser.add_argument('--batch_size', type=int, default=256,
+                        help='batch_size of embedding model')
+
+    parser.add_argument('--overwrite', action='store_true',
+                        help='overwrite previous embedding at the path')
+
+    parser.add_argument('--crop_on_fly', action='store_true',
+                        help='overwrite previous embedding at the path')
+    args = parser.parse_args()
+
     '''
     # for processing tiles dataset
     # demo with one sample
@@ -901,15 +930,15 @@ if __name__ == '__main__':
                                    batch_size=256, shuffle=False, num_workers=20,
                                    transform=None, suffix='.jpeg', device=device, embedding_progress=True)
                                    
-    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets',
+    embedding_all_slides_from_tiles_dataset(input_raw_WSI_dataset_path='/data/hdd_1/BigModel/tiles_datasets',
                                             output_WSI_dataset_path='/data/hdd_1/BigModel/embedded_datasets',
                                             model_name='gigapath', model_weight_path='timm', batch_size=256,
                                             edge_size=224,
                                             overwrite=True)                               
     # demo with multiple sample
-    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
-                                            model_name='gigapath', model_weight_path='timm', batch_size=256,
+    embedding_all_slides_from_tiles_dataset(input_raw_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets/',
+                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets/',
+                                            model_name='gigapath', model_weight_path=None, batch_size=256,
                                             edge_size=224, overwrite=True)
     '''
 
@@ -934,13 +963,22 @@ if __name__ == '__main__':
                                                tile_progress=True, overwrite=True)
     
     # demo with multiple sample
-    embedding_all_slides_from_slides(input_tile_WSI_dataset_path='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
+    embedding_all_slides_from_slides(input_raw_WSI_dataset_path='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
                                      output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets',
                                      model_name='gigapath', model_weight_path='timm', overwrite=True, parallel=False)
     '''
 
-    # demo with multiple sample
-    embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path='/data/hdd_1/BigModel/sampled_tiles_datasets/',
-                                            output_WSI_dataset_path='/data/hdd_1/BigModel/sampled_embedded_datasets/',
-                                            model_name='gigapath', model_weight_path=None, batch_size=256,
-                                            edge_size=224, overwrite=True)
+    if args.crop_on_fly:
+        embedding_all_slides_from_slides(input_raw_WSI_dataset_path=args.WSI_dataset_path,
+                                         output_WSI_dataset_path=args.embedded_WSI_dataset_path,
+                                         model_name=args.model_name,
+                                         model_weight_path=args.model_weight_path,
+                                         batch_size=args.batch_size, edge_size=args.edge_size,
+                                         overwrite=args.overwrite, parallel=True)
+    else:
+        embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path=args.WSI_dataset_path,
+                                                output_WSI_dataset_path=args.embedded_WSI_dataset_path,
+                                                model_name=args.model_name,
+                                                model_weight_path=args.model_weight_path,
+                                                batch_size=args.batch_size, edge_size=args.edge_size,
+                                                overwrite=args.overwrite)  # , parallel=True
