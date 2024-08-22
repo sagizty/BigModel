@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Aug 22nd 17:30
+MTL dataset framework       Script  ver： Aug 22nd 19:30
 '''
 
 import os
@@ -27,7 +27,7 @@ class SlideDataset(Dataset):
                  slide_id_key='slide_id', split_target_key='split',
                  possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list=['thumbnails', ],
-                 dataset_type='MTL', mode: str = 'TCGA',
+                 dataset_type='MTL',
                  max_tiles=10000,
                  **kwargs):
         """
@@ -55,8 +55,6 @@ class SlideDataset(Dataset):
         possible_suffixes: supported suffix for taking the samples
         dataset_type: 'MTL' for building slide level mtl dataset
 
-        mode: TCGA
-
         everytime it get a sample WSI:
         ----------
         sample = {'image_features': image features [N, D] tensor,
@@ -73,7 +71,7 @@ class SlideDataset(Dataset):
         self.task_cfg = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
         self.split_target_key = split_target_key  # the key to record the fold infor
         self.slide_id_key = slide_id_key
-        self.mode = mode
+        self.mode = self.task_cfg.get('mode')
 
         task_description_csv = task_description_csv or \
                                os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
@@ -437,11 +435,11 @@ if __name__ == '__main__':
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
                                  split_name='train', slide_id_key=slide_id_key,
-                                 split_target_key=split_target_key, mode=mode)
+                                 split_target_key=split_target_key)
     Val_dataset = SlideDataset(root_path, task_description_csv,
                                task_setting_folder_name=task_setting_folder_name,
                                split_name='val', slide_id_key=slide_id_key,
-                               split_target_key=split_target_key, mode=mode)
+                               split_target_key=split_target_key)
 
     print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {

@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 22nd 17:30
+tools for slide level dataset      Script  ver： Aug 22nd 19:30
 
 build and load task config
 """
@@ -225,7 +225,7 @@ def build_task_config_settings(df, new_labels, one_hot_table={}, all_task_dict={
 
 
 def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset_name='lung-mix',
-                               tasks_to_run=None, max_tiles=1000000, shuffle_tiles=True,
+                               tasks_to_run=None, max_tiles=1000000, mode='TCGA', shuffle_tiles=True,
                                excluding_list=('WSI_name', 'split',), yaml_config_name='task_configs.yaml'):
     """
     Build a YAML configuration file from a CSV file containing task descriptions.
@@ -268,7 +268,8 @@ def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset
         'all_task_dict': all_task_dict,
         'one_hot_table': one_hot_table,
         'max_tiles': max_tiles,
-        'shuffle_tiles': shuffle_tiles
+        'shuffle_tiles': shuffle_tiles,
+        'mode': mode
     }
 
     if not os.path.exists(task_settings_path):
@@ -312,7 +313,7 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
     output_dir = os.path.join(root_path, task_setting_folder_name)
     build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name=dataset_name,
                                tasks_to_run=tasks_to_run,
-                               max_tiles=1000000, shuffle_tiles=True,
+                               max_tiles=1000000, shuffle_tiles=True,mode=mode,
                                excluding_list=(slide_id_key, split_target_key),
                                yaml_config_name=yaml_config_name)
     # check
@@ -320,16 +321,51 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
 
 
 if __name__ == '__main__':
-    root_path = '/data/BigModel/embedded_datasets/'
-    task_description_csv = \
-        '/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv'
-    slide_id_key = 'patient_id'
-    split_target_key = 'fold_information'
-    task_setting_folder_name = 'task-settings'
-    mode = 'TCGA'
+    import argparse
+    parser = argparse.ArgumentParser(description='Build split and task configs.')
 
-    dataset_name = 'lung-mix',
-    tasks_to_run = ['CMS', 'COL3A1']
+    parser.add_argument('--root_path', type=str, default='/data/BigModel/embedded_datasets/',
+                        help='Root path for the datasets')
+    parser.add_argument('--task_description_csv', type=str,
+                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
+                        help='Path to the task description CSV')
+    parser.add_argument('--slide_id_key', type=str, default='patient_id',
+                        help='Slide ID key in the dataset')
+    parser.add_argument('--split_target_key', type=str, default='fold_information',
+                        help='Key to split the dataset')
+    parser.add_argument('--task_setting_folder_name', type=str, default='task-settings',
+                        help='Folder name for task settings')
+    parser.add_argument('--mode', type=str, default='TCGA',
+                        help='Mode (e.g., TCGA)')
+    parser.add_argument('--dataset_name', type=str, default='lung-mix',
+                        help='Name of the dataset')
+    parser.add_argument('--tasks_to_run', type=str,
+                        default='iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A',
+                        help='Tasks to run, separated by "%"')
 
-    build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
-                                 slide_id_key, split_target_key, task_setting_folder_name, mode)
+    args = parser.parse_args()
+
+    # Convert tasks_to_run to a list
+    tasks_to_run = args.tasks_to_run.split('%')
+
+    build_split_and_task_configs(
+        root_path=args.root_path,
+        task_description_csv=args.task_description_csv,
+        dataset_name=args.dataset_name,
+        tasks_to_run=tasks_to_run,
+        slide_id_key=args.slide_id_key,
+        split_target_key=args.split_target_key,
+        task_setting_folder_name=args.task_setting_folder_name,
+        mode=args.mode
+    )
+
+    '''
+    python slide_dataset_tools.py --root_path /data/BigModel/embedded_datasets/ \
+    --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
+    --slide_id_key patient_id \
+    --split_target_key fold_information \
+    --task_setting_folder_name task-settings \
+    --mode TCGA \
+    --dataset_name lung-mix \
+    --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
+    '''
