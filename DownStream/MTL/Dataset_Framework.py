@@ -1,7 +1,6 @@
 '''
-MTL dataset framework       Script  ver： Aug 22nd 15:30
+MTL dataset framework       Script  ver： Aug 22nd 17:30
 '''
-
 
 import os
 import sys
@@ -29,7 +28,7 @@ class SlideDataset(Dataset):
                  possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list=['thumbnails', ],
                  dataset_type='MTL', mode: str = 'TCGA',
-                 max_tiles=1000,
+                 max_tiles=10000,
                  **kwargs):
         """
         Slide dataset class for retrieving slide samples for different tasks.
@@ -80,7 +79,8 @@ class SlideDataset(Dataset):
                                os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
         task_description_data_df = pd.read_csv(task_description_csv)
         # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
-        task_description_data_df = task_description_data_df[task_description_data_df[self.split_target_key] == split_name]
+        task_description_data_df = task_description_data_df[
+            task_description_data_df[self.split_target_key] == split_name]
 
         # Find valid slide paths that have tile encodings
         self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[slide_id_key].values,
@@ -92,10 +92,12 @@ class SlideDataset(Dataset):
             # certain patients can have multiple slides
             print('In TCGA mode, we take the patient record as label'
                   ' for the slides corresponding to the same patient')
-            task_description_data_df = task_description_data_df[task_description_data_df[self.slide_id_key].isin(valid_sample_ids)]
+            task_description_data_df = \
+                task_description_data_df[task_description_data_df[self.slide_id_key].isin(valid_sample_ids)]
         else:
             print('In dataset framework, we take the slide_id_key to pair slide id and label csv')
-            task_description_data_df = task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
+            task_description_data_df = \
+                task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
 
         # Set up the task
         self.task_name_list = self.task_cfg.get('tasks_to_run')
@@ -108,6 +110,9 @@ class SlideDataset(Dataset):
         self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False)
         print('Dataset has been initialized with ' + str(len(self.slide_ids)) +
               ' slides for split:', split_name)
+        # check tile distribution
+        self.check_tile_num_distribution(draw_path=os.path.join(root_path, task_setting_folder_name,
+                                                                split_name+'.jpeg'))
 
     def find_slide_paths_and_ids(self, stopping_folder_name_list):
         """
@@ -162,6 +167,49 @@ class SlideDataset(Dataset):
 
         return valid_slide_ids, valid_sample_ids
 
+    def check_tile_num_distribution(self, draw_path):
+        import matplotlib.pyplot as plt
+
+        tile_num_list = []
+        for slide_id in self.slide_ids:
+            # Get the slide path
+            embedded_slide_path = self.slide_paths[slide_id]
+
+            # Read assets from the slide
+            assets, _ = self.read_assets_from_h5(embedded_slide_path)
+            tile_num = len(assets['coords_yx'])
+            tile_num_list.append((slide_id, tile_num))
+
+        # Sort the list based on tile numbers
+        tile_num_list.sort(key=lambda x: x[1])
+
+        # Extract slide IDs and corresponding tile counts
+        slide_ids_sorted, tile_counts_sorted = zip(*tile_num_list)
+
+        # Plotting the distribution of tile numbers
+        plt.figure(figsize=(12, 6))
+        plt.bar(range(len(slide_ids_sorted)), tile_counts_sorted)
+        plt.xticks(range(len(slide_ids_sorted)), [''] * len(slide_ids_sorted))  # Disable printing the slide IDs
+        plt.xlabel('Slide ID')
+        plt.ylabel('Number of Tiles')
+        plt.title('Distribution of Tile Numbers Across Slides')
+
+        # Adding a horizontal orange line indicating `self.max_tiles`
+        plt.axhline(y=self.max_tiles, color='orange', linestyle='--', linewidth=2,
+                    label=f'Taking Max Tiles ({self.max_tiles})')
+
+        # Add the value of `self.max_tiles` to the y-tick labels
+        y_ticks = plt.yticks()[0]  # Get the current y-tick values
+        plt.yticks(list(y_ticks) + [self.max_tiles])  # Add `self.max_tiles` to the y-ticks
+
+        # Add a legend to the plot
+        plt.legend()
+        # Save the plot to the specified path
+        plt.tight_layout()
+        plt.savefig(draw_path)
+        # Display the plot
+        plt.show()
+
     '''
     fixme demo code from previous
     def prepare_single_task_data_list(self, df, split_name_list, task_name_list=['label']):
@@ -193,6 +241,7 @@ class SlideDataset(Dataset):
         return df, slide_ids, slide_labels, n_classes
 
     '''
+
     def prepare_MTL_data_list(self, task_description_csv, task_name_list):
         """Prepare the sample for multi-label task.
 
@@ -235,7 +284,7 @@ class SlideDataset(Dataset):
                     else:  # Classification task
                         task_description_list.append(torch.tensor(99999999))  # Missing label
 
-            labels[WSI_name]=task_description_list
+            labels[WSI_name] = task_description_list
 
         return task_dict, one_hot_table, labels
 
@@ -376,11 +425,13 @@ if __name__ == '__main__':
     task_setting_folder_name = 'task-settings'
     mode = 'TCGA'
 
-    dataset_name = 'lung-mix',
-    tasks_to_run = ['CMS', 'COL3A1']
+    dataset_name = 'TCGA-COAD-READ',
+    tasks_to_run = 'iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A'.split('%')
 
+    '''
     build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
                                  slide_id_key, split_target_key, task_setting_folder_name, mode)
+    '''
 
     # check the dataset
     Train_dataset = SlideDataset(root_path, task_description_csv,

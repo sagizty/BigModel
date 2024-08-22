@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 22nd 15:00
+tools for slide level dataset      Script  ver： Aug 22nd 17:30
 
 build and load task config
 """
@@ -226,7 +226,7 @@ def build_task_config_settings(df, new_labels, one_hot_table={}, all_task_dict={
 
 def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset_name='lung-mix',
                                tasks_to_run=None, max_tiles=1000000, shuffle_tiles=True,
-                               excluding_list=('WSI_name', 'split',)):
+                               excluding_list=('WSI_name', 'split',), yaml_config_name='task_configs.yaml'):
     """
     Build a YAML configuration file from a CSV file containing task descriptions.
 
@@ -274,7 +274,7 @@ def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset
     if not os.path.exists(task_settings_path):
         os.makedirs(task_settings_path)
 
-    yaml_output_path = os.path.join(task_settings_path, 'task_configs.yaml')
+    yaml_output_path = os.path.join(task_settings_path, yaml_config_name)
     if os.path.exists(yaml_output_path):
         os.remove(yaml_output_path)
 
@@ -306,14 +306,17 @@ def load_yaml_config(file_path):
 def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                  tasks_to_run, slide_id_key, split_target_key='fold_information',
                                  task_setting_folder_name='task-settings',
-                                 mode='TCGA', test_ratio=0.2, k=1):
+                                 mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml'):
     build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
                              mode=mode, key=split_target_key)
     output_dir = os.path.join(root_path, task_setting_folder_name)
     build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name=dataset_name,
                                tasks_to_run=tasks_to_run,
                                max_tiles=1000000, shuffle_tiles=True,
-                               excluding_list=(slide_id_key, split_target_key))
+                               excluding_list=(slide_id_key, split_target_key),
+                               yaml_config_name=yaml_config_name)
+    # check
+    load_yaml_config(os.path.join(root_path, task_setting_folder_name, yaml_config_name))
 
 
 if __name__ == '__main__':
