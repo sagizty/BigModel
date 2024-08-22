@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Aug 22rd, 2024 16:30
+MTL Train     Script  ver： Aug 22nd 19:30
 
 flexible to multiple-tasks and missing labels
 
@@ -392,12 +392,12 @@ def main(args):
     Train_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                  task_setting_folder_name=args.task_setting_folder_name,
                                  split_name='train', slide_id_key=args.slide_id_key,
-                                 split_target_key=args.split_target_key, mode=args.mode,
+                                 split_target_key=args.split_target_key,
                                  max_tiles=args.max_tiles)
     Val_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                task_setting_folder_name=args.task_setting_folder_name,
                                split_name='val', slide_id_key=args.slide_id_key,
-                               split_target_key=args.split_target_key, mode=args.mode,
+                               split_target_key=args.split_target_key,
                                max_tiles=args.max_tiles)
 
     # print(Train_dataset.get_embedded_sample_with_try(20))
@@ -493,8 +493,7 @@ def get_args_parser():
     # labels
     parser.add_argument('--task_description_csv',
                         default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
-                        type=str,
-                        help='label csv file path')
+                        type=str, help='label csv file path')
 
     # Task settings and configurations for dataloaders
     parser.add_argument('--task_setting_folder_name', default='task-settings', type=str,
@@ -503,8 +502,6 @@ def get_args_parser():
                         help='key for mapping the label')
     parser.add_argument('--split_target_key', default='fold_information', type=str,
                         help='key identifying the split information')
-    parser.add_argument('--mode', default='TCGA', type=str,
-                        help='dataset mode')
     parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
     parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
 

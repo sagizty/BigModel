@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Aug 22rd, 2024 16:30
+MTL Test      Script  ver： Aug 22nd 19:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -318,7 +318,7 @@ def main(args):
     dataset = SlideDataset(args.root_path, args.task_description_csv,
                            task_setting_folder_name=args.task_setting_folder_name,
                            split_name='test', slide_id_key=args.slide_id_key,
-                           split_target_key=args.split_target_key, mode=args.mode,
+                           split_target_key=args.split_target_key,
                            max_tiles=args.max_tiles)
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
@@ -396,8 +396,7 @@ def get_args_parser():
     # labels
     parser.add_argument('--task_description_csv',
                         default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
-                        type=str,
-                        help='label csv file path')
+                        type=str, help='label csv file path')
     # old task config (this allows testing old model on new set of tasks)
     parser.add_argument('--old_task_config', default=None, type=str,
                         help='path to old training config file')
@@ -409,8 +408,6 @@ def get_args_parser():
                         help='key for mapping the label')
     parser.add_argument('--split_target_key', default='fold_information', type=str,
                         help='key identifying the split information')
-    parser.add_argument('--mode', default='TCGA', type=str,
-                        help='dataset mode')
     parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
     parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
 

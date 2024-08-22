@@ -44,15 +44,15 @@ if __name__ == '__main__':
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
                                  split_name='train', slide_id_key=slide_id_key,
-                                 split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
+                                 split_target_key=split_target_key, max_tiles=max_tiles)
     Val_dataset = SlideDataset(root_path, task_description_csv,
                                task_setting_folder_name=task_setting_folder_name,
                                split_name='val', slide_id_key=slide_id_key,
-                               split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
+                               split_target_key=split_target_key, max_tiles=max_tiles)
     Test_dataset = SlideDataset(root_path, task_description_csv,
                                 task_setting_folder_name=task_setting_folder_name,
                                 split_name='test', slide_id_key=slide_id_key,
-                                split_target_key=split_target_key, mode=mode,max_tiles=max_tiles)
+                                split_target_key=split_target_key, max_tiles=max_tiles)
 
     # print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {
