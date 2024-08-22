@@ -90,7 +90,7 @@ if __name__ == '__main__':
     model = model.to(device)
     # this have bug for gigapath intrain, but ok with val, possible issue with Triton
     # model = torch.compile(model)
-    model.eval()  # Set model to evaluation mode to save GPU RAM (here we are just testing)
+    # model.eval()  # Set model to evaluation mode to save GPU RAM (here we are just testing)
 
     sample_count = 0
     failed_sample = []
@@ -105,14 +105,15 @@ if __name__ == '__main__':
                 image_features = image_features.to(device, non_blocking=True)
                 coords_yx = coords_yx.to(device, non_blocking=True)
                 # label = label.to(device, non_blocking=True).long()
+                
+                # with torch.no_grad():  # No need for gradient computation during embedding
+                with torch.cuda.amp.autocast(dtype=torch.float16):
+                    slide_embeds = model(image_features, coords_yx)
+                    # layer_outputs = {"layer_{}_embed".format(i): slide_embeds[i].cpu() for i in range(len(slide_embeds))}
+                    # layer_outputs["last_layer_embed"] = slide_embeds[-1].cpu()
+                print(slide_embeds)
+                sample_count += 1
 
-                with torch.no_grad():  # No need for gradient computation during embedding
-                    with torch.cuda.amp.autocast(dtype=torch.float16):
-                        slide_embeds = model(image_features, coords_yx)
-                        # layer_outputs = {"layer_{}_embed".format(i): slide_embeds[i].cpu() for i in range(len(slide_embeds))}
-                        # layer_outputs["last_layer_embed"] = slide_embeds[-1].cpu()
-                    print(slide_embeds)
-                    sample_count += 1
             except:
                 failed_sample.append(slide_id)
     print('**********************************************************')
