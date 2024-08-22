@@ -1,5 +1,5 @@
 """
-MTL Train   Script  ver： Aug 21th, 2024 18:00
+MTL Train     Script  ver： Aug 22rd, 2024 16:30
 
 flexible to multiple-tasks and missing labels
 
@@ -26,20 +26,11 @@ import torch.nn as nn
 import numpy as np
 from tensorboardX import SummaryWriter
 
-try:
-    from DownStream.MTL.slide_dataset_tools import *
-    from DownStream.MTL.Dataset_Framework import *
-    from ModelBase.Get_WSI_model import build_WSI_task_model
-    from DownStream.MTL.Task_settings import task_filter_auto
-    from Utils.MTL_plot_json import check_json_with_plot
-    from Utils.tools import setup_seed
-except:
-    from PuzzleAI.DownStream.MTL.slide_dataset_tools import *
-    from PuzzleAI.DownStream.MTL.Dataset_Framework import *
-    from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
-    from PuzzleAI.ModelBase.Task_settings import task_filter_auto
-    from PuzzleAI.Utils.MTL_plot_json import check_json_with_plot
-    from PuzzleAI.Utils.tools import setup_seed
+from PuzzleAI.DownStream.MTL.Dataset_Framework import *
+from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto
+from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
+from PuzzleAI.Utils.MTL_plot_json import check_json_with_plot
+from PuzzleAI.Utils.tools import setup_seed
 
 
 def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler, loss_weight, task_dict, task_describe,
@@ -401,11 +392,13 @@ def main(args):
     Train_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                  task_setting_folder_name=args.task_setting_folder_name,
                                  split_name='train', slide_id_key=args.slide_id_key,
-                                 split_target_key=args.split_target_key, mode=args.mode)
+                                 split_target_key=args.split_target_key, mode=args.mode,
+                                 max_tiles=args.max_tiles)
     Val_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                task_setting_folder_name=args.task_setting_folder_name,
                                split_name='val', slide_id_key=args.slide_id_key,
-                               split_target_key=args.split_target_key, mode=args.mode)
+                               split_target_key=args.split_target_key, mode=args.mode,
+                               max_tiles=args.max_tiles)
 
     # print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {
@@ -456,7 +449,8 @@ def main(args):
                                  ROI_feature_dim=args.ROI_feature_dim,
                                  MTL_heads=MTL_heads, latent_feature_dim=args.latent_feature_dim)
     model = model.to(device)
-    model = torch.compile(model)
+    # fixme this have bug for gigapath in train, but ok with val, possible issue with Triton
+    # model = torch.compile(model)
 
     print('GPU:', gpu_use)
     if gpu_use == -1:
@@ -512,6 +506,7 @@ def get_args_parser():
     parser.add_argument('--mode', default='TCGA', type=str,
                         help='dataset mode')
     parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
+    parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
 
     # module settings
     parser.add_argument('--latent_feature_dim', default=128, type=int, help='MTL module dim')
@@ -520,17 +515,16 @@ def get_args_parser():
                         help='feature embed_dim , default 768')
 
     # Model settings
-    parser.add_argument('--model_name', default='gigapath', type=str,
-                        help='slide level model name')
+    parser.add_argument('--model_name', default='gigapath', type=str, help='slide level model name')
 
     # training settings
     parser.add_argument('--batch_size', default=1, type=int,
                         help='batch_size , default 1')
-    parser.add_argument('--num_epochs', default=200, type=int,
+    parser.add_argument('--num_epochs', default=100, type=int,
                         help='total training epochs, default 200')
-    parser.add_argument('--warmup_epochs', default=50, type=int,
+    parser.add_argument('--warmup_epochs', default=10, type=int,
                         help='warmup_epochs training epochs, default 50')
-    parser.add_argument('--intake_epochs', default=150, type=int,
+    parser.add_argument('--intake_epochs', default=50, type=int,
                         help='only save model at epochs after intake_epochs')
     parser.add_argument('--accum_iter_train', default=2, type=int,
                         help='training accum_iter for loss accuming, default 2')

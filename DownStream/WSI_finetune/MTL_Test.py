@@ -1,5 +1,5 @@
 """
-MTL Test   Script  ver： Aug 21th, 2024 18:00
+MTL Test      Script  ver： Aug 22rd, 2024 16:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -21,14 +21,14 @@ import numpy as np
 try:
     from DownStream.MTL.slide_dataset_tools import *
     from DownStream.MTL.Dataset_Framework import *
-    from ModelBase.Get_WSI_model import build_WSI_task_model
     from DownStream.MTL.Task_settings import task_filter_auto, task_idx_converter, result_recorder
+    from ModelBase.Get_WSI_model import build_WSI_task_model
     from Utils.tools import setup_seed
 except:
     from PuzzleAI.DownStream.MTL.slide_dataset_tools import *
     from PuzzleAI.DownStream.MTL.Dataset_Framework import *
+    from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto, task_idx_converter, result_recorder
     from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
-    from PuzzleAI.ModelBase.Task_settings import task_filter_auto, task_idx_converter, result_recorder
     from PuzzleAI.Utils.tools import setup_seed
 
 
@@ -210,7 +210,8 @@ def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, ta
                     # update accum
                     accum_running_loss[task_idx] += temp_running_loss[task_idx]
                     # update average running
-                    valid_num = check_minibatch * len(task_description_list[0]) - minibatch_missing_task_sample_count[task_idx]
+                    valid_num = check_minibatch * len(task_description_list[0]) - minibatch_missing_task_sample_count[
+                        task_idx]
                     # fixme in test maybe we can easy the limit (wrt. valid_num)?
                     #  if we want to check something (or maybe assign an empty label in dataset without task_description_list)
                     assert valid_num != 0  # whole check runs should have at least 1 sample with 1 label
@@ -315,9 +316,10 @@ def main(args):
 
     # test dataloader
     dataset = SlideDataset(args.root_path, args.task_description_csv,
-                 task_setting_folder_name=args.task_setting_folder_name,
-                 split_name='test', slide_id_key=args.slide_id_key,
-                 split_target_key=args.split_target_key, mode=args.mode)
+                           task_setting_folder_name=args.task_setting_folder_name,
+                           split_name='test', slide_id_key=args.slide_id_key,
+                           split_target_key=args.split_target_key, mode=args.mode,
+                           max_tiles=args.max_tiles)
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                              collate_fn=MTL_WSI_collate_fn,
@@ -410,6 +412,7 @@ def get_args_parser():
     parser.add_argument('--mode', default='TCGA', type=str,
                         help='dataset mode')
     parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
+    parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
 
     # module settings
     parser.add_argument('--latent_feature_dim', default=128, type=int, help='MTL module dim')

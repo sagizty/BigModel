@@ -105,7 +105,7 @@ if __name__ == '__main__':
                 image_features = image_features.to(device, non_blocking=True)
                 coords_yx = coords_yx.to(device, non_blocking=True)
                 # label = label.to(device, non_blocking=True).long()
-                
+
                 # with torch.no_grad():  # No need for gradient computation during embedding
                 with torch.cuda.amp.autocast(dtype=torch.float16):
                     slide_embeds = model(image_features, coords_yx)
