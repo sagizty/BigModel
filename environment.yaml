@@ -42,3 +42,4 @@ dependencies:
       - openslide-python
       - scikit-image
       - opencv_contrib_python
+      - tensorboardX
