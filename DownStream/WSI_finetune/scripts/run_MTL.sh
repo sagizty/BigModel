@@ -1,10 +1,27 @@
 #!/bin/bash
+# Script  ver： Aug 22nd 21:00
 set -e
 
 conda activate gigapath
 cd /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI
 
-# make the dataset
+# Tile the dataset
+python DataPipe/Tiles_dataset.py \
+    --WSI_dataset_path /data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample \
+    --tiled_WSI_dataset_path /data/hdd_1/BigModel/sampled_tiles_datasets \
+    --edge_size 224 \
+    --target_mpp 0.5
+
+# Embed the dataset
+python DataPipe/Tiles_dataset.py \
+    --WSI_dataset_path /data/hdd_1/BigModel/sampled_tiles_datasets \
+    --embedded_WSI_dataset_path /data/hdd_1/BigModel/sampled_embedded_datasets \
+    --model_name gigapath \
+    --edge_size 224 \
+    --batch_size 256 \
+    --target_mpp 0.5
+
+# Make the dataset for MTL
 python DownStream/MTL/slide_dataset_tools.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
