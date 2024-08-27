@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Aug 22nd 21:00
+WSI tile cropping dataset tools   Script  ver： Aug 27nd 14:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -436,6 +436,9 @@ if __name__ == '__main__':
     # Configure logging
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
+
+    # Suppress the specific RuntimeWarning related to overflow
+    warnings.filterwarnings("ignore", category=RuntimeWarning, message="overflow encountered in reduce")
 
     slides_sample_list = prepare_slides_sample_list(slide_root=args.WSI_dataset_path)
 
