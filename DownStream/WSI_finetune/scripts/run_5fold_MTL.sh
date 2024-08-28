@@ -11,7 +11,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-1 \
@@ -26,7 +26,7 @@ python DownStream/WSI_finetune/MTL_Test.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-1 \
@@ -47,7 +47,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-2 \
@@ -62,7 +62,7 @@ python DownStream/WSI_finetune/MTL_Test.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-2 \
@@ -83,7 +83,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-3 \
@@ -98,7 +98,7 @@ python DownStream/WSI_finetune/MTL_Test.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-3 \
@@ -119,7 +119,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-4 \
@@ -134,7 +134,7 @@ python DownStream/WSI_finetune/MTL_Test.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-4 \
@@ -155,7 +155,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-5 \
@@ -170,7 +170,7 @@ python DownStream/WSI_finetune/MTL_Test.py \
     --root_path /data/BigModel/embedded_datasets/ \
     --save_model_path /data/BigModel/saved_models/ \
     --runs_path /data/BigModel/runs/ \
-    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv \
+    --task_description_csv /data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-5 \
