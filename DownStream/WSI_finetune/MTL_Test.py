@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Aug 22nd 19:30
+MTL Test      Script  ver： Aug 28th 19:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -114,7 +114,8 @@ def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, ta
         running_loss = 0.0  # all tasks loss over a batch
 
         with torch.cuda.amp.autocast():
-            y = model(image_features, coords_yx)  # y is the predication on all old tasks (of training)
+            with torch.no_grad():
+                y = model(image_features, coords_yx)  # y is the predication on all old tasks (of training)
 
             for task_idx in range(task_num):
                 head_loss = 0.0  # head_loss for a task_idx with all samples in a same batch
@@ -360,7 +361,7 @@ def main(args):
     # device enviorment
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # build model
-    model = build_WSI_task_model(model_name=args.model_name, local_weight_path=None,
+    model = build_WSI_task_model(model_name=args.model_name, local_weight_path=False,
                                  ROI_feature_dim=args.ROI_feature_dim,
                                  MTL_heads=MTL_heads, latent_feature_dim=args.latent_feature_dim)
     # load model
