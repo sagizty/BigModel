@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 26th 15:30
+tools for slide level dataset      Script  ver： Aug 28th 20:30
 
 build and load task config
 """
@@ -187,9 +187,10 @@ def load_pickle_data_split_for_csv(task_description_csv, slide_id_key='slide_id'
 
     Demo
     # load 5 fold pkl to csv
-    load_pickle_data_split_for_csv(task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/TCGA_Log_Transcriptome_Final.csv',
-                                   slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
-                                   mode='TCGA', k=5)
+    load_pickle_data_split_for_csv(
+        task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
+        slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
+        mode='TCGA', k=5)
     """
     import pickle
 
@@ -374,13 +375,20 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                  tasks_to_run, slide_id_key, split_target_key='fold_information',
                                  task_setting_folder_name='task-settings',
                                  mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml'):
+
     build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
                              mode=mode, key=split_target_key)
+
     output_dir = os.path.join(root_path, task_setting_folder_name)
+
+    excluding_list = [slide_id_key, split_target_key]
+    if k > 1:
+        excluding_list.extend([split_target_key + '_{}fold-{}'.format(k, fold) for fold in range(1,k+1)])
+
     build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name=dataset_name,
                                tasks_to_run=tasks_to_run,
                                max_tiles=1000000, shuffle_tiles=True,mode=mode,
-                               excluding_list=(slide_id_key, split_target_key),
+                               excluding_list=excluding_list,
                                yaml_config_name=yaml_config_name)
     # check
     load_yaml_config(os.path.join(root_path, task_setting_folder_name, yaml_config_name))
@@ -394,7 +402,7 @@ if __name__ == '__main__':
     parser.add_argument('--root_path', type=str, default='/data/BigModel/embedded_datasets/',
                         help='Root path for the datasets')
     parser.add_argument('--task_description_csv', type=str,
-                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
+                        default='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
                         help='Path to the task description CSV')
     parser.add_argument('--slide_id_key', type=str, default='patient_id',
                         help='Slide ID key in the dataset')
@@ -404,10 +412,13 @@ if __name__ == '__main__':
                         help='Folder name for task settings')
     parser.add_argument('--mode', type=str, default='TCGA',
                         help='Mode (e.g., TCGA)')
-    parser.add_argument('--dataset_name', type=str, default='lung-mix',
+    parser.add_argument('--k', type=int, default=5,
+                        help='k-fold k num')
+
+    parser.add_argument('--dataset_name', type=str, default='coad-read',
                         help='Name of the dataset')
     parser.add_argument('--tasks_to_run', type=str,
-                        default='iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A',
+                        default='EPCAM%CDH1%COL3A1%MYH11%CD3E%SPOCK2%PECAM1%CD14%SPP1%IL1B',
                         help='Tasks to run, separated by "%"')
 
     args = parser.parse_args()
@@ -423,7 +434,8 @@ if __name__ == '__main__':
         slide_id_key=args.slide_id_key,
         split_target_key=args.split_target_key,
         task_setting_folder_name=args.task_setting_folder_name,
-        mode=args.mode
+        mode=args.mode,
+        k=args.k
     )
 
     '''
@@ -436,3 +448,12 @@ if __name__ == '__main__':
     --dataset_name lung-mix \
     --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
     '''
+    
+    '''
+    # load 5 fold pkl to csv (if we need to load 5 fold from previous split)
+    load_pickle_data_split_for_csv(
+        task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
+        slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
+        mode='TCGA', k=5)
+    '''
+    
