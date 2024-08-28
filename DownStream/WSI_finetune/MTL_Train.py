@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Aug 22nd 19:30
+MTL Train     Script  ver： Aug 28th 19:30
 
 flexible to multiple-tasks and missing labels
 
@@ -525,7 +525,7 @@ def get_args_parser():
                         help='only save model at epochs after intake_epochs')
     parser.add_argument('--accum_iter_train', default=2, type=int,
                         help='training accum_iter for loss accuming, default 2')
-    parser.add_argument('--lr', default=0.00001, type=float,
+    parser.add_argument('--lr', default=0.000001, type=float,
                         help='training learning rate, default 0.00001')
     parser.add_argument('--lrf', default=0.1, type=float,
                         help='Cosine learning rate decay times, default 0.1')
