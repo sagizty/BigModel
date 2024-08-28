@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Aug 28th 19:30
+MTL Test      Script  ver： Aug 28th 21:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -300,11 +300,11 @@ def main(args):
     # build task settings
     task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
     task_dict, MTL_heads, criterions, loss_weight, class_num, task_describe = \
-        task_filter_auto(task_config_path, latent_feature_dim=args.latent_feature_dim)
+        task_filter_auto(task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
     print('task_dict', task_dict)
     if args.old_task_config is not None and os.path.exists(args.old_task_config):
         old_task_dict, MTL_heads, _, _, _, _ = \
-            task_filter_auto(args.old_task_config, latent_feature_dim=args.latent_feature_dim)
+            task_filter_auto(task_config_path=args.old_task_config, latent_feature_dim=args.latent_feature_dim)
         print('old_task_dict', old_task_dict)
         idx_converter = task_idx_converter(old_task_dict, task_dict)
     else:
