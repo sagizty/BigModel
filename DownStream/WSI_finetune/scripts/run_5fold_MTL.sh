@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script  ver： Aug 26th 16:00
+# Script  ver： Aug 28th 20:00
 set -e
 
 # conda activate gigapath
@@ -15,7 +15,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-1 \
-    --num_epochs 100 \
+    --num_epochs 200 \
     --warmup_epochs 10 \
     --intake_epochs 50 \
     --tag fold-1
@@ -51,7 +51,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-2 \
-    --num_epochs 100 \
+    --num_epochs 200 \
     --warmup_epochs 10 \
     --intake_epochs 50 \
     --tag fold-2
@@ -87,7 +87,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-3 \
-    --num_epochs 100 \
+    --num_epochs 200 \
     --warmup_epochs 10 \
     --intake_epochs 50 \
     --tag fold-3
@@ -123,7 +123,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-4 \
-    --num_epochs 100 \
+    --num_epochs 200 \
     --warmup_epochs 10 \
     --intake_epochs 50 \
     --tag fold-4
@@ -159,7 +159,7 @@ python DownStream/WSI_finetune/MTL_Train.py \
     --task_setting_folder_name task-settings-5folds \
     --slide_id_key patient_id \
     --split_target_key fold_information_5fold-5 \
-    --num_epochs 100 \
+    --num_epochs 200 \
     --warmup_epochs 10 \
     --intake_epochs 50 \
     --tag fold-5
@@ -184,4 +184,5 @@ python Utils/Decode_correlation.py \
     --WSI_tasks True \
     --task_setting_folder_name task-settings-5folds \
     --tag fold-5
+
 set +e
