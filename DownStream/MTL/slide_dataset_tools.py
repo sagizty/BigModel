@@ -408,7 +408,7 @@ if __name__ == '__main__':
                         help='Slide ID key in the dataset')
     parser.add_argument('--split_target_key', type=str, default='fold_information',
                         help='Key to split the dataset')
-    parser.add_argument('--task_setting_folder_name', type=str, default='task-settings',
+    parser.add_argument('--task_setting_folder_name', type=str, default='task-settings-5folds',
                         help='Folder name for task settings')
     parser.add_argument('--mode', type=str, default='TCGA',
                         help='Mode (e.g., TCGA)')
@@ -448,7 +448,7 @@ if __name__ == '__main__':
     --dataset_name lung-mix \
     --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
     '''
-    
+
     '''
     # load 5 fold pkl to csv (if we need to load 5 fold from previous split)
     load_pickle_data_split_for_csv(
@@ -456,4 +456,3 @@ if __name__ == '__main__':
         slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
         mode='TCGA', k=5)
     '''
-    
