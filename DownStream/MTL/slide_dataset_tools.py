@@ -437,7 +437,7 @@ if __name__ == '__main__':
         mode=args.mode,
         k=args.k
     )
-
+    # demo
     '''
     python slide_dataset_tools.py --root_path /data/BigModel/embedded_datasets/ \
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
