@@ -322,6 +322,13 @@ def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset
     # By default, all columns except slide_id_key will be used as label.
     tentative_task_labels = [col for col in task_description.columns if col not in excluding_list]
 
+    if tasks_to_run is not None:
+        for task in tasks_to_run:
+            assert task in tentative_task_labels
+    else:
+        # take all tasks as valid tasks
+        tasks_to_run = tentative_task_labels
+
     one_hot_table, all_task_dict, selected_new_labels = \
         build_task_config_settings(task_description, tentative_task_labels, one_hot_table, all_task_dict)
 
