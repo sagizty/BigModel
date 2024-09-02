@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 28th 20:30
+tools for slide level dataset      Script  ver： Sep 2th 11:30
 
 build and load task config
 """
@@ -383,6 +383,8 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                  task_setting_folder_name='task-settings',
                                  mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml'):
 
+    assert os.path.exists(root_path), 'root_path does not exist: {}'.format(root_path)
+
     build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
                              mode=mode, key=split_target_key)
 
@@ -453,7 +455,19 @@ if __name__ == '__main__':
     --task_setting_folder_name task-settings \
     --mode TCGA \
     --dataset_name lung-mix \
-    --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
+    --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A \
+    --k 5
+    
+    
+    python slide_dataset_tools.py --root_path /data/BigModel/embedded_lung/ \
+    --task_description_csv /data/BigModel/embedded_lung/task-settings/TCGA-LUNG-task_description.csv \
+    --slide_id_key WSI_name \
+    --split_target_key fold_information \
+    --task_setting_folder_name task-settings \
+    --mode None \
+    --dataset_name lung-mix \
+    --tasks_to_run purity%FRACTION_GENOME_ALTERED%AJCC_PATHOLOGIC_TUMOR_STAGE_reduced%lung-cancer-subtyping \
+    --k 1
     '''
 
     '''
