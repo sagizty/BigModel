@@ -1,0 +1,1 @@
+huggingface-cli download --token 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 --resume-download prov-gigapath/prov-gigapath --local-dir /home/workenv/PuzzleAI/model_weights/

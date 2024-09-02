@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Aug 22nd 21:00
+WSI embedding dataset tools     Script  ver： Sep 2nd 21:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -22,20 +22,28 @@ from pathlib import Path
 
 # For convinience
 this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent))
+sys.path.append(str(this_file_dir.parent.parent))
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
-import gc
+# Prevent conflict with OpenMP
+os.environ["MKL_THREADING_LAYER"] = "GNU"
+
+
 import json
 import yaml
 import h5py
+import numpy as np
+import pandas as pd
+
+import gc
 import torch
 import logging
 import time
 import timm
 import random
 import shutil
-import pandas as pd
-import numpy as np
+import argparse
 import tempfile
 from typing import Optional, List, Tuple, Union
 from PIL import Image
@@ -754,7 +762,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
 def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide_folders, output_queue,
                                     output_WSI_dataset_path, batch_size, edge_size, overwrite, tile_progress,
-                                    parallel=False, num_workers=1):
+                                    target_mpp, parallel=False, num_workers=1):
     # Setup logging in each subprocess
     log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
     setup_logging(log_file_path)
@@ -781,7 +789,7 @@ def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide
                                                        thumbnail_dir=output_WSI_dataset_path,
                                                        batch_size=batch_size, shuffle=False,
                                                        num_workers=1, transform=None, tile_size=edge_size,
-                                                       device=device,
+                                                       target_mpp=target_mpp, device=device,
                                                        chunk_scale_in_tiles=4,
                                                        tile_progress=tile_progress, overwrite=overwrite)
         if error_wsi_infor:
@@ -791,7 +799,7 @@ def crop_and_embed_slides_at_device(device, model_name, model_weight_path, slide
 
 def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path],
                                      output_WSI_dataset_path: Union[str, Path],
-                                     model_name: str, model_weight_path: str,
+                                     model_name: str, model_weight_path: str, target_mpp: float,
                                      batch_size: int = 32, edge_size: int = 224,
                                      overwrite: bool = False, parallel: bool = False) -> List[Optional[str]]:
     """
@@ -807,6 +815,8 @@ def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path
         Name of the pre-trained model to use for embedding.
     model_weight_path : str
         Path to the pre-trained model weights.
+    target_mpp : float
+        0.5 for prov-gigapath
     batch_size : int, optional
         Batch size for processing tiles (default is 32).
     edge_size : int, optional
@@ -851,7 +861,7 @@ def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path
         p = multiprocessing.Process(target=crop_and_embed_slides_at_device,
                                     args=(device, model_name, model_weight_path, device_slide_folders,
                                           output_queue, output_WSI_dataset_path, batch_size, edge_size,
-                                          overwrite, tile_progress, parallel, num_workers))
+                                          overwrite, tile_progress, target_mpp, parallel, num_workers))
         p.start()
         processes.append(p)
 
@@ -884,9 +894,31 @@ def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path
     return error_wsi_infor_list
 
 
-if __name__ == '__main__':
-    import argparse
+def main(args):
+    # TODO: add args.target_mpp
 
+    if args.crop_on_fly:
+        embedding_all_slides_from_slides(
+            input_raw_WSI_dataset_path=args.WSI_dataset_path,
+            output_WSI_dataset_path=args.embedded_WSI_dataset_path,
+            model_name=args.model_name,
+            model_weight_path=args.model_weight_path,
+            target_mpp=args.target_mpp,
+            batch_size=args.batch_size, edge_size=args.edge_size,
+            overwrite=args.overwrite, parallel=True)
+    else:
+        embedding_all_slides_from_tiles_dataset(
+            input_tile_WSI_dataset_path=args.WSI_dataset_path,
+            output_WSI_dataset_path=args.embedded_WSI_dataset_path,
+            model_name=args.model_name,
+            model_weight_path=args.model_weight_path,
+            batch_size=args.batch_size, edge_size=args.edge_size,
+            overwrite=args.overwrite)  # , parallel=True
+
+
+def get_args_parser():
+    """Input parameters
+    """
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--WSI_dataset_path', type=str,
@@ -907,13 +939,19 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size of embedding model')
 
+    parser.add_argument('--target_mpp', type=float, default=0.5,
+                        help='target_mpp')
+
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite previous embedding at the path')
 
     parser.add_argument('--crop_on_fly', action='store_true',
                         help='overwrite previous embedding at the path')
-    args = parser.parse_args()
 
+    return parser
+
+
+if __name__ == '__main__':
     '''
     # for processing tiles dataset
     # demo with one sample
@@ -968,17 +1006,9 @@ if __name__ == '__main__':
                                      model_name='gigapath', model_weight_path='timm', overwrite=True, parallel=False)
     '''
 
-    if args.crop_on_fly:
-        embedding_all_slides_from_slides(input_raw_WSI_dataset_path=args.WSI_dataset_path,
-                                         output_WSI_dataset_path=args.embedded_WSI_dataset_path,
-                                         model_name=args.model_name,
-                                         model_weight_path=args.model_weight_path,
-                                         batch_size=args.batch_size, edge_size=args.edge_size,
-                                         overwrite=args.overwrite, parallel=True)
-    else:
-        embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path=args.WSI_dataset_path,
-                                                output_WSI_dataset_path=args.embedded_WSI_dataset_path,
-                                                model_name=args.model_name,
-                                                model_weight_path=args.model_weight_path,
-                                                batch_size=args.batch_size, edge_size=args.edge_size,
-                                                overwrite=args.overwrite)  # , parallel=True
+    parser = get_args_parser()
+    args = parser.parse_args()
+    main(args)
+
+
+    

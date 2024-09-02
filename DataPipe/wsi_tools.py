@@ -1,5 +1,5 @@
 """
-tools to process WSI     Script  ver： Aug 8th 17:00
+tools to process WSI     Script  ver： Sep 2nd 14:00
 a WSI is a scanned whole slide image of some tissue region and many blank background
 
 Terminology:
@@ -50,8 +50,8 @@ import warnings
 import multiprocessing
 
 try:
-    from .bbox_tools import get_ROI_bounding_box_list, Box
-    from .segmentation_and_filtering_tools import *
+    from bbox_tools import get_ROI_bounding_box_list, Box
+    from segmentation_and_filtering_tools import *
 except:
     from PuzzleAI.DataPipe.bbox_tools import get_ROI_bounding_box_list, Box
     from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *

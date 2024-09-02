@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Aug 22nd 19:30
+MTL Train     Script  ver： Sep 2nd 19:30
 
 flexible to multiple-tasks and missing labels
 
@@ -445,7 +445,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # build model
-    model = build_WSI_task_model(model_name=args.model_name, local_weight_path=None,
+    model = build_WSI_task_model(model_name=args.model_name, local_weight_path=args.local_weight_path,
                                  ROI_feature_dim=args.ROI_feature_dim,
                                  MTL_heads=MTL_heads, latent_feature_dim=args.latent_feature_dim)
     model = model.to(device)
@@ -487,6 +487,8 @@ def get_args_parser():
     # PATH
     parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
                         help='MTL dataset root')
+    parser.add_argument('--local_weight_path', default='/home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth', type=str,
+                        help='local weight path')
     parser.add_argument('--save_model_path', default='../saved_models', type=str,
                         help='save model root')
     parser.add_argument('--runs_path', default='../runs', type=str, help='save runing results path')

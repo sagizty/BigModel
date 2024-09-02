@@ -1,0 +1,6 @@
+__pycache__/
+*.pth
+*.log
+
+Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv
+ModelWeight/

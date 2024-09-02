@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Aug 22nd 21:00
+WSI tile cropping dataset tools   Script  ver： Sep 2nd 14:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -35,6 +35,7 @@ sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 import time
 import torch
+import argparse
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -411,9 +412,22 @@ def tile_ROI_loadding_dataset(slide_image_path):
     pass
 
 
-if __name__ == '__main__':
-    import argparse
+def main(args):
+    slides_sample_list = prepare_slides_sample_list(
+        slide_root=args.WSI_dataset_path)
 
+    prepare_tiles_dataset_for_all_slides(
+        slides_sample_list,
+        root_output_dir=args.tiled_WSI_dataset_path,
+        tile_size=args.edge_size,
+        target_mpp=args.target_mpp,
+        overwrite=args.overwrite,
+        parallel=True)
+
+
+def get_args_parser():
+    """Input parameters
+    """
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--WSI_dataset_path', type=str,
@@ -431,17 +445,18 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite previous embedding at the path')
 
-    args = parser.parse_args()
+    return parser
+
+
+if __name__ == '__main__':
 
     # Configure logging
     logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s:%(message)s')
 
-    slides_sample_list = prepare_slides_sample_list(slide_root=args.WSI_dataset_path)
+    # Suppress the specific RuntimeWarning related to overflow
+    warnings.filterwarnings("ignore", category=RuntimeWarning, message="overflow encountered in reduce")
 
-    prepare_tiles_dataset_for_all_slides(slides_sample_list,
-                                         root_output_dir=args.tiled_WSI_dataset_path,
-                                         tile_size=args.edge_size,
-                                         target_mpp=args.target_mpp,
-                                         overwrite=args.overwrite,
-                                         parallel=True)
+    parser = get_args_parser()
+    args = parser.parse_args()
+    main(args)
