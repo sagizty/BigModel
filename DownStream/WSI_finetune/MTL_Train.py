@@ -26,11 +26,19 @@ import torch.nn as nn
 import numpy as np
 from tensorboardX import SummaryWriter
 
-from PuzzleAI.DownStream.MTL.Dataset_Framework import *
-from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto
-from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
-from PuzzleAI.Utils.MTL_plot_json import check_json_with_plot
-from PuzzleAI.Utils.tools import setup_seed
+
+try:
+    from DownStream.MTL.Dataset_Framework import *
+    from DownStream.MTL.Task_settings import task_filter_auto
+    from ModelBase.Get_WSI_model import build_WSI_task_model
+    from Utils.MTL_plot_json import check_json_with_plot
+    from Utils.tools import setup_seed
+except:
+    from PuzzleAI.DownStream.MTL.Dataset_Framework import *
+    from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto
+    from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
+    from PuzzleAI.Utils.MTL_plot_json import check_json_with_plot
+    from PuzzleAI.Utils.tools import setup_seed
 
 
 def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler, loss_weight, task_dict, task_describe,
@@ -379,7 +387,7 @@ def main(args):
     # build task settings
     task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
     WSI_task_dict, MTL_heads, WSI_criterions, loss_weight, class_num, WSI_task_describe = \
-        task_filter_auto(task_config_path, latent_feature_dim=args.latent_feature_dim)
+        task_filter_auto(task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
     print('WSI_task_dict', WSI_task_dict)
 
     # filtered tasks
@@ -527,7 +535,7 @@ def get_args_parser():
                         help='only save model at epochs after intake_epochs')
     parser.add_argument('--accum_iter_train', default=2, type=int,
                         help='training accum_iter for loss accuming, default 2')
-    parser.add_argument('--lr', default=0.00001, type=float,
+    parser.add_argument('--lr', default=0.000001, type=float,
                         help='training learning rate, default 0.00001')
     parser.add_argument('--lrf', default=0.1, type=float,
                         help='Cosine learning rate decay times, default 0.1')

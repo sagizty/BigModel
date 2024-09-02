@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Aug 22nd 19:30
+tools for slide level dataset      Script  ver： Aug 28th 20:30
 
 build and load task config
 """
@@ -139,8 +139,9 @@ def build_data_split_for_csv(task_description_csv, slide_id_key='slide_id', test
 
     # Split the data
     print('Total samples num:', len(all_wsi_folders), 'Total patients num:', len(shuffled_patients))
-    for fold, (train_idx, val_idx) in enumerate(group_kfold.split(trainval_samples, groups=trainval_patients)):
-        print(f"Fold {fold + 1}")
+    for f, (train_idx, val_idx) in enumerate(group_kfold.split(trainval_samples, groups=trainval_patients)):
+        print(f"Fold {f + 1}")
+        fold = f + 1
         # print(f"TRAIN: {train_idx}, VALIDATION: {val_idx}")
         train_data = list(trainval_samples[train_idx])
         train_patient_names = list(trainval_patients[train_idx])
@@ -161,13 +162,79 @@ def build_data_split_for_csv(task_description_csv, slide_id_key='slide_id', test
             break
         else:
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=train_data,
-                           key=key + '_{}fold-{}'.format(k, fold + 1), val='train')
+                           key=key + '_{}fold-{}'.format(k, fold), val='train')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=val_data,
-                           key=key + '_{}fold-{}'.format(k, fold + 1), val='val')
+                           key=key + '_{}fold-{}'.format(k, fold), val='val')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=test_data,
-                           key=key + '_{}fold-{}'.format(k, fold + 1), val='test')
+                           key=key + '_{}fold-{}'.format(k, fold), val='test')
 
     print('\nTEST samples num:', len(test_data), 'TEST patients:', len(test_patient_names_noduplicate), )
+
+
+def load_pickle_data_split_for_csv(task_description_csv, slide_id_key='slide_id', key='split', input_pkl_rootpath=None,
+                                   mode='TCGA', k=1):
+    """
+    This write previous pkl split into csv
+    Args:
+        task_description_csv:
+        slide_id_key:
+        key:
+        input_pkl_rootpath:
+        mode:
+        k:
+
+    Returns:
+
+    Demo
+    # load 5 fold pkl to csv
+    load_pickle_data_split_for_csv(
+        task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
+        slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
+        mode='TCGA', k=5)
+    """
+    import pickle
+
+    def load_data(file_path):
+        with open(file_path, 'rb') as f:
+            data = pickle.load(f)
+        return data
+
+    if k == 1:
+        Train_list = load_data(os.path.join(input_pkl_rootpath, 'Train.pkl'))
+        Val_list = load_data(os.path.join(input_pkl_rootpath, 'Val.pkl'))
+        Test_list = load_data(os.path.join(input_pkl_rootpath, 'Test.pkl'))
+
+        # in TCGA the csv slide_id_key is patient name so we need to write the patient split into it
+        if mode == 'TCGA':
+            Train_list = [sample[:12] for sample in Train_list]
+            Val_list = [sample[:12] for sample in Val_list]
+            Test_list = [sample[:12] for sample in Test_list]
+
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Train_list, key=key, val='train')
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Val_list, key=key, val='val')
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Test_list, key=key, val='test')
+    else:
+        for fold in range(1,k+1):
+            fold_pkl_rootpath = os.path.join(input_pkl_rootpath, 'task-settings-' + str(k) + 'folds_fold-' + str(fold))
+
+            Train_list = load_data(os.path.join(fold_pkl_rootpath, 'Train.pkl'))
+            Val_list = load_data(os.path.join(fold_pkl_rootpath, 'Val.pkl'))
+            Test_list = load_data(os.path.join(fold_pkl_rootpath, 'Test.pkl'))
+
+            # in TCGA the csv slide_id_key is patient name so we need to write the patient split into it
+            if mode == 'TCGA':
+                Train_list = [sample[:12] for sample in Train_list]
+                Val_list = [sample[:12] for sample in Val_list]
+                Test_list = [sample[:12] for sample in Test_list]
+
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Train_list,
+                           key=key + '_{}fold-{}'.format(k, fold), val='train')
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Val_list,
+                           key=key + '_{}fold-{}'.format(k, fold), val='val')
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Test_list,
+                           key=key + '_{}fold-{}'.format(k, fold), val='test')
+
+    print('done')
 
 
 # task config tools:
@@ -255,6 +322,13 @@ def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset
     # By default, all columns except slide_id_key will be used as label.
     tentative_task_labels = [col for col in task_description.columns if col not in excluding_list]
 
+    if tasks_to_run is not None:
+        for task in tasks_to_run:
+            assert task in tentative_task_labels
+    else:
+        # take all tasks as valid tasks
+        tasks_to_run = tentative_task_labels
+
     one_hot_table, all_task_dict, selected_new_labels = \
         build_task_config_settings(task_description, tentative_task_labels, one_hot_table, all_task_dict)
 
@@ -308,39 +382,50 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                  tasks_to_run, slide_id_key, split_target_key='fold_information',
                                  task_setting_folder_name='task-settings',
                                  mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml'):
+
     build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
                              mode=mode, key=split_target_key)
+
     output_dir = os.path.join(root_path, task_setting_folder_name)
+
+    excluding_list = [slide_id_key, split_target_key]
+    if k > 1:
+        excluding_list.extend([split_target_key + '_{}fold-{}'.format(k, fold) for fold in range(1,k+1)])
+
     build_yaml_config_from_csv(task_description_csv, output_dir, dataset_name=dataset_name,
                                tasks_to_run=tasks_to_run,
                                max_tiles=1000000, shuffle_tiles=True,mode=mode,
-                               excluding_list=(slide_id_key, split_target_key),
+                               excluding_list=excluding_list,
                                yaml_config_name=yaml_config_name)
     # check
     load_yaml_config(os.path.join(root_path, task_setting_folder_name, yaml_config_name))
 
 
 if __name__ == '__main__':
+
     import argparse
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--root_path', type=str, default='/data/BigModel/embedded_datasets/',
                         help='Root path for the datasets')
     parser.add_argument('--task_description_csv', type=str,
-                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
+                        default='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
                         help='Path to the task description CSV')
     parser.add_argument('--slide_id_key', type=str, default='patient_id',
                         help='Slide ID key in the dataset')
     parser.add_argument('--split_target_key', type=str, default='fold_information',
                         help='Key to split the dataset')
-    parser.add_argument('--task_setting_folder_name', type=str, default='task-settings',
+    parser.add_argument('--task_setting_folder_name', type=str, default='task-settings-5folds',
                         help='Folder name for task settings')
     parser.add_argument('--mode', type=str, default='TCGA',
                         help='Mode (e.g., TCGA)')
-    parser.add_argument('--dataset_name', type=str, default='lung-mix',
+    parser.add_argument('--k', type=int, default=5,
+                        help='k-fold k num')
+
+    parser.add_argument('--dataset_name', type=str, default='coad-read',
                         help='Name of the dataset')
     parser.add_argument('--tasks_to_run', type=str,
-                        default='iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A',
+                        default='EPCAM%CDH1%COL3A1%MYH11%CD3E%SPOCK2%PECAM1%CD14%SPP1%IL1B',
                         help='Tasks to run, separated by "%"')
 
     args = parser.parse_args()
@@ -356,9 +441,10 @@ if __name__ == '__main__':
         slide_id_key=args.slide_id_key,
         split_target_key=args.split_target_key,
         task_setting_folder_name=args.task_setting_folder_name,
-        mode=args.mode
+        mode=args.mode,
+        k=args.k
     )
-
+    # demo
     '''
     python slide_dataset_tools.py --root_path /data/BigModel/embedded_datasets/ \
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
@@ -368,4 +454,12 @@ if __name__ == '__main__':
     --mode TCGA \
     --dataset_name lung-mix \
     --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
+    '''
+
+    '''
+    # load 5 fold pkl to csv (if we need to load 5 fold from previous split)
+    load_pickle_data_split_for_csv(
+        task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
+        slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
+        mode='TCGA', k=5)
     '''

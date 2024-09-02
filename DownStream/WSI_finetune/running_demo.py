@@ -1,5 +1,5 @@
 '''
-MTL training panel       Script  ver： Aug 22nd 15:30
+MTL training panel       Script  ver： Aug 28th 21:30
 '''
 import os
 import sys
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     task_config_path = os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml')
 
     WSI_task_dict, MTL_heads, WSI_criterions, loss_weight, class_num, WSI_task_describe = \
-        task_filter_auto(task_config_path, latent_feature_dim=latent_feature_dim)
+        task_filter_auto(task_config_path=task_config_path, latent_feature_dim=latent_feature_dim)
     print('WSI_task_dict', WSI_task_dict)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

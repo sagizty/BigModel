@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Aug 21th 18:30
+Build WSI level models     Script  ver： Aug 28th 19:30
 """
 import os
 import torch
@@ -32,7 +32,10 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
             local_weight_path = os.path.join(local_dir, "slide_encoder.pth")
 
         # build weight for slide level
-        if os.path.exists(local_weight_path):
+        if local_weight_path is False:
+            print("Pretrained weights not required. Randomly initialized the model! ")
+
+        elif os.path.exists(local_weight_path):
             state_dict = torch.load(local_weight_path, map_location="cpu")["model"]
 
             missing_keys, unexpected_keys = slide_backbone.load_state_dict(state_dict, strict=False)

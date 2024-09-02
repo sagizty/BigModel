@@ -1,5 +1,5 @@
 """
-MTL Task settings   Script  ver： Aug 22nd 15:00
+MTL Task settings   Script  ver： Aug 28th 21:30
 
 flexible to multiple-tasks and missing labels
 """
@@ -12,8 +12,81 @@ import torch.nn as nn
 import yaml  # Ensure pyyaml is installed: pip install pyyaml
 
 
-def build_tasks(task_idx_list, task_idx_to_name, all_task_dict, all_MTL_heads,
-                all_criterions, all_loss_weight, all_class_num, all_task_describe):
+def build_all_tasks(task_config_path=None, latent_feature_dim=128):
+    try:
+        with open(task_config_path, 'r') as file:
+            config = yaml.load(file, Loader=yaml.Loader)
+            all_task_name_list = config.get('tasks_to_run')
+            all_task_dict = config.get('all_task_dict')
+            all_task_one_hot_describe = config.get('one_hot_table')
+
+    except:
+        raise  # no task-settings folder for the dataset
+    else:
+        # Generate task_idx_to_name, task_name_to_idx, all_class_num, all_loss_weight, all_criterions
+        idx = 0
+        task_name_to_idx = {}  # task name to idx list
+        task_idx_to_name = []  # task idx to name list
+
+        all_class_num = []  # class number list
+        all_loss_weight = []  # todo: need to allow manually config in the future, maybe config in yaml file?
+        all_criterions = []  # task loss
+        all_MTL_heads = []  # MTL heads list
+
+        for task in all_task_dict:
+            if all_task_dict[task] == 'float':
+                all_task_dict[task] = float
+                all_class_num.append(0)
+                all_criterions.append(nn.L1Loss(size_average=None, reduce=None))
+                all_MTL_heads.append(nn.Linear(latent_feature_dim, 1))
+            elif all_task_dict[task] == 'list':
+                all_task_dict[task] = list
+                all_class_num.append(len(all_task_one_hot_describe[task]))
+                all_criterions.append(nn.CrossEntropyLoss())
+                # pred (type: float): [Batch, cls], GT (type: long int): [Batch]
+                # (content of GT should stack together, which means their format should be the same)
+                all_MTL_heads.append(nn.Linear(latent_feature_dim, all_class_num[idx]))
+            else:
+                raise ValueError('Not valid data type!')
+
+            task_name_to_idx[task] = idx
+            task_idx_to_name.append(task)
+            all_loss_weight.append(1.0)
+            idx += 1
+
+    return (all_task_name_list, task_name_to_idx, task_idx_to_name, all_task_dict, all_MTL_heads, all_criterions,
+            all_loss_weight, all_class_num, all_task_one_hot_describe)
+
+
+def task_filter_auto(WSI_task_idx_or_name_list=None, task_config_path=None, latent_feature_dim=128):
+    """Auto task filter defined by json files, currently used by Shangqing's TCGA dataset
+
+    Args:
+        task_config_path (str): task_settings_path/task_configs.yaml
+        latent_feature_dim (int, optional): _description_. Defaults to 768.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    (all_task_name_list, task_name_to_idx, task_idx_to_name, all_task_dict, all_MTL_heads, all_criterions,
+     all_loss_weight, all_class_num, all_task_one_hot_describe) = (
+        build_all_tasks(task_config_path, latent_feature_dim))
+
+    # building running config according to WSI_task_idx_or_name_list(support both index and text)
+    if WSI_task_idx_or_name_list is None:
+        WSI_task_idx_or_name_list = all_task_name_list
+
+    if type(WSI_task_idx_or_name_list[0]) == int:
+        task_idx_list = WSI_task_idx_or_name_list
+    else:
+        for task in WSI_task_idx_or_name_list:
+            assert task in all_task_name_list, f"task {task} not in yaml config"
+        task_idx_list = [task_name_to_idx[task] for task in WSI_task_idx_or_name_list]
+
     # build tasks
     task_dict = {}
     MTL_heads = []
@@ -28,72 +101,10 @@ def build_tasks(task_idx_list, task_idx_to_name, all_task_dict, all_MTL_heads,
         criterions.append(all_criterions[idx])
         loss_weight.append(all_loss_weight[idx])
         class_num.append([all_class_num[idx]])
-        if task_idx_to_name[idx] in all_task_describe:
-            task_describe[task_idx_to_name[idx]] = all_task_describe[task_idx_to_name[idx]]
+        if task_idx_to_name[idx] in all_task_one_hot_describe:  # if its cls task
+            task_describe[task_idx_to_name[idx]] = all_task_one_hot_describe[task_idx_to_name[idx]]
 
     return task_dict, MTL_heads, criterions, loss_weight, class_num, task_describe
-
-
-def task_filter_auto(task_config_path, latent_feature_dim=128):
-    """Auto task filter defined by json files, currently used by Shangqing's TCGA dataset
-
-    Args:
-        task_config_path (str): task_settings_path/task_configs.yaml
-        latent_feature_dim (int, optional): _description_. Defaults to 768.
-
-    Raises:
-        ValueError: _description_
-
-    Returns:
-        _type_: _description_
-    """
-
-    try:
-        with open(task_config_path, 'r') as file:
-            config = yaml.load(file, Loader=yaml.Loader)
-            task_idx_or_name_list = config.get('tasks_to_run')
-            all_task_dict = config.get('all_task_dict')
-            all_task_one_hot_describe = config.get('one_hot_table')
-    except:
-        raise  # no task-settings folder for the dataset
-    else:
-        # Generate task_idx_to_name, task_name_to_idx, all_class_num, all_loss_weight, all_criterions
-        idx = 0
-        task_name_to_idx = {}  # task name to idx list
-        task_idx_to_name = []  # task idx to name list
-        all_class_num = []  # class number list
-        all_loss_weight = []  # todo: need to allow manually config in the future, maybe config in yaml file?
-        all_criterions = []  # task loss
-        all_MTL_heads = []  # MTL heads list
-        for col in all_task_dict:
-            if all_task_dict[col] == 'float':
-                all_task_dict[col] = float
-                all_class_num.append(0)
-                all_criterions.append(nn.L1Loss(size_average=None, reduce=None))
-                all_MTL_heads.append(nn.Linear(latent_feature_dim, 1))
-            elif all_task_dict[col] == 'list':
-                all_task_dict[col] = list
-                all_class_num.append(len(all_task_one_hot_describe[col]))
-                all_criterions.append(nn.CrossEntropyLoss())
-                # pred (type: float): [Batch, cls], GT (type: long int): [Batch]
-                # (content of GT should stack together, which means their format should be the same)
-                all_MTL_heads.append(nn.Linear(latent_feature_dim, all_class_num[idx]))
-            else:
-                raise ValueError('Not valid data type!')
-
-            task_name_to_idx[col] = idx
-            task_idx_to_name.append(col)
-            all_loss_weight.append(1.0)
-            idx += 1
-
-        # support both index and text
-        if type(task_idx_or_name_list[0]) == int:
-            task_idx_list = task_idx_or_name_list
-        else:
-            task_idx_list = [task_name_to_idx[name] for name in task_idx_or_name_list]
-
-        return build_tasks(task_idx_list, task_idx_to_name, all_task_dict, all_MTL_heads, all_criterions,
-                           all_loss_weight, all_class_num, all_task_one_hot_describe)
 
 
 # base on the task dict to convert the task idx of model output
