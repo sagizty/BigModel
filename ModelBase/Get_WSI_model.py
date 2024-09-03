@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Sep 3th 13:30
+Build WSI level models     Script  ver： Sep 3rd 15:30
 """
 import os
 import torch
@@ -137,6 +137,29 @@ class MTL_Model_builder(nn.Module):
         return WSI_tasks_pred
 
 
+class slide_embedding_model_builder(nn.Module):
+    def __init__(self, backbone: nn.Module):
+        """
+        :param backbone: slide-level modeling model
+        """
+        super().__init__()
+
+        self.backbone = backbone  # the output feature is [B, embed_dim]
+
+    def forward(self, image_features, img_coords):
+        """
+        Forward pass for the MTL Transformer.
+
+        :param image_features: Tensor of shape [B, N, feature_dim],
+                               where B is batch size, N is the number of patches/features per slide.
+        :return: slide_latent has
+                 shape [B, output_dim] (output_dim may vary depending on the task).
+        """
+        slide_latent = self.backbone(image_features, img_coords)[0]  # fixme take from the list of embeddings
+
+        return slide_latent
+
+
 def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536,
                          MTL_heads: List[nn.Module] = None, latent_feature_dim=128, Froze_backbone=False):
     assert MTL_heads is not None
@@ -146,3 +169,9 @@ def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feat
                                   Froze_backbone=Froze_backbone)
 
     return MTL_Model
+
+
+def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536):
+    slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
+    slide_embedding_model = slide_embedding_model_builder(slide_backbone)
+    return slide_embedding_model
