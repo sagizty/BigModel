@@ -1,5 +1,5 @@
 """
-MTL Task settings   Script  ver： Aug 28th 21:30
+MTL Task settings   Script  ver： Sep 4th 01:20
 
 flexible to multiple-tasks and missing labels
 """
@@ -31,21 +31,21 @@ def build_all_tasks(task_config_path=None, latent_feature_dim=128):
         all_class_num = []  # class number list
         all_loss_weight = []  # todo: need to allow manually config in the future, maybe config in yaml file?
         all_criterions = []  # task loss
-        all_MTL_heads = []  # MTL heads list
+        all_MTL_heads = []  # MTL heads list in string, initialize the layers later when they are actually needed.
 
         for task in all_task_dict:
             if all_task_dict[task] == 'float':
                 all_task_dict[task] = float
                 all_class_num.append(0)
                 all_criterions.append(nn.L1Loss(size_average=None, reduce=None))
-                all_MTL_heads.append(nn.Linear(latent_feature_dim, 1))
+                all_MTL_heads.append(f"nn.Linear({latent_feature_dim}, 1)")
             elif all_task_dict[task] == 'list':
                 all_task_dict[task] = list
                 all_class_num.append(len(all_task_one_hot_describe[task]))
                 all_criterions.append(nn.CrossEntropyLoss())
                 # pred (type: float): [Batch, cls], GT (type: long int): [Batch]
                 # (content of GT should stack together, which means their format should be the same)
-                all_MTL_heads.append(nn.Linear(latent_feature_dim, all_class_num[idx]))
+                all_MTL_heads.append(f"nn.Linear({latent_feature_dim}, {all_class_num[idx]})")
             else:
                 raise ValueError('Not valid data type!')
 
@@ -97,7 +97,7 @@ def task_filter_auto(WSI_task_idx_or_name_list=None, task_config_path=None, late
 
     for idx in task_idx_list:
         task_dict[task_idx_to_name[idx]] = all_task_dict[task_idx_to_name[idx]]
-        MTL_heads.append(all_MTL_heads[idx])
+        MTL_heads.append(eval(all_MTL_heads[idx]))  # initialize the layers when they are actually needed.
         criterions.append(all_criterions[idx])
         loss_weight.append(all_loss_weight[idx])
         class_num.append([all_class_num[idx]])
