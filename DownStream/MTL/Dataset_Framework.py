@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Aug 22nd 20:00
+MTL dataset framework       Script  ver： Sep 3rd 15:30
 '''
 
 import os
@@ -53,7 +53,9 @@ class SlideDataset(Dataset):
             'split_nfold-k', n is the total fold number and k is the fold index
 
         possible_suffixes: supported suffix for taking the samples
-        dataset_type: 'MTL' for building slide level mtl dataset
+        stopping_folder_name_list:
+
+        dataset_type: 'MTL' for building slide level mtl dataset, 'embedding' for probing
 
         everytime it get a sample WSI:
         ----------
@@ -72,13 +74,23 @@ class SlideDataset(Dataset):
         self.split_target_key = split_target_key  # the key to record the fold infor
         self.slide_id_key = slide_id_key
         self.mode = self.task_cfg.get('mode')
+        self.dataset_type = dataset_type
 
         task_description_csv = task_description_csv or \
                                os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
         task_description_data_df = pd.read_csv(task_description_csv)
+
         # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
-        task_description_data_df = task_description_data_df[
-            task_description_data_df[self.split_target_key] == split_name]
+        if self.split_target_key is None or split_name is None or self.dataset_type== 'embedding':
+            assert self.dataset_type is 'embedding'
+            split_name = 'all embedding'
+            self.task_name_list = None
+        else:
+            task_description_data_df = task_description_data_df[
+                task_description_data_df[self.split_target_key] == split_name]
+            # Set up the task
+            self.task_name_list = self.task_cfg.get('tasks_to_run')
+            assert self.task_name_list is not None
 
         # Find valid slide paths that have tile encodings
         self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[slide_id_key].values,
@@ -97,20 +109,16 @@ class SlideDataset(Dataset):
             task_description_data_df = \
                 task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
 
-        # Set up the task
-        self.task_name_list = self.task_cfg.get('tasks_to_run')
-        assert self.task_name_list is not None
-
-        self.setup_task_data(task_description_data_df, self.task_name_list, dataset_type=dataset_type)
+        self.setup_task_data(task_description_data_df, self.task_name_list, dataset_type=self.dataset_type)
 
         # Load from settings or set default value
         self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 1000)
         self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False)
         print('Dataset has been initialized with ' + str(len(self.slide_ids)) +
-              ' slides for split:', split_name)
+              ' slides for split:', str(split_name))
         # check tile distribution
         self.check_tile_num_distribution(draw_path=os.path.join(root_path, task_setting_folder_name,
-                                                                split_name+'.jpeg'))
+                                                                str(split_name) + '.jpeg'))
 
     def find_slide_paths_and_ids(self, stopping_folder_name_list):
         """
@@ -296,6 +304,8 @@ class SlideDataset(Dataset):
         if dataset_type == 'MTL':
             self.task_dict, self.one_hot_table, self.labels = \
                 self.prepare_MTL_data_list(task_description_csv, task_name_list)
+        elif dataset_type == 'embedding':
+            self.task_dict, self.one_hot_table, self.labels = None, None, None
         else:
             raise NotImplementedError  # currently we only have dataset_type == 'MTL'
 
@@ -355,7 +365,7 @@ class SlideDataset(Dataset):
 
         # get the slide label
         slide_id_name = slide_id[0:12] if self.mode == 'TCGA' else slide_id
-        task_description_list = self.labels[slide_id_name]
+        task_description_list = self.labels[slide_id_name] if self.dataset_type is not 'embedding' else 'None'
 
         # set the sample dict
         sample = {'image_features': data_dict['image_features'],
