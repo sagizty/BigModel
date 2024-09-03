@@ -1,5 +1,5 @@
 """
-Embedding slide dataset     Script  ver： Sep 3rd 15:30
+Embedding slide_feature dataset     Script  ver： Sep 3rd 21:30
 
 flexible to multiple-tasks and missing labels
 
@@ -24,16 +24,18 @@ import numpy as np
 from tqdm import tqdm
 
 try:
+    from DataPipe.h5tools import hdf5_save_a_slide_embedding_dataset
     from DownStream.MTL.Dataset_Framework import *
     from ModelBase.Get_WSI_model import build_WSI_prob_embedding_model
     from Utils.tools import setup_seed
 except:
+    from PuzzleAI.DataPipe.h5tools import hdf5_save_a_slide_embedding_dataset
     from PuzzleAI.DownStream.MTL.Dataset_Framework import *
     from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_prob_embedding_model
     from PuzzleAI.Utils.tools import setup_seed
 
 
-def building_prob_dataset(model, dataloader, dataset_size, device=torch.device("cpu")):
+def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=torch.device("cpu")):
     model.eval()  # Set model to evaluate mode
     epoch_time = time.time()
     failed_sample_count = 0
@@ -75,8 +77,8 @@ def building_prob_dataset(model, dataloader, dataset_size, device=torch.device("
                     # fixme save the output features in what format ?
                     print('slide_id', slide_id)
                     print('slide_feature', slide_feature)
-                    print()
-                    pass
+                    hdf5_save_a_slide_embedding_dataset(h5_file_path, slide_id, slide_feature,
+                                                        section_type='slide_features')
 
     # total samples (remove dataloader-failed samples)
     valid_samples = dataset_size - failed_sample_count
@@ -86,6 +88,7 @@ def building_prob_dataset(model, dataloader, dataset_size, device=torch.device("
 
 
 def main(args):
+    h5_file_path = os.path.join(args.root_path, args.task_setting_folder_name, 'slide_embedding.h5')
     # instantiate the dataset
     dataset = SlideDataset(args.root_path, args.task_description_csv,
                            task_setting_folder_name=args.task_setting_folder_name,
@@ -141,7 +144,7 @@ def main(args):
         model = nn.DataParallel(model)
     model.to(device)
 
-    building_prob_dataset(model, dataloader, dataset_size, device=device)
+    building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=device)
 
 
 def get_args_parser():
@@ -175,7 +178,7 @@ def get_args_parser():
                         help='feature embed_dim , default 768')
 
     # Model settings
-    parser.add_argument('--model_name', default='gigapath', type=str, help='slide level model name')
+    parser.add_argument('--model_name', default='gigapath', type=str, help='slide_feature level model name')
 
     # training settings
     parser.add_argument('--batch_size', default=1, type=int,
