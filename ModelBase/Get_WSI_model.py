@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Aug 28th 19:30
+Build WSI level models     Script  ver： Sep 3th 13:30
 """
 import os
 import torch
@@ -70,7 +70,7 @@ class MTL_Model_builder(nn.Module):
     def __init__(self, backbone: nn.Module,
                  MTL_module: Optional[nn.Module] = None,
                  MTL_heads: List[nn.Module] = [nn.Identity(), nn.Identity(), nn.Identity()],
-                 embed_dim: int = 768, latent_feature_dim: int = 128):
+                 embed_dim: int = 768, latent_feature_dim: int = 128, Froze_backbone=False):
         """
         :param backbone: slide-level modeling model
         :param MTL_module: MTL model projecting the features to multiple task heads
@@ -97,6 +97,26 @@ class MTL_Model_builder(nn.Module):
 
         self.MTL_heads = nn.ModuleList(MTL_heads)
 
+        if Froze_backbone:
+            self.Freeze_backbone()
+
+    def Freeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+        # todo for future prompttuning the slide model
+        # self.Prompt_Tokens.requires_grad = True
+        '''
+        try:
+            for param in self.head.parameters():
+                param.requires_grad = True
+        except:
+            pass
+        '''
+
+    def UnFreeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = True
+
     def forward(self, image_features, img_coords):
         """
         Forward pass for the MTL Transformer.
@@ -118,10 +138,11 @@ class MTL_Model_builder(nn.Module):
 
 
 def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536,
-                         MTL_heads: List[nn.Module] = None, latent_feature_dim=128):
+                         MTL_heads: List[nn.Module] = None, latent_feature_dim=128, Froze_backbone=False):
     assert MTL_heads is not None
     slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
     MTL_Model = MTL_Model_builder(slide_backbone, MTL_module=None, MTL_heads=MTL_heads,
-                                  embed_dim=768,latent_feature_dim=latent_feature_dim)
+                                  embed_dim=768, latent_feature_dim=latent_feature_dim,
+                                  Froze_backbone=Froze_backbone)
 
     return MTL_Model
