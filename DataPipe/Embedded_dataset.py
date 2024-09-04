@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Sep 2nd 21:00
+WSI embedding dataset tools     Script  ver： Sep 5th 01:30
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -10,7 +10,7 @@ embed to a tile_feature dataset
     all cropped tiles are embedded as one .h5 file:
         h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
                             for transformer embedding, the feature dim is [768]
-        h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
+        h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is slide_feature index in WSI
 
 to embed the tiles, a model and its weights need to be set:
  we use Patch_embedding_model to achieve that
@@ -28,7 +28,6 @@ sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 # Prevent conflict with OpenMP
 os.environ["MKL_THREADING_LAYER"] = "GNU"
-
 
 import json
 import yaml
@@ -58,7 +57,7 @@ from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 from Tiles_dataset import *
 
 try:
-    from ModelBase import Get_ROI_model
+    from ..ModelBase import Get_ROI_model
 except:
     from PuzzleAI.ModelBase import Get_ROI_model
 
@@ -71,68 +70,14 @@ def setup_logging(log_file_path):
 
 # datasets for embedding step or loading embedded slide_level datasets
 
-# dataset for loading tiles from one cropped WSI_folder
-class TileEncodingDataset(Dataset):
-    """
-    dataset for loading tiles from one cropped WSI_folder
-
-    Arguments:
-    ----------
-    slide_folder: Path
-        Path to a folder of WSI with tiled images inside.
-    transform : torchvision.transforms.Compose, optional
-        Transform to apply to each image.
-    suffix : str, optional
-        Suffix of the image files (default is '.jpeg').
-    """
-
-    def __init__(self, slide_folder: Path, transform=None, edge_size=224, suffix='.jpeg'):
-        self.suffix = suffix
-        self.image_paths = self._get_image_paths(slide_folder, suffix)
-
-        # default_transform is only resize and to tensor
-        default_transform = transforms.Compose([
-            transforms.Resize(edge_size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
-
-        self.transform = transform or default_transform  # specified patch image Transform can be assigned
-
-    def _get_image_paths(self, slide_folder, suffix):
-        """
-        Helper function to get all image paths in the slide_folder with the given suffix
-        """
-        image_paths = [os.path.join(dp, f) for dp, _, filenames in os.walk(slide_folder)
-                       for f in filenames if f.endswith(suffix)]
-        return image_paths
-
-    def __len__(self):
-        return len(self.image_paths)
-
-    def __getitem__(self, idx):
-        img_path = self.image_paths[idx]
-        img_name = os.path.basename(img_path)
-        # Extract y, x coordinates from the image name
-        y, x = img_name.split(self.suffix)[0].split('_')  # EG: 44004y_11136x.jpeg
-        y, x = int(y.replace('y', '')), int(x.replace('x', ''))
-        patch_coord_yx_tensor = torch.tensor([y, x], dtype=torch.int32)
-        # Load the image
-        with open(img_path, "rb") as f:
-            patch_image_tensor = Image.open(f).convert("RGB")  # Prepare tile in [H, W, C] int8 RGB
-            if self.transform:
-                patch_image_tensor = self.transform(patch_image_tensor)
-
-        return patch_image_tensor, patch_coord_yx_tensor
-
-
 # dataset for loading the slides (cropped / embedded)
 class Slide_loading_Dataset(Dataset):
     def __init__(self, root_path: str, possible_suffixes: tuple = ('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list: list = ['thumbnails', ]):
         '''
-        This class is used to set up the slide dataset for loading their slide_folder
+        This class is used to set up the slide_feature dataset for loading their slide_folder
         this can be used:
-            1. for slide level dataset (loading wsis from different folder and have a path list)
+            1. for slide_feature level dataset (loading wsis from different folder and have a path list)
             2. for tile embedding to be GPU parallel to process WSIs from different location.
 
         Assertion: after tiling or embedding
@@ -193,179 +138,121 @@ class Slide_loading_Dataset(Dataset):
         return slide_folder
 
 
-# fixme notice now no this one longer in use, we call from ROI models
-'''
-# class for tasks_to_run up embedding model
-class Patch_embedding_model(nn.Module):
+# dataset for loading tiles from one cropped WSI_folder
+class TileEncodingDataset(Dataset):
     """
-    each tile is embedded to a token based on pre-trained model
+    dataset for loading tiles from one cropped WSI_folder
 
-    [batch, 3, edge, edge] -> [batch, D]
-
+    Arguments:
+    ----------
+    slide_folder: Path
+        Path to a folder of WSI with tiled images inside.
+    transform : torchvision.transforms.Compose, optional
+        Transform to apply to each image.
+    suffix : str, optional
+        Suffix of the image files (default is '.jpeg').
     """
 
-    def __init__(self, model_name='18', edge_size=224, model_weight_path=None, prompt_state_dict=None,
-                 online_building=True):
-        """
-        :param model_name:
-        :param edge_size:
-        :param model_weight_path:
-        :param prompt_state_dict:
-        :param online_building: default True to use timm or huggingface for the weights
-        
-        """
+    def __init__(self, slide_folder: Path, transform=None, edge_size=224, suffix='.jpeg'):
+        self.suffix = suffix
+        self.image_paths = self._get_image_paths(slide_folder, suffix)
 
-        super(Patch_embedding_model, self).__init__()
+        # default_transform is only resize and to tensor
+        default_transform = transforms.Compose([
+            transforms.Resize(edge_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+
+        self.transform = transform or default_transform  # specified slide_feature image Transform can be assigned
+
+    def _get_image_paths(self, slide_folder, suffix):
+        """
+        Helper function to get all image paths in the slide_folder with the given suffix
+        """
+        image_paths = [os.path.join(dp, f) for dp, _, filenames in os.walk(slide_folder)
+                       for f in filenames if f.endswith(suffix)]
+        return image_paths
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.image_paths[idx]
+        img_name = os.path.basename(img_path)
+        # Extract y, x coordinates from the image name
+        y, x = img_name.split(self.suffix)[0].split('_')  # EG: 44004y_11136x.jpeg
+        y, x = int(y.replace('y', '')), int(x.replace('x', ''))
+        patch_coord_yx_tensor = torch.tensor([y, x], dtype=torch.int32)
+        # Load the image
+        with open(img_path, "rb") as f:
+            patch_image_tensor = Image.open(f).convert("RGB")  # Prepare tile in [H, W, C] int8 RGB
+            if self.transform:
+                patch_image_tensor = self.transform(patch_image_tensor)
+
+        return patch_image_tensor, patch_coord_yx_tensor
+
+
+def prefetch_dataloader_collate_fn(batch):
+    """
+    Custom collate function for PrefetchDataLoader.
+    Since each batch contains (slide_id, slide_folder, dataloader), we return the first (and only) item in the batch.
+    """
+    return batch[0]
+
+class PrefetchDataLoader_dataset(torch.utils.data.Dataset):
+    def __init__(self, device_slide_folders,
+                 dataset_builder=TileEncodingDataset, edge_size=224, embedding_batch_size=256,
+                 embedding_num_workers=2, pin_memory=True):
+        self.dataset_builder = dataset_builder
         self.edge_size = edge_size
+        self.embedding_batch_size = embedding_batch_size
+        self.embedding_num_workers = embedding_num_workers
+        self.pin_memory = pin_memory
+        self.device_slide_folders=device_slide_folders
 
-        logging.info(f'Applying pretrained model of {model_name}')
+    def __len__(self):
+        return len(self.device_slide_folders)
 
-        if model_weight_path is not None and model_weight_path != 'timm' and model_weight_path != 'Timm':
-            print("feature extractor backbone using weight at :", model_weight_path)
-            pretrained_weight = torch.load(model_weight_path)
-            pretrained_backbone = False
-        else:
-            print("feature extractor backbone weight is using timm")
-            logging.info("feature extractor backbone weight is using timm")
-            # default set the embedding to Timm
-            pretrained_backbone = True
-            pretrained_weight = None
+    def __getitem__(self, idx):
+        slide_id = self.device_slide_folders[idx][0]
+        slide_folder = self.device_slide_folders[idx][1]
 
-        if type(model_name) is str:
-            if model_name == '18':
-                backbone = models.resnet18(pretrained=pretrained_backbone)
-                backbone.fc = nn.Identity()
-                self.backbone = backbone
-                if pretrained_weight is not None:
-                    self.backbone.load_state_dict(pretrained_weight, False)
+        # Create the dataset and dataloader
+        tile_dataset = self.dataset_builder(slide_folder, edge_size=self.edge_size)
+        tile_dataloader = DataLoader(tile_dataset, batch_size=self.embedding_batch_size,
+                                     shuffle=False, num_workers=self.embedding_num_workers,
+                                     drop_last=False, pin_memory=self.pin_memory)
 
-            elif model_name == '34':
-                backbone = models.resnet34(pretrained=pretrained_backbone)
-                backbone.fc = nn.Identity()
-                self.backbone = backbone
-                if pretrained_weight is not None:
-                    self.backbone.load_state_dict(pretrained_weight, False)
-
-            elif model_name == '50':
-                backbone = models.resnet50(pretrained=pretrained_backbone)
-                backbone.fc = nn.Identity()
-                self.backbone = backbone
-                if pretrained_weight is not None:
-                    self.backbone.load_state_dict(pretrained_weight, False)
-
-            # VPT feature embedding
-            elif model_name == 'VPT' or model_name == 'vpt':
-                self.backbone = build_ViT_or_VPT(
-                    num_classes=0,  # set to feature extractor model, output is CLS token
-                    edge_size=224, model_idx='ViT', patch_size=16,
-                    Prompt_Token_num=20, VPT_type="Deep",
-                    prompt_state_dict=prompt_state_dict,
-                    base_state_dict=pretrained_weight or 'timm')
-
-            elif model_name == 'ViT' or model_name == 'vit':
-                self.backbone = build_ViT_or_VPT(
-                    num_classes=0,  # set to feature extractor model, output is CLS token
-                    edge_size=224, model_idx='ViT', patch_size=16,
-                    VPT_type=None, base_state_dict=pretrained_weight or 'timm')
-
-            # prov-gigapath feature embedding ViT
-            elif model_name == 'gigapath':
-                # ref: https://www.nature.com/articles/s41586-024-07441-w
-                if online_building:
-                    # fixme if failed, use your own hugging face token and register for the project gigapath
-                    os.environ["HF_TOKEN"] = "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"
-                    if pretrained_weight is not None:
-                        tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=False,
-                                                         checkpoint_path=pretrained_weight)
-                    else:
-                        tile_encoder = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
-                else:
-                    # Model configuration from your JSON
-                    config = {
-                        "architecture": "vit_giant_patch14_dinov2",
-                        "num_classes": 0,
-                        "num_features": 1536,
-                        "global_pool": "token",
-                        "model_args": {
-                            "img_size": 224,
-                            "in_chans": 3,
-                            "patch_size": 16,
-                            "embed_dim": 1536,
-                            "depth": 40,
-                            "num_heads": 24,
-                            "init_values": 1e-05,
-                            "mlp_ratio": 5.33334,
-                            "num_classes": 0
-                        }
-                    }
-
-                    # Create the model using timm
-                    tile_encoder = timm.create_model(
-                        config['architecture'],
-                        pretrained=False,  # Set to True if you want to load pretrained weights
-                        img_size=config['model_args']['img_size'],
-                        in_chans=config['model_args']['in_chans'],
-                        patch_size=config['model_args']['patch_size'],
-                        embed_dim=config['model_args']['embed_dim'],
-                        depth=config['model_args']['depth'],
-                        num_heads=config['model_args']['num_heads'],
-                        init_values=config['model_args']['init_values'],
-                        mlp_ratio=config['model_args']['mlp_ratio'],
-                        num_classes=config['model_args']['num_classes']
-                    )
-
-                    # Print the model to verify
-                    print(tile_encoder)
-                    if pretrained_weight is not None:
-                        tile_encoder.load_state_dict(pretrained_weight, False)
-
-                print("Tile encoder param #", sum(p.numel() for p in tile_encoder.parameters()))
-                self.backbone = tile_encoder
-
-            else:
-                raise NotImplementedError("This function is not yet implemented, model_name: " + str(model_name))
-        else:
-            self.backbone = model_name  # put for future input as a model
-
-        # set to eval model, we don't need gradient for the fixed embedding
-        self.backbone.eval()
-
-    def forward(self, x):
-        assert isinstance(self.backbone, nn.Module)
-        # [batch, 3, edge, edge] -> [batch, self.embed_dim]
-        x = self.backbone(x)
-        return x
+        return slide_id, slide_folder, tile_dataloader
 
 
-'''
 # functions for embedding the tiles from tiles_dataset
 def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
+                                   prefetch_loader,
                                    embedding_model_at_certain_GPU: torch.nn.Module,
                                    output_WSI_dataset_path: Optional[Union[str, Path]] = None,
                                    batch_size: int = 256,
-                                   shuffle: bool = False,
-                                   num_workers: int = 2,
-                                   transform: Optional[transforms.Compose] = None,
-                                   edge_size: int = 224,
-                                   suffix: str = '.jpeg',
                                    device: str = 'cuda',
                                    embedding_progress: bool = False,
                                    overwrite: bool = False) -> Optional[Tuple[str, str]]:
     """
-    Embeds all tiles in a given slide folder using a specified embedding model.
+    Embeds all tiles in a given slide_feature folder using a specified embedding model.
 
-    This function processes each image tile in the slide folder, extracts its features using
+    This function processes each image tile in the slide_feature folder, extracts its features using
     the provided embedding model, and saves the features and their corresponding coordinates
     into an HDF5 file.
 
     Parameters:
     -----------
     slide_folder : str or Path
-        Path to the folder containing tiled images of a whole slide image (WSI).
+        Path to the folder containing tiled images of a whole slide_feature image (WSI).
+
+    prefetch_loader: the prefetched tile_dataloader
+
     embedding_model_at_certain_GPU : torch.nn.Module
         Pretrained model to be used for extracting features from the image tiles.
     output_WSI_dataset_path: Path, optional
-        Path to save the HDF5 file. If not specified, saves to the original slide folder.
+        Path to save the HDF5 file. If not specified, saves to the original slide_feature folder.
     batch_size : int, optional
         Number of image tiles to process in a batch (default is 256).
     shuffle : bool, optional
@@ -411,23 +298,15 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
         else:
             logging.info(f">>> Processing WSI: {slide_id} from {slide_folder}")
 
-        # Create the dataset and dataloader
-        tile_dataset = TileEncodingDataset(slide_folder, transform=transform, edge_size=edge_size, suffix=suffix)
-        tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
-                                     drop_last=False)
-
         since = time.time()
         embedding_model_at_certain_GPU.eval()  # Set model to evaluation mode
-
-        logging.info(f'Processing {len(tile_dataset)} tiles from slide {slide_id}')
-
         # Process each batch of image tiles
         for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
-                in tqdm(enumerate(tile_dataloader),
+                in tqdm(enumerate(prefetch_loader),
                         disable=not embedding_progress,
-                        total=len(tile_dataloader),
+                        total=len(prefetch_loader),
                         unit="batch",
-                        desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
+                        desc=f'Embedding slide_feature {slide_id} on batch of {batch_size} tiles'):
             patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
             with torch.no_grad():  # No need for gradient computation during embedding
                 patch_feature_tensor = embedding_model_at_certain_GPU(patch_image_tensor)  # Extract features
@@ -443,7 +322,7 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
         logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
 
     except Exception as e:
-        logging.error(f"Error processing slide {slide_id}: {e}")
+        logging.error(f"Error processing slide_feature {slide_id}: {e}")
         return (slide_id, slide_folder)  # Return error information
 
     return None  # Return None if successful
@@ -451,30 +330,57 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
 
 # Function to embed slides for a specific device
 def embed_at_device(device, model_name, edge_size, model_weight_path, device_slide_folders,
-                    num_workers, output_WSI_dataset_path, batch_size, overwrite, output_queue):
+                    PrefetchDataLoader_num_workers, num_workers, output_WSI_dataset_path,
+                    batch_size, overwrite, output_queue):
+    """
+    this func is for one GPU to embed multiple wsi folders
+
+    the key design is calling a dataloader to pop tile dataloaders in parallel
+    (with PrefetchDataLoader_num_workers for parallel)
+    """
     # Setup logging in each subprocess
     log_file_path = Path(output_WSI_dataset_path) / f'log_{device}.log'
     setup_logging(log_file_path)
-    # Patch_embedding_model(model_name=model_name, edge_size=edge_size, model_weight_path=model_weight_path)
+
+    # build Patch_embedding_model
     embedding_model = Get_ROI_model.get_model(num_classes=0, edge_size=edge_size,
                                               model_idx=model_name, pretrained_backbone=model_weight_path)
     compiled_model = torch.compile(embedding_model)
     embedding_model_at_certain_GPU = compiled_model.to(device)
 
+    # build a Prefetch dataloader to pop tile dataloders
+    embedding_num_workers = (num_workers - PrefetchDataLoader_num_workers) // PrefetchDataLoader_num_workers
+    PrefetchDataLoaders_dataset = PrefetchDataLoader_dataset(device_slide_folders,
+                                                             dataset_builder=TileEncodingDataset,
+                                                             edge_size=edge_size, embedding_batch_size=batch_size,
+                                                             embedding_num_workers=embedding_num_workers,
+                                                             pin_memory=True)
+
+    PrefetchDataLoader = DataLoader(PrefetchDataLoaders_dataset,
+                                    batch_size=1,  # every time return one dataloader
+                                    shuffle=False, num_workers=PrefetchDataLoader_num_workers,
+                                    drop_last=False, pin_memory=False,
+                                    collate_fn=prefetch_dataloader_collate_fn)  # to support pop dataloader
+
     error_wsi_infor_list_at_device = []
-    for slide_id, slide_folder in tqdm(device_slide_folders,
-                                       desc=f'Embedding slides on GPU:{device}', unit="wsi"):
+    # iterating through Prefetched tile_dataloders
+    for slide_id, slide_folder, prefetch_loader in tqdm(PrefetchDataLoader,
+                                                        desc=f'Embedding slides on GPU:{device}', unit="wsi"):
+
+        logging.info(f'Processing {len(prefetch_loader)} tiles from slide_feature {slide_id}')
+
         error_wsi_infor = embedding_one_slide_from_tiles(
-            slide_folder, embedding_model_at_certain_GPU, output_WSI_dataset_path,
-            batch_size=batch_size, device=device, num_workers=num_workers,
-            embedding_progress=False, overwrite=overwrite)
+            slide_folder, prefetch_loader, embedding_model_at_certain_GPU, output_WSI_dataset_path,
+            batch_size=batch_size, device=device, embedding_progress=False, overwrite=overwrite)
+
         if error_wsi_infor:
             error_wsi_infor_list_at_device.append(error_wsi_infor)
     output_queue.put(error_wsi_infor_list_at_device)
 
 
 def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_WSI_dataset_path,
-                                            model_name, model_weight_path, batch_size=256, edge_size=224,
+                                            model_name, model_weight_path, PrefetchDataLoader_num_workers=2,
+                                            batch_size=256, edge_size=224,
                                             overwrite=False):
     """
     Embeds all slides in the given root_path using the specified model and saves the embeddings.
@@ -484,7 +390,7 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     Arguments:
     ----------
     input_raw_WSI_dataset_path : str
-        Path to the root directory containing slide folders.
+        Path to the root directory containing slide_feature folders.
     output_WSI_dataset_path : str
         Path to the directory where the embedded slides will be saved.
 
@@ -492,6 +398,8 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
         Name of the model to be used for embedding.
     model_weight_path : str
         Path to the pretrained model weights.
+
+    PrefetchDataLoader_num_workers: int, default 2, the preloading fetching loder parallel num
 
     batch_size : int, optional
         Number of image tiles to process in a batch (default is 256).
@@ -502,7 +410,7 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
         will delete previous file and recreate
     returns:
     ----------
-    a list of (slide_id, slide_folder) if the slide encounter error in the embedding process
+    a list of (slide_id, slide_folder) if the slide_feature encounter error in the embedding process
     """
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
@@ -518,18 +426,19 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     logging.info(f'Embedding all_slides_from_tiles_dataset at {input_tile_WSI_dataset_path}')
     logging.info(f'Embedding output dataset folder at {output_WSI_dataset_path}')
 
-    slide_dataset = Slide_loading_Dataset(input_tile_WSI_dataset_path)
-    slide_path_dict = slide_dataset.slide_paths
-
     # List of available devices (GPUs), if no GPU is available, use 'cpu'
     if torch.cuda.is_available():
         device_list = [f'cuda:{i}' for i in range(torch.cuda.device_count())]
     else:
         device_list = ['cpu']
 
-    num_workers = max(1, multiprocessing.cpu_count() // len(device_list))  # Number of CPU cores per GPU
+    num_workers = max(1, (multiprocessing.cpu_count() - len(device_list)) // len(device_list))
+    # Number of CPU cores per GPU
 
-    # Split slide paths among available devices
+    slide_dataset = Slide_loading_Dataset(input_tile_WSI_dataset_path)
+    slide_path_dict = slide_dataset.slide_paths  # fixme change to num works for parallel loading slides?
+
+    # Split slide_feature paths among available devices
     slide_folders = list(slide_path_dict.items())
     random.shuffle(slide_folders)  # Randomly shuffle the slides
     split_slide_folders = [slide_folders[i::len(device_list)] for i in range(len(device_list))]
@@ -542,7 +451,8 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
         device = device_list[device_index]
         p = multiprocessing.Process(target=embed_at_device,
                                     args=(device, model_name, edge_size, model_weight_path, device_slide_folders,
-                                          num_workers, output_WSI_dataset_path, batch_size, overwrite, output_queue))
+                                          PrefetchDataLoader_num_workers, num_workers, output_WSI_dataset_path,
+                                          batch_size, overwrite, output_queue))
         p.start()
         processes.append(p)
 
@@ -555,7 +465,7 @@ def embedding_all_slides_from_tiles_dataset(input_tile_WSI_dataset_path, output_
     error_wsi_infor_list = []
     for error_info in device_combined_error_wsi_infor_list:
         if error_info:
-            logging.error(f"Error embedding slide: {error_info}")
+            logging.error(f"Error embedding slide_feature: {error_info}")
             error_wsi_infor_list.append(error_info)
 
     # Merge logs from subprocesses into the main log file
@@ -594,14 +504,14 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
                              image_key: str = "slide_image_path",
                              ROI_image_key='tile_image_path',
                              overwrite: bool = False) -> str:
-    """Load and process a slide, saving tile images and information to a CSV file.
+    """Load and process a slide_feature, saving tile images and information to a CSV file.
 
     sample: dict
-        Slide information dictionary, returned by the input slide dataset.
+        Slide information dictionary, returned by the input slide_feature dataset.
     embedding_model: torch.nn.Module
         Pretrained model to be used for extracting features from the image tiles.
     task_settings_path: Path
-        Root directory for the output dataset; outputs for a single slide will be saved inside `task_settings_path/slide_id/`.
+        Root directory for the output dataset; outputs for a single slide_feature will be saved inside `task_settings_path/slide_id/`.
     thumbnail_dir: Optional[Path], optional
         Root directory for all thumbnails.
     batch_size: int, optional
@@ -619,7 +529,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
     tile_size: int, optional
         Lateral dimensions of each tile, in pixels (default is 224).
     target_mpp: float, optional
-        Target microns per pixel for the slide (default is 0.5).
+        Target microns per pixel for the slide_feature (default is 0.5).
     foreground_threshold: Optional[float], optional
         Luminance threshold (0 to 255) to determine if a pixel is foreground.
     occupancy_threshold: float, optional
@@ -641,7 +551,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
     Returns:
     --------
-    slide id if the process raise error, else None
+    slide_feature id if the process raise error, else None
     """
     # STEP 0: set up path and log files
     slide_id: str = sample["slide_id"]
@@ -668,7 +578,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
     try:
         # STEP 1: take the WSI and get the ROIs (valid tissue regions)
-        logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
+        logging.info(f"Loading slide_feature {slide_id} ...\nFile: {slide_image_path}")
 
         # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
         loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), image_key=image_key,
@@ -680,7 +590,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
         # process in a temp file
         with tempfile.TemporaryDirectory() as output_tiles_dir:
             # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into output_tiles_dir
-            logging.info(f"Tiling slide {slide_id} ...")
+            logging.info(f"Tiling slide_feature {slide_id} ...")
             # each ROI_sample in loaded_WSI_samples is a valid ROI region
             n_failed_tiles = 0
 
@@ -713,7 +623,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
             since = time.time()
 
-            logging.info(f'Embedding {len(tile_dataset)} tiles from slide {slide_id}')
+            logging.info(f'Embedding {len(tile_dataset)} tiles from slide_feature {slide_id}')
             embedding_model.eval()
 
             # Process each batch of image tiles
@@ -722,7 +632,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
                             disable=not tile_progress,
                             total=len(tile_dataloader),
                             unit="batch",
-                            desc=f'Embedding slide {slide_id} on batch of {batch_size} tiles'):
+                            desc=f'Embedding slide_feature {slide_id} on batch of {batch_size} tiles'):
                 patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
                 with torch.no_grad():  # No need for gradient computation during embedding
                     patch_feature_tensor = embedding_model(patch_image_tensor)  # Extract features
@@ -739,7 +649,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
             logging.info(f'slide_id: {slide_id}, embedding completed in {time_elapsed:.2f} seconds')
 
     except Exception as e:
-        logging.error(f"Error processing slide {slide_id}: {e}")
+        logging.error(f"Error processing slide_feature {slide_id}: {e}")
         return slide_id  # Return error WSI information
 
     else:
@@ -747,7 +657,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
             # what we want to do with slides that have some failed tiles? for now, just drop?
             logging.warning(f"{slide_id} is incomplete. {n_failed_tiles} tiles failed in reading.")
 
-        logging.info(f"Finished processing slide {slide_id}")
+        logging.info(f"Finished processing slide_feature {slide_id}")
 
         # Explicitly delete the large objects
         del WSI_image_obj
@@ -829,7 +739,7 @@ def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path
     Returns
     -------
     List[Optional[str]]
-        List of slide IDs that encountered errors during processing.
+        List of slide_feature IDs that encountered errors during processing.
     """
     if not os.path.exists(output_WSI_dataset_path):
         os.makedirs(output_WSI_dataset_path)
@@ -873,7 +783,7 @@ def embedding_all_slides_from_slides(input_raw_WSI_dataset_path: Union[str, Path
     error_wsi_infor_list = []
     for error_info in device_combined_error_wsi_infor_list:
         if error_info:
-            logging.error(f"Error embedding slide: {error_info}")
+            logging.error(f"Error embedding slide_feature: {error_info}")
             error_wsi_infor_list.append(error_info)
 
     # Merge logs from subprocesses into the main log file
@@ -912,6 +822,7 @@ def main(args):
             output_WSI_dataset_path=args.embedded_WSI_dataset_path,
             model_name=args.model_name,
             model_weight_path=args.model_weight_path,
+            PrefetchDataLoader_num_workers=args.PrefetchDataLoader_num_workers,
             batch_size=args.batch_size, edge_size=args.edge_size,
             overwrite=args.overwrite)  # , parallel=True
 
@@ -940,6 +851,9 @@ def get_args_parser():
                         help='batch_size of embedding model')
 
     parser.add_argument('--target_mpp', type=float, default=0.5,
+                        help='target_mpp')
+
+    parser.add_argument('--PrefetchDataLoader_num_workers', type=int, default=5,
                         help='target_mpp')
 
     parser.add_argument('--overwrite', action='store_true',
@@ -981,7 +895,7 @@ if __name__ == '__main__':
     '''
 
     '''
-    # for processing slide dataset directly from slides
+    # for processing slide_feature dataset directly from slides
     # demo with one sample
     slide_folders = prepare_slides_sample_list(slide_root='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample')
     sample = slide_folders[3]
@@ -1009,6 +923,3 @@ if __name__ == '__main__':
     parser = get_args_parser()
     args = parser.parse_args()
     main(args)
-
-
-    
