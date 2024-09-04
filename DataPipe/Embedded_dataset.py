@@ -853,8 +853,8 @@ def get_args_parser():
     parser.add_argument('--target_mpp', type=float, default=0.5,
                         help='target_mpp')
 
-    parser.add_argument('--PrefetchDataLoader_num_workers', type=int, default=5,
-                        help='target_mpp')
+    parser.add_argument('--PrefetchDataLoader_num_workers', type=int, default=10,
+                        help='PrefetchDataLoader_num_workers')
 
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite previous embedding at the path')
