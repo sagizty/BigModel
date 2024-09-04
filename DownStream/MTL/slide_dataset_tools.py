@@ -1,5 +1,5 @@
 """
-tools for slide level dataset      Script  ver： Sep 2th 11:30
+tools for slide_feature level dataset      Script  ver： Sep 4th 15:30
 
 build and load task config
 """
@@ -156,17 +156,17 @@ def build_data_split_for_csv(task_description_csv, slide_id_key='slide_id', test
               f"VALIDATION patients num: {len(val_patient_names_noduplicate)}")
 
         if k == 1:
-            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=train_data, key=key, val='train')
-            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=val_data, key=key, val='val')
-            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=test_data, key=key, val='test')
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=train_data, key=key, val='Train')
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=val_data, key=key, val='Val')
+            write_csv_data(task_description_csv, id_key=slide_id_key, id_data=test_data, key=key, val='Test')
             break
         else:
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=train_data,
-                           key=key + '_{}fold-{}'.format(k, fold), val='train')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Train')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=val_data,
-                           key=key + '_{}fold-{}'.format(k, fold), val='val')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Val')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=test_data,
-                           key=key + '_{}fold-{}'.format(k, fold), val='test')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Test')
 
     print('\nTEST samples num:', len(test_data), 'TEST patients:', len(test_patient_names_noduplicate), )
 
@@ -210,9 +210,9 @@ def load_pickle_data_split_for_csv(task_description_csv, slide_id_key='slide_id'
             Val_list = [sample[:12] for sample in Val_list]
             Test_list = [sample[:12] for sample in Test_list]
 
-        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Train_list, key=key, val='train')
-        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Val_list, key=key, val='val')
-        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Test_list, key=key, val='test')
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Train_list, key=key, val='Train')
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Val_list, key=key, val='Val')
+        write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Test_list, key=key, val='Test')
     else:
         for fold in range(1,k+1):
             fold_pkl_rootpath = os.path.join(input_pkl_rootpath, 'task-settings-' + str(k) + 'folds_fold-' + str(fold))
@@ -228,11 +228,11 @@ def load_pickle_data_split_for_csv(task_description_csv, slide_id_key='slide_id'
                 Test_list = [sample[:12] for sample in Test_list]
 
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Train_list,
-                           key=key + '_{}fold-{}'.format(k, fold), val='train')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Train')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Val_list,
-                           key=key + '_{}fold-{}'.format(k, fold), val='val')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Val')
             write_csv_data(task_description_csv, id_key=slide_id_key, id_data=Test_list,
-                           key=key + '_{}fold-{}'.format(k, fold), val='test')
+                           key=key + '_{}fold-{}'.format(k, fold), val='Test')
 
     print('done')
 
