@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Aug 28th 21:30
+MTL Test      Script  ver： Sep 4th 15:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -318,7 +318,7 @@ def main(args):
     # test dataloader
     dataset = SlideDataset(args.root_path, args.task_description_csv,
                            task_setting_folder_name=args.task_setting_folder_name,
-                           split_name='test', slide_id_key=args.slide_id_key,
+                           split_name='Test', slide_id_key=args.slide_id_key,
                            split_target_key=args.split_target_key,
                            max_tiles=args.max_tiles)
 

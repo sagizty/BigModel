@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Sep 2nd 19:30
+MTL Train     Script  ver： Sep 4th 15:30
 
 flexible to multiple-tasks and missing labels
 
@@ -399,12 +399,12 @@ def main(args):
     # instantiate the dataset
     Train_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                  task_setting_folder_name=args.task_setting_folder_name,
-                                 split_name='train', slide_id_key=args.slide_id_key,
+                                 split_name='Train', slide_id_key=args.slide_id_key,
                                  split_target_key=args.split_target_key,
                                  max_tiles=args.max_tiles)
     Val_dataset = SlideDataset(args.root_path, args.task_description_csv,
                                task_setting_folder_name=args.task_setting_folder_name,
-                               split_name='val', slide_id_key=args.slide_id_key,
+                               split_name='Val', slide_id_key=args.slide_id_key,
                                split_target_key=args.split_target_key,
                                max_tiles=args.max_tiles)
 
