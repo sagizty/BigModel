@@ -1,23 +1,23 @@
 """
-tools to process WSI     Script  ver： Sep 2nd 14:00
-a WSI is a scanned whole slide image of some tissue region and many blank background
+tools to process WSI     Script  ver： Sep 9th 10:00
+a WSI is a scanned whole slide_feature image of some tissue region and many blank background
 
 Terminology:
-1. WSI / slide: the whole scanned slide
-2. ROI: the region of interest. usually it means the region with tissue or a small part of slide,
+1. WSI / slide_feature: the whole scanned slide_feature
+2. ROI: the region of interest. usually it means the region with tissue or a small part of slide_feature,
 notice it has two meanings therefor it may be confusing.
 3. Tile (as noun) / Patch / ROI: a small part taken from WSI,
 usually a non-overlapping griding can generate a series of them for each WSI.
 4. Tile (as verb) / Crop: the non-overlapping griding methods to break the WSI into many small patches.
-5. ROI sequence / tile sequence / patch sequence: all patches taken from one WSI.
+5. ROI sequence / tile sequence / slide_feature sequence: all patches taken from one WSI.
 
 In WSI object, the data is stored in multiple scale, it is called levels (from high to low)
 it corresponds to low resolution/magnification (highest level) to high resolution/magnification (lowest level)
 for example:
 1. you can see all tissues on your screen with 1x magnification,
-now its lowest magnification and highest level (level-8), now the resolution for whole slide is super low
+now its lowest magnification and highest level (level-8), now the resolution for whole slide_feature is super low
 2. you can only one cell on your screen with 100x magnification,
-now its highest magnification and lowest level (level-0), now the resolution for whole slide is super high
+now its highest magnification and lowest level (level-0), now the resolution for whole slide_feature is super high
 
 
 this code consists many tools to
@@ -27,11 +27,19 @@ this code consists many tools to
 
 we use
 from monai.data.wsi_reader import WSIReader(backend="OpenSlide")
-it returns slide shape in (CHW) not (CWH)!
+it returns slide_feature shape in (CHW) not (CWH)!
 However
-slide = openslide.OpenSlide(wsi_path) return slide in (WHC)
+slide_feature = openslide.OpenSlide(wsi_path) return slide_feature in (WHC)
 """
 import os
+import sys
+from pathlib import Path
+
+# For convinience
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
+
+
 import gc
 from copy import deepcopy
 import openslide
@@ -57,7 +65,7 @@ except:
     from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *
 
 
-# this is used to process WSI to get slide-level (for OpenSlide) at a target mpp
+# this is used to process WSI to get slide_feature-level (for OpenSlide) at a target mpp
 def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
     '''
     This code is designed to get the nearest level to load the WSI so the image is at target_mpp.
@@ -79,7 +87,7 @@ def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
     mpp_y = WSI_image_obj.properties.get(openslide.PROPERTY_NAME_MPP_Y)
 
     if mpp_x is None or mpp_y is None:
-        raise KeyError("Microns per pixel (MPP) value is missing from the slide properties")
+        raise KeyError("Microns per pixel (MPP) value is missing from the slide_feature properties")
     else:
         lowest_mpp = float(mpp_x)
 
@@ -134,7 +142,7 @@ def convert_bbox_to_target_level(WSI_image_obj, level0_bbox, target_level):
 class Loader_for_get_one_WSI_sample(MapTransform):
     """
     This process is a pipeline warps openslide and other functions:
-    Load a pathology whole slide image (WSI), and find the valid regions (with foreground bounding box).
+    Load a pathology whole slide_feature image (WSI), and find the valid regions (with foreground bounding box).
 
     This process operates on 'Slide information dictionary'!!!! -> (sample)
 
@@ -180,20 +188,20 @@ class Loader_for_get_one_WSI_sample(MapTransform):
     def WSI_region_detection(self, slide_obj: OpenSlide) -> Box:
         # Estimate bounding box at the lowest resolution/magnification (i.e. highest level)
         highest_level = slide_obj.level_count - 1
-        # Load full slide array at the given magnification level. in [C,H,W]
+        # Load full slide_feature array at the given magnification level. in [C,H,W]
         slide, _ = self.reader.get_data(slide_obj, level=highest_level)
 
         if slide_obj.level_count == 1:
             # in this case, the sample is not nicely organized into multiple level,
-            # the whole slide is stored only once at a very high magnification (eg 100x).
+            # the whole slide_feature is stored only once at a very high magnification (eg 100x).
             logging.warning(f"Warning: Only one level found in WSI . "
-                            f"segment_foregound at high magnification for whole slide will use a lot of memory.")
+                            f"segment_foregound at high magnification for whole slide_feature will use a lot of memory.")
 
         # if self.foreground_threshold is None, a threshold will be estimated with skimage Otsu's method.
         # foreground_mask is (1, H, W) boolean array indicating whether the pixel is foreground or not
         foreground_mask, Luminance_threshold = segment_foreground(slide, self.foreground_threshold)
         # threshold: Pixels with luminance below this value will be considered as foreground.
-        # visualize_foreground_mask(slide, foreground_mask, Luminance_threshold)
+        # visualize_foreground_mask(slide_feature, foreground_mask, Luminance_threshold)
 
         scale = slide_obj.level_downsamples[highest_level]
 
@@ -276,7 +284,7 @@ class Loader_for_get_one_WSI_sample(MapTransform):
             ROI_sample = deepcopy(sample)
             logging.info(f"Loader_for_get_one_WSI_sample: level0_bbox: {level0_bbox}")
 
-            # Save original slide thumbnail with bbox
+            # Save original slide_feature thumbnail with bbox
             save_openslide_thumbnail(WSI_image_obj,
                                      self.thumbnail_dir / (self.slide_image_path.name
                                                            + "_original_ROI_" + str(ROI_index) + ".jpeg"),
@@ -304,7 +312,7 @@ class Loader_for_get_one_WSI_sample(MapTransform):
             ROI_sample["target_level"] = target_level
 
             ROI_sample["WSI_loc_scale"] = WSI_loc_scale  # scale of converting the target_level location to level-0
-            ROI_sample["ROI_size_scale"] = ROI_size_scale  # scale of changing the patch size
+            ROI_sample["ROI_size_scale"] = ROI_size_scale  # scale of changing the slide_feature size
             ROI_sample["foreground_threshold"] = Luminance_threshold
 
             logging.info(f"Loader_for_get_one_WSI_sample: target_level: {target_level}, "
@@ -673,7 +681,7 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
         # prepare a csv log file for ROI tiles
         keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
                         "tile_y", "tile_x", "occupancy")
-        # Decode the slide metadata (if got)
+        # Decode the slide_feature metadata (if got)
         slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
         metadata_keys = tuple("slide_" + key for key in slide_metadata)
         # print('metadata_keys',metadata_keys)
@@ -690,7 +698,7 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
         failed_tiles_file.write('tile_id' + '\n')  # write CSV header
 
     # make a list to record the Tile information dictionary for valid tiles
-    logging.info(f"Saving tiles for slide {ROI_sample_from_WSI['slide_id']}  "
+    logging.info(f"Saving tiles for slide_feature {ROI_sample_from_WSI['slide_id']}  "
                  f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
 
     '''  # todo multiple process STEP 2 (type a) : load tile at the location inside the chunk region
@@ -877,7 +885,7 @@ def get_tile_descriptor(tile_location) -> str:
 
 def get_tile_id(slide_id: str, tile_location: Sequence[int]) -> str:
     """
-    Format the slide ID and YX tile coordinates into a unique tile ID.
+    Format the slide_feature ID and YX tile coordinates into a unique tile ID.
 
     :param slide_id: id name of the WSI
     :param tile_location: Sequence[int] get the encoded tile coordinates
@@ -890,7 +898,7 @@ def get_tile_id(slide_id: str, tile_location: Sequence[int]) -> str:
 def get_tile_info_dict(sample: Dict["SlideKey", Any], occupancy: float, tile_location: Sequence[int],
                        target_level_tilesize, rel_slide_dir: Path,
                        ROI_image_key: str = "tile_image_path", suffix='.jpeg') -> Dict["TileKey", Any]:
-    """Map slide information and tiling outputs into tile-specific information dictionary.
+    """Map slide_feature information and tiling outputs into tile-specific information dictionary.
 
     :param sample: Slide dictionary.
     :param occupancy: Estimated tile foreground occuppancy.
@@ -970,7 +978,7 @@ def load_image_dict(sample: dict, level: int, margin: int,
 
 def is_already_processed(output_tiles_dir):
     """
-    check whether the slide has been processed with all output log files
+    check whether the slide_feature has been processed with all output log files
 
     Args:
         output_tiles_dir: output folder for tiles (on WSI name)
@@ -1003,7 +1011,7 @@ def merge_dataset_csv_files(dataset_dir: Path) -> Path:
         # full_csv_file.write(','.join(CSV_COLUMNS) + '\n')  # write CSV header
         first_file = True
         for slide_csv in tqdm(dataset_dir.glob("*/dataset.csv"), desc="Merging dataset.csv", unit='file'):
-            logging.info(f"Merging slide {slide_csv}")
+            logging.info(f"Merging slide_feature {slide_csv}")
             content = slide_csv.read_text()
             if not first_file:
                 content = content[content.index('\n') + 1:]  # discard header row for all but the first file
