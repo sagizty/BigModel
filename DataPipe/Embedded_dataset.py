@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Sep 5th 01:30
+WSI embedding dataset tools     Script  ver： Sep 9th 12:30
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -589,7 +589,27 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
         # process in a temp file
         with tempfile.TemporaryDirectory() as output_tiles_dir:
-            # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into output_tiles_dir
+            # STEP 2: prepare log files:
+            # prepare a csv log file for ROI tiles
+            keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
+                            "tile_y", "tile_x", "occupancy")
+            # Decode the slide_feature metadata (if got)
+            slide_metadata: Dict[str, Any] = loaded_ROI_samples[0]["metadata"]
+            metadata_keys = tuple("slide_" + key for key in slide_metadata)
+            # print('metadata_keys',metadata_keys)
+            csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
+            # print('csv_columns',csv_columns)
+
+            # build a recording file to log the processed files
+            dataset_csv_path = output_tiles_dir / "dataset.csv"
+            dataset_csv_file = dataset_csv_path.open('w')
+            dataset_csv_file.write(','.join(csv_columns) + '\n')  # write CSV header
+
+            failed_tiles_csv_path = output_tiles_dir / "failed_tiles.csv"
+            failed_tiles_file = failed_tiles_csv_path.open('w')
+            failed_tiles_file.write('tile_id' + '\n')  # write CSV header
+
+            # STEP 3: Tile (crop) the WSI into ROI tiles (patches), save into output_tiles_dir
             logging.info(f"Tiling slide_feature {slide_id} ...")
             # each ROI_sample in loaded_WSI_samples is a valid ROI region
             n_failed_tiles = 0
@@ -607,15 +627,22 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
                                                                     chunk_scale_in_tiles=chunk_scale_in_tiles,
                                                                     tile_progress=tile_progress,
                                                                     ROI_image_key=ROI_image_key,
-                                                                    num_workers=num_workers)
+                                                                    num_workers=num_workers,
+                                                                    log_file_elements=(dataset_csv_file,
+                                                                                       failed_tiles_file,
+                                                                                       keys_to_save,
+                                                                                       metadata_keys))
 
-                # STEP 3: visualize the tile location overlay to WSI
+                # STEP 4: visualize the tile location overlay to WSI
                 visualize_tile_locations(ROI_sample, thumbnail_dir / (slide_image_path.name
                                                                       + "_roi_" + str(index) + "_tiles.jpeg"),
                                          tile_info_list, image_key=image_key)
                 n_failed_tiles += n_failed_tile
+            # close csv logging
+            dataset_csv_file.close()
+            failed_tiles_file.close()
 
-            # STEP 4 : embedding on-fly
+            # STEP 5 : embedding on-fly
             # Create the dataset and dataloader
             tile_dataset = TileEncodingDataset(output_tiles_dir, transform=transform, edge_size=tile_size)
             tile_dataloader = DataLoader(tile_dataset, batch_size=batch_size, shuffle=shuffle,

@@ -69,7 +69,7 @@ except:
 
 
 # todo it should be designed for better pretraining management
-def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi'], metadata_file_paths=None,
+def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi', '.tiff'], metadata_file_paths=None,
                                image_key: str = "slide_image_path", mode='TCGA'):
     """
     Make a slides_sample_list, each element inside is a
@@ -451,7 +451,7 @@ def main(args):
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
     slides_sample_list = prepare_slides_sample_list(
-        slide_root=args.WSI_dataset_path, slide_suffixes=['.svs', '.ndpi', '.tiff'])
+        slide_root=args.WSI_dataset_path, slide_suffixes=['.svs', '.ndpi', '.tiff'], mode=args.mode)
 
     prepare_tiles_dataset_for_all_slides(
         slides_sample_list,
@@ -482,6 +482,9 @@ def get_args_parser():
 
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite previous embedding at the path')
+
+    parser.add_argument('--mode', type=str, default='TCGA',
+                        help='Mode (e.g., TCGA)')
 
     return parser
 
