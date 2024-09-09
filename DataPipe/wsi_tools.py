@@ -89,11 +89,12 @@ def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp, slide_image_path
 
     if mpp_x is None or mpp_y is None:
         # fixme temp hack
-        if os.path.exists(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json')):
-            mpp_x = json.loads(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json'))["mpp_x"]
-            mpp_y = json.loads(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json'))["mpp_y"]
-
-            lowest_mpp = float(mpp_x)
+        qupath_json_path = os.path.join(str(slide_image_path), str(slide_image_path) + '_qpath_seg.json')
+        if os.path.exists(qupath_json_path):
+            # Open the file first
+            with open(qupath_json_path, 'r') as f:
+                mpp_x = json.load(f)["mpp_x"]
+                lowest_mpp = float(mpp_x)
         else:
             raise KeyError("Microns per pixel (MPP) value is missing from the slide_feature properties")
     else:

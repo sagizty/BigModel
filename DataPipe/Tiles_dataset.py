@@ -442,6 +442,9 @@ def tile_ROI_loadding_dataset(slide_image_path):
 
 
 def main(args):
+    if not os.path.exists(args.tiled_WSI_dataset_path):
+        os.mkdir(args.tiled_WSI_dataset_path)
+
     # Configure logging
     main_log_file = Path(args.tiled_WSI_dataset_path) / 'wsi_tile_processing.log'
     logging.basicConfig(filename=main_log_file, level=logging.INFO,
@@ -465,9 +468,9 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--WSI_dataset_path', type=str,
-                        default='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
+                        default='/data/hdd_1/BigModel/sampled_qupath_slides',
                         help='Root path for the datasets')
-    
+
     parser.add_argument('--tiled_WSI_dataset_path', type=str,
                         default='/data/hdd_1/BigModel/sampled_tiles_datasets',
                         help='Root path for the datasets')
