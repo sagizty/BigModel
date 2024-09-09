@@ -1,5 +1,5 @@
 """
-ROI/WSI Segmentation tools   Script  ver： Aug 4th 10:00
+ROI/WSI Segmentation tools   Script  ver： Sep 9th 12:30
 
 
 """
@@ -36,7 +36,7 @@ def get_luminance(image_or_images: np.ndarray) -> np.ndarray:
 
 def segment_foreground(image_or_images: np.ndarray, threshold: Optional[float] = None) \
         -> Tuple[np.ndarray, float]:
-    """Segment the given slide by thresholding its luminance.
+    """Segment the given slide_feature by thresholding its luminance.
 
     :param image_or_images: The RGB image array in (*, C, H, W) format.
     :param threshold: Pixels with luminance below this value will be considered foreground.
@@ -48,7 +48,7 @@ def segment_foreground(image_or_images: np.ndarray, threshold: Optional[float] =
     luminance = get_luminance(image_or_images)  # -> (*, H, W)
     if threshold is None:
         threshold = skimage.filters.threshold_otsu(luminance)
-    logging.info(f"Otsu threshold from luminance: {threshold}")
+    # logging.info(f"Otsu threshold from luminance: {threshold}")
 
     # Foreground is where luminance is greater than the threshold
     foreground_mask = (luminance < threshold)  # True is foreground

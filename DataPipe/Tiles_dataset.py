@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Sep 2nd 14:00
+WSI tile cropping dataset tools   Script  ver： Sep 9th 12:30
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -7,21 +7,21 @@ WSI tile cropping dataset tools   Script  ver： Sep 2nd 14:00
 
 
 Terminology:
-1. WSI / slide: the whole scanned slide
-2. ROI: the region of interest. usually it means the region with tissue or a small part of slide,
+1. WSI / slide_feature: the whole scanned slide_feature
+2. ROI: the region of interest. usually it means the region with tissue or a small part of slide_feature,
 notice it has two meanings therefor it may be confusing.
 3. Tile (as noun) / Patch / ROI: a small part taken from WSI,
 usually a non-overlapping griding can generate a series of them for each WSI.
 4. Tile (as verb) / Crop: the non-overlapping griding methods to break the WSI into many small patches.
-5. ROI sequence / tile sequence / patch sequence: all patches taken from one WSI.
+5. ROI sequence / tile sequence / slide_feature sequence: all patches taken from one WSI.
 
 In WSI object, the data is stored in multiple scale, it is called levels (from high to low)
 it corresponds to low resolution/magnification (highest level) to high resolution/magnification (lowest level)
 for example:
 1. you can see all tissues on your screen with 1x magnification,
-now its lowest magnification and highest level (level-8), now the resolution for whole slide is super low
+now its lowest magnification and highest level (level-8), now the resolution for whole slide_feature is super low
 2. you can only one cell on your screen with 100x magnification,
-now its highest magnification and lowest level (level-0), now the resolution for whole slide is super high
+now its highest magnification and lowest level (level-0), now the resolution for whole slide_feature is super high
 
 """
 
@@ -70,7 +70,7 @@ except:
 
 # todo it should be designed for better pretraining management
 def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi'], metadata_file_paths=None,
-                               image_key: str = "slide_image_path"):
+                               image_key: str = "slide_image_path", mode='TCGA'):
     """
     Make a slides_sample_list, each element inside is a
     slide_sample = {"slide_image_path": slide_image_path, "slide_id": slide_id, "metadata": {}}
@@ -79,14 +79,14 @@ def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi'], met
 
     Args:
         slide_root: a root folder of multiple WSIs, notice each WSI may be organized in different folder format
-        this code will go through all files in the slide_root and find the WSI files with suffix
-        in the slide_suffixes list
+            this code will go through all files in the slide_root and find the WSI files with suffix
+            in the slide_suffixes list
 
         slide_suffixes: list, the possible suffixes for WSI image file.
 
         metadata_file_paths: list, the paths to multiple metadata files, this code will go through the files and
-        load them as pd dataframe, if the information for a certain WSI (slide_id) can be found in certain pd dataframe,
-        the information will be kept in dictionary in "metadata"
+            load them as pd dataframe, if the information for a certain WSI (slide_id) can be found
+            in certain pd dataframe, the information will be kept in dictionary in "metadata"
 
         :param image_key: WSI Image key in the input and output dictionaries. default is 'slide_image_path'
 
@@ -103,7 +103,7 @@ def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi'], met
                 slide_image_path = Path(root) / file
                 # Assuming the slide_id is the filename [0:12] without the suffix
                 slide_id = slide_image_path.stem
-                patient_id = slide_id[0:12]  # fixme TCGA format only
+                patient_id = slide_id[0:12] if mode=='TCGA' else slide_id
 
                 # Initialize the slide_sample dictionary
                 slide_sample = {image_key: str(slide_image_path), "slide_id": slide_id, "metadata": {}}
@@ -136,11 +136,11 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                tile_progress: bool = False,
                                image_key: str = "slide_image_path",
                                ROI_image_key='tile_image_path') -> str:
-    """Load and process a slide, saving tile images and information to a CSV file.
+    """Load and process a slide_feature, saving tile images and information to a CSV file.
 
-    :param sample: Slide information dictionary, returned by the input slide dataset.
+    :param sample: Slide information dictionary, returned by the input slide_feature dataset.
 
-    :param output_dir: Root directory for the output dataset; outputs for a single slide will be
+    :param output_dir: Root directory for the output dataset; outputs for a single slide_feature will be
     saved inside `task_settings_path/slide_id/`.
     :param thumbnail_dir:
 
@@ -182,7 +182,7 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
 
         # STEP 1: take the WSI and get the ROIs (valid tissue regions)
         slide_image_path = Path(sample[image_key])
-        logging.info(f"Loading slide {slide_id} ...\nFile: {slide_image_path}")
+        logging.info(f"Loading slide_feature {slide_id} ...\nFile: {slide_image_path}")
 
         # take the valid tissue regions (ROIs) of the WSI (with monai and OpenSlide loader)
         loader = Loader_for_get_one_WSI_sample(WSIReader(backend="OpenSlide"), image_key=image_key,
@@ -191,8 +191,28 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                thumbnail_dir=thumbnail_dir)
         WSI_image_obj, loaded_ROI_samples = loader(sample)
 
-        # STEP 2: Tile (crop) the WSI into ROI tiles (patches), save into h5
-        logging.info(f"Tiling slide {slide_id} ...")
+        # STEP 2: prepare log files:
+        # prepare a csv log file for ROI tiles
+        keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
+                        "tile_y", "tile_x", "occupancy")
+        # Decode the slide_feature metadata (if got)
+        slide_metadata: Dict[str, Any] = loaded_ROI_samples[0]["metadata"]
+        metadata_keys = tuple("slide_" + key for key in slide_metadata)
+        # print('metadata_keys',metadata_keys)
+        csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
+        # print('csv_columns',csv_columns)
+
+        # build a recording file to log the processed files
+        dataset_csv_path = output_tiles_dir / "dataset.csv"
+        dataset_csv_file = dataset_csv_path.open('w')
+        dataset_csv_file.write(','.join(csv_columns) + '\n')  # write CSV header
+
+        failed_tiles_csv_path = output_tiles_dir / "failed_tiles.csv"
+        failed_tiles_file = failed_tiles_csv_path.open('w')
+        failed_tiles_file.write('tile_id' + '\n')  # write CSV header
+
+        # STEP 3: Tile (crop) the WSI into ROI tiles (patches), save into h5
+        logging.info(f"Tiling slide_feature {slide_id} ...")
         # each ROI_sample in loaded_WSI_samples is a valid ROI region
         n_failed_tiles = 0
         for index, ROI_sample in enumerate(loaded_ROI_samples):
@@ -206,7 +226,11 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
                                                                 extreme_value_portion_th=extreme_value_portion_th,
                                                                 chunk_scale_in_tiles=chunk_scale_in_tiles,
                                                                 tile_progress=tile_progress,
-                                                                ROI_image_key=ROI_image_key)
+                                                                ROI_image_key=ROI_image_key,
+                                                                log_file_elements=(dataset_csv_file,
+                                                                                   failed_tiles_file,
+                                                                                   keys_to_save,
+                                                                                   metadata_keys))
             if tile_info_list == None:
                 # empty ROi (finished processing earlier)
                 break
@@ -225,10 +249,14 @@ def process_one_slide_to_tiles(sample: Dict["SlideKey", Any],
         del loaded_ROI_samples
         del loader
 
+        # close csv logging
+        dataset_csv_file.close()
+        failed_tiles_file.close()
+
         # Force garbage collection
         gc.collect()
 
-        logging.info(f"Finished processing slide {slide_id}")
+        logging.info(f"Finished processing slide_feature {slide_id}")
 
         return None
 
@@ -241,7 +269,7 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
                                     chunk_scale_in_tiles: int,
                                     tile_progress: bool, image_key: str) -> Optional[str]:
     try:
-        # Process the slide and return the output directory or some result
+        # Process the slide_feature and return the output directory or some result
         return process_one_slide_to_tiles(
             sample=sample, output_dir=output_dir, thumbnail_dir=thumbnail_dir,
             margin=margin, tile_size=tile_size, target_mpp=target_mpp,
@@ -251,7 +279,8 @@ def safe_process_one_slide_to_tiles(sample: Dict[str, Any], output_dir: Path, th
             tile_progress=tile_progress, image_key=image_key
         )
     except Exception as e:
-        logging.error(f"Error processing slide {sample[image_key]}: {e}")
+        logging.error(f"Error processing slide_feature {sample[image_key]}: {e}")
+        print(f"Error processing slide_feature {sample[image_key]}: {e}")
         return sample[image_key]
 
 
@@ -304,7 +333,7 @@ def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list
     # to select a sub-set of samples use keyword n_slides
     dataset = Dataset(slides_sample_list)[:n_slides]  # type: ignore
 
-    # make sure all slide files exist in the image dir
+    # make sure all slide_feature files exist in the image dir
     for sample in dataset:
         image_path = Path(sample[image_key])
         assert image_path.exists(), f"{image_path} doesn't exist"
@@ -346,7 +375,7 @@ def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list
         pool.close()
         pool.join()  # Ensure all processes are cleaned up
 
-    logging.info("Merging slide files into a single file")
+    logging.info("Merging slide_feature files into a single file")
     merge_dataset_csv_files(output_dir)
 
     print(error_WSIs)  # fixme temp design, better write to system as a file
@@ -356,7 +385,7 @@ def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list
 def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir: str = '', tile_size: int = 224,
                                            image_key: str = "slide_image_path"):
     """
-    This function is used to tile a single slide and save the tiles to a directory.
+    This function is used to tile a single slide_feature and save the tiles to a directory.
     -------------------------------------------------------------------------------
     Warnings: pixman 0.38 has a known bug, which produces partial broken images.
     Make sure to use a different version of pixman.
@@ -365,7 +394,7 @@ def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir:
     Arguments:
     ----------
     slide_file : str
-        The path to the slide file.
+        The path to the slide_feature file.
     save_dir : str
         The directory to save the tiles.
     tile_size : int
@@ -380,7 +409,7 @@ def prepare_tiles_dataset_for_single_slide(slide_image_path: str = '', save_dir:
     if save_dir.exists():
         print(f"Warning: Directory {save_dir} already exists. ")
 
-    print(f"Processing slide {slide_image_path} with tile size {tile_size}. Saving to {save_dir}.")
+    print(f"Processing slide_feature {slide_image_path} with tile size {tile_size}. Saving to {save_dir}.")
 
     process_one_slide_to_tiles(
         slide_sample,
@@ -413,8 +442,13 @@ def tile_ROI_loadding_dataset(slide_image_path):
 
 
 def main(args):
+    # Configure logging
+    main_log_file = Path(args.tiled_WSI_dataset_path) / 'wsi_tile_processing.log'
+    logging.basicConfig(filename=main_log_file, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
     slides_sample_list = prepare_slides_sample_list(
-        slide_root=args.WSI_dataset_path)
+        slide_root=args.WSI_dataset_path, slide_suffixes=['.svs', '.ndpi', '.tiff'])
 
     prepare_tiles_dataset_for_all_slides(
         slides_sample_list,
@@ -433,6 +467,7 @@ def get_args_parser():
     parser.add_argument('--WSI_dataset_path', type=str,
                         default='/data/hdd_1/ai4dd/metadata/TCGA-READ/raw_data_sample',
                         help='Root path for the datasets')
+    
     parser.add_argument('--tiled_WSI_dataset_path', type=str,
                         default='/data/hdd_1/BigModel/sampled_tiles_datasets',
                         help='Root path for the datasets')
@@ -449,10 +484,6 @@ def get_args_parser():
 
 
 if __name__ == '__main__':
-
-    # Configure logging
-    logging.basicConfig(filename='wsi_tile_processing.log', level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s:%(message)s')
 
     # Suppress the specific RuntimeWarning related to overflow
     warnings.filterwarnings("ignore", category=RuntimeWarning, message="overflow encountered in reduce")

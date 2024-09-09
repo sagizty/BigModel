@@ -1,5 +1,5 @@
 """
-tools to process WSI     Script  ver： Sep 9th 10:00
+tools to process WSI     Script  ver： Sep 9th 12:30
 a WSI is a scanned whole slide_feature image of some tissue region and many blank background
 
 Terminology:
@@ -39,7 +39,6 @@ from pathlib import Path
 this_file_dir = Path(__file__).resolve().parent
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
-
 import gc
 from copy import deepcopy
 import openslide
@@ -52,7 +51,7 @@ from monai.data import Dataset
 from monai.data.wsi_reader import WSIReader
 from tqdm import tqdm
 from PIL import ImageDraw, Image
-
+import json
 import traceback
 import warnings
 import multiprocessing
@@ -66,13 +65,15 @@ except:
 
 
 # this is used to process WSI to get slide_feature-level (for OpenSlide) at a target mpp
-def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
+def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp, slide_image_path=None):
     '''
     This code is designed to get the nearest level to load the WSI so the image is at target_mpp.
     WSI_image_obj is from:
     from monai.data.wsi_reader import WSIReader
     WSI_image_obj: OpenSlide = WSIReader(backend="OpenSlide").read(WSI_image_path)
     target_mpp: target mpp
+
+    slide_image_path: optional
 
     return: target_loading_level, and the ROI_size_scale
     The ROI_size_scale is designed for adjusting the ROI_patch_size.
@@ -87,7 +88,14 @@ def get_nearest_level_for_target_mpp(WSI_image_obj, target_mpp):
     mpp_y = WSI_image_obj.properties.get(openslide.PROPERTY_NAME_MPP_Y)
 
     if mpp_x is None or mpp_y is None:
-        raise KeyError("Microns per pixel (MPP) value is missing from the slide_feature properties")
+        # fixme temp hack
+        if os.path.exists(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json')):
+            mpp_x = json.loads(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json'))["mpp_x"]
+            mpp_y = json.loads(os.path.join(slide_image_path, slide_image_path + '_qpath_seg.json'))["mpp_y"]
+
+            lowest_mpp = float(mpp_x)
+        else:
+            raise KeyError("Microns per pixel (MPP) value is missing from the slide_feature properties")
     else:
         lowest_mpp = float(mpp_x)
 
@@ -195,7 +203,9 @@ class Loader_for_get_one_WSI_sample(MapTransform):
             # in this case, the sample is not nicely organized into multiple level,
             # the whole slide_feature is stored only once at a very high magnification (eg 100x).
             logging.warning(f"Warning: Only one level found in WSI . "
-                            f"segment_foregound at high magnification for whole slide_feature will use a lot of memory.")
+                            f"segment_foregound at high magnification for whole_slide_feature "
+                            f"will use a lot of memory.")
+            # if the WSI is tiff file, we can only have the level-0 and will need the json file for mpp information
 
         # if self.foreground_threshold is None, a threshold will be estimated with skimage Otsu's method.
         # foreground_mask is (1, H, W) boolean array indicating whether the pixel is foreground or not
@@ -269,7 +279,8 @@ class Loader_for_get_one_WSI_sample(MapTransform):
         WSI_image_obj: OpenSlide = self.reader.read(self.slide_image_path)
 
         # get target loading level
-        target_level, ROI_size_scale = get_nearest_level_for_target_mpp(WSI_image_obj, self.target_mpp)
+        target_level, ROI_size_scale = get_nearest_level_for_target_mpp(WSI_image_obj, self.target_mpp,
+                                                                        self.slide_image_path)
 
         # STEP 2: Select the valid regions on the WSI, in one bbox
         logging.info("Loader_for_get_one_WSI_sample: get level0_bbox ")
@@ -634,7 +645,8 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
                         foreground_threshold: float, occupancy_threshold: float = 0.1,
                         pixel_std_threshold: int = 5, extreme_value_portion_th: float = 0.5,
                         chunk_scale_in_tiles=0, tile_progress=True, ROI_image_key: str = "tile_image_path",
-                        num_workers=1):  # todo make this to be parallel in sample
+                        num_workers=1,  # todo make this to be parallel in sample
+                        log_file_elements=None):
     """
     :param slide_image_path:
     :param ROI_sample_from_WSI:
@@ -658,7 +670,15 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
     :param num_workers: int, optional
         Number of subprocesses to use for data loading (default is 1 for not multiple processing).
 
+    :param log_file_elements:
+            dataset_csv_file,
+            failed_tiles_file,
+            keys_to_save,
+            metadata_keys
+
     """
+    assert log_file_elements is not None
+    dataset_csv_file, failed_tiles_file, keys_to_save, metadata_keys = log_file_elements
 
     # STEP 0: prepare chuck and tile locations
     target_level_tilesize = int(tile_size * ROI_sample_from_WSI["ROI_size_scale"])
@@ -677,26 +697,7 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
         # the ROI is empty now
         return None, None
     else:
-        # STEP 1: prepare log files:
-        # prepare a csv log file for ROI tiles
-        keys_to_save = ("slide_id", ROI_image_key, "tile_id", "label",
-                        "tile_y", "tile_x", "occupancy")
-        # Decode the slide_feature metadata (if got)
-        slide_metadata: Dict[str, Any] = ROI_sample_from_WSI["metadata"]
-        metadata_keys = tuple("slide_" + key for key in slide_metadata)
-        # print('metadata_keys',metadata_keys)
-        csv_columns: Tuple[str, ...] = (*keys_to_save, *metadata_keys)
-        # print('csv_columns',csv_columns)
-
-        # build a recording file to log the processed files
-        dataset_csv_path = output_tiles_dir / "dataset.csv"
-        dataset_csv_file = dataset_csv_path.open('w')
-        dataset_csv_file.write(','.join(csv_columns) + '\n')  # write CSV header
-
-        failed_tiles_csv_path = output_tiles_dir / "failed_tiles.csv"
-        failed_tiles_file = failed_tiles_csv_path.open('w')
-        failed_tiles_file.write('tile_id' + '\n')  # write CSV header
-
+        pass
     # make a list to record the Tile information dictionary for valid tiles
     logging.info(f"Saving tiles for slide_feature {ROI_sample_from_WSI['slide_id']}  "
                  f"ROI index {ROI_sample_from_WSI['ROI_index']}...")
@@ -788,8 +789,6 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
                         dataset_row = format_csv_row(tile_info, keys_to_save, metadata_keys)
                         dataset_csv_file.write(dataset_row + '\n')
 
-    dataset_csv_file = dataset_csv_path.open('w')
-
     # STEP 2 (type b) : load tile at the location for the tiles outside the chunk region
     for tile_index in tqdm(range(len(tile_locations)),
                            f"Processing the out-of-chuck tiles for ({ROI_sample_from_WSI['slide_id'][:6]}…) "
@@ -840,9 +839,6 @@ def extract_valid_tiles(slide_image_path, ROI_sample_from_WSI, output_tiles_dir:
                 tile_info_list.append(tile_info)
                 dataset_row = format_csv_row(tile_info, keys_to_save, metadata_keys)
                 dataset_csv_file.write(dataset_row + '\n')
-    # close csv logging
-    dataset_csv_file.close()
-    failed_tiles_file.close()
 
     # Explicitly delete the large objects
     del WSI_image_obj
