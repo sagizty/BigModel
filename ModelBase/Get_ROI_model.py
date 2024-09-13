@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Aug 22nd 21:00
+Build ROI level models    Script  ver： Sep 13th 16:00
 """
 import timm
 from pprint import pprint
@@ -105,6 +105,17 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             model = timm.create_model('vgg19_bn', pretrained=load_weight_online, num_classes=num_classes)
         elif model_idx[0:5] == 'vgg19':
             model = timm.create_model('vgg19', pretrained=load_weight_online, num_classes=num_classes)
+
+    elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
+        if load_weight_online:
+            # fixme if failed, use your own hugging face token and register for the project gigapath
+            os.environ["HF_TOKEN"] = "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"
+            model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True, init_values=1e-5, dynamic_img_size=True)
+        else:
+            raise NotImplementedError
+            # transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
+            # from uni import get_encoder
+            # self.backbone, _ = get_encoder(enc_name='uni')
 
     elif model_idx[0:4] == 'deit':  # Transfer learning for DeiT
         model_names = timm.list_models('*deit*')

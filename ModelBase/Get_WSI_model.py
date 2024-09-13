@@ -1,5 +1,5 @@
 """
-Build WSI level models     Script  ver： Sep 3rd 15:30
+Build WSI level models      Script  ver： Sep 13th 16:00
 """
 import os
 import torch
@@ -31,7 +31,7 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
                                             local_dir=local_dir, force_download=True)
             local_weight_path = os.path.join(local_dir, "slide_encoder.pth")
 
-        # build weight for slide level
+        # build weight for slide_feature level
         if local_weight_path is False:
             print("Pretrained weights not required. Randomly initialized the model! ")
 
@@ -54,6 +54,9 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
 
         return slide_backbone
 
+    elif model_name == 'UNI':
+        pass
+
 
 class MTL_module_baseline(nn.Module):
     def __init__(self, MTL_token_num, latent_feature_dim):
@@ -72,7 +75,7 @@ class MTL_Model_builder(nn.Module):
                  MTL_heads: List[nn.Module] = [nn.Identity(), nn.Identity(), nn.Identity()],
                  embed_dim: int = 768, latent_feature_dim: int = 128, Froze_backbone=False):
         """
-        :param backbone: slide-level modeling model
+        :param backbone: slide_feature-level modeling model
         :param MTL_module: MTL model projecting the features to multiple task heads
         :param MTL_heads: the list of multiple WSI-level task heads for each task
         :param embed_dim: feature dim for MTL heads and WSI level modeling model
@@ -103,7 +106,7 @@ class MTL_Model_builder(nn.Module):
     def Freeze_backbone(self):
         for param in self.backbone.parameters():
             param.requires_grad = False
-        # todo for future prompttuning the slide model
+        # todo for future prompttuning the slide_feature model
         # self.Prompt_Tokens.requires_grad = True
         '''
         try:
@@ -122,7 +125,7 @@ class MTL_Model_builder(nn.Module):
         Forward pass for the MTL Transformer.
 
         :param image_features: Tensor of shape [B, N, feature_dim],
-                               where B is batch size, N is the number of patches/features per slide.
+                               where B is batch size, N is the number of patches/features per slide_feature.
         :return: List of task predictions, where each element in the list corresponds to a task and has
                  shape [B, output_dim] (output_dim may vary depending on the task).
         """
@@ -140,7 +143,7 @@ class MTL_Model_builder(nn.Module):
 class slide_embedding_model_builder(nn.Module):
     def __init__(self, backbone: nn.Module):
         """
-        :param backbone: slide-level modeling model
+        :param backbone: slide_feature-level modeling model
         """
         super().__init__()
 
@@ -151,7 +154,7 @@ class slide_embedding_model_builder(nn.Module):
         Forward pass for the MTL Transformer.
 
         :param image_features: Tensor of shape [B, N, feature_dim],
-                               where B is batch size, N is the number of patches/features per slide.
+                               where B is batch size, N is the number of patches/features per slide_feature.
         :return: slide_latent has
                  shape [B, output_dim] (output_dim may vary depending on the task).
         """
