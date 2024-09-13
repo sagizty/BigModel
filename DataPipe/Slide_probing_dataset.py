@@ -1,5 +1,5 @@
 """
-Embedding slide_feature dataset     Script  ver： Sep 3rd 21:30
+Embedding slide_feature dataset     Script  ver： Sep 13th 11:30
 
 flexible to multiple-tasks and missing labels
 
@@ -156,20 +156,23 @@ def get_args_parser():
 
     # PATH
     parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
-                        help='MTL dataset root')
+                        help='MTL dataset root')  #
     parser.add_argument('--local_weight_path',
                         default=None, type=str,
                         help='local weight path')
     # labels
     parser.add_argument('--task_description_csv',
-                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
-                        type=str, help='label csv file path')
+                        default=None,
+                        type=str, help='label csv file path, '
+                                       'default none will go to task_description.csv in task_setting_folder')
 
     # Task settings and configurations for dataloaders
     parser.add_argument('--task_setting_folder_name', default='task-settings-5folds', type=str,
                         help='task-settings folder name')
+
     parser.add_argument('--slide_id_key', default='patient_id', type=str,
                         help='key for mapping the label')
+
     parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
     parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
 
@@ -180,9 +183,9 @@ def get_args_parser():
     # Model settings
     parser.add_argument('--model_name', default='gigapath', type=str, help='slide_feature level model name')
 
-    # training settings
+    # embedding settings
     parser.add_argument('--batch_size', default=1, type=int,
-                        help='batch_size , default 1')
+                        help='batch_size of WSI, default 1')
 
     # helper
     parser.add_argument('--check_minibatch', default=25, type=int,
@@ -198,3 +201,8 @@ if __name__ == '__main__':
     parser = get_args_parser()
     args = parser.parse_args()
     main(args)
+
+    '''
+    python Slide_probing_dataset.py --root_path /data/BigModel/embedded_datasets/ --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv --slide_id_key 'patient_id'  
+    python Slide_probing_dataset.py --root_path /data/hdd_1/BigModel/qupath_embedded_datasets --slide_id_key 'Slide_folder' --num_workers 20
+    '''
