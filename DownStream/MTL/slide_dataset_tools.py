@@ -1,5 +1,5 @@
 """
-tools for slide_feature level dataset      Script  ver： Sep 4th 15:30
+tools for slide_feature level dataset      Script  ver： Sep 13th 11:30
 
 build and load task config
 """
@@ -43,7 +43,7 @@ def read_df_from_file(file_path: str):
 
 
 # csv data split tools:
-def write_csv_data(task_description_csv, id_key, id_data, key='split', val='train'):
+def write_csv_data(task_description_csv, id_key, id_data, key='split', val='Train'):
     """
     Edit the CSV file by adding (if not there, otherwise edit) a column name of key (such as 'split')
 
@@ -293,7 +293,9 @@ def build_task_config_settings(df, new_labels, one_hot_table={}, all_task_dict={
 
 def build_yaml_config_from_csv(task_description_csv, task_settings_path, dataset_name='lung-mix',
                                tasks_to_run=None, max_tiles=1000000, mode='TCGA', shuffle_tiles=True,
-                               excluding_list=('WSI_name', 'split',), yaml_config_name='task_configs.yaml'):
+                               excluding_list=('WSI_name', 'split','Folder', 'File_name','Slide','Tissue',
+                                               'Type','Disposition','mpp','Sub folder','Status','Date',
+                                               'Time','Patient ID'), yaml_config_name='task_configs.yaml'):
     """
     Build a YAML configuration file from a CSV file containing task descriptions.
 
@@ -381,7 +383,10 @@ def load_yaml_config(file_path):
 def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                  tasks_to_run, slide_id_key, split_target_key='fold_information',
                                  task_setting_folder_name='task-settings',
-                                 mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml'):
+                                 mode='TCGA', test_ratio=0.2, k=1, yaml_config_name='task_configs.yaml',
+                                 excluding_list=('WSI_name', 'split','Folder', 'File_name','Slide','Tissue',
+                                               'Type','Disposition','mpp','Sub folder','Status','Date',
+                                               'Time','Patient ID')):
 
     assert os.path.exists(root_path), 'root_path does not exist: {}'.format(root_path)
 
@@ -390,7 +395,9 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
 
     output_dir = os.path.join(root_path, task_setting_folder_name)
 
-    excluding_list = [slide_id_key, split_target_key]
+    excluding_list = list(excluding_list)
+    excluding_list.extend([slide_id_key, split_target_key])
+
     if k > 1:
         excluding_list.extend([split_target_key + '_{}fold-{}'.format(k, fold) for fold in range(1,k+1)])
 
@@ -427,13 +434,13 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_name', type=str, default='coad-read',
                         help='Name of the dataset')
     parser.add_argument('--tasks_to_run', type=str,
-                        default='EPCAM%CDH1%COL3A1%MYH11%CD3E%SPOCK2%PECAM1%CD14%SPP1%IL1B',
-                        help='Tasks to run, separated by "%"')
+                        default=None,
+                        help='Tasks to run, separated by "%", default None will take all tasks in csv')
 
     args = parser.parse_args()
 
     # Convert tasks_to_run to a list
-    tasks_to_run = args.tasks_to_run.split('%')
+    tasks_to_run = args.tasks_to_run.split('%') if args.tasks_to_run else None
 
     build_split_and_task_configs(
         root_path=args.root_path,
@@ -446,7 +453,7 @@ if __name__ == '__main__':
         mode=args.mode,
         k=args.k
     )
-    # demo
+    # demo with TCGA
     '''
     python slide_dataset_tools.py --root_path /data/BigModel/embedded_datasets/ \
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
@@ -476,4 +483,17 @@ if __name__ == '__main__':
         task_description_csv='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
         slide_id_key='patient_id', key='fold_information', input_pkl_rootpath='/data/ai4dd/TCGA_5-folds',
         mode='TCGA', k=5)
+    '''
+
+    # demo with SGH
+    '''
+    python slide_dataset_tools.py --root_path '/data/hdd_1/BigModel/qupath_embedded_datasets' \
+    --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/SGH_Transcriptome_Log_Combined.csv \
+    --slide_id_key Slide_folder \
+    --split_target_key fold_information \
+    --task_setting_folder_name task-settings \
+    --mode SGH \
+    --dataset_name SGH_aidd \
+    --tasks_to_run None \
+    --k 5
     '''
