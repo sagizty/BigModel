@@ -7,10 +7,7 @@ import os
 import random
 import pandas as pd
 import numpy as np
-import torch
-from torch.utils.data import Dataset
-from pathlib import Path
-import h5py
+import shutil
 import yaml  # Ensure pyyaml is installed: pip install pyyaml
 from sklearn.model_selection import GroupKFold
 
@@ -389,11 +386,19 @@ def build_split_and_task_configs(root_path, task_description_csv, dataset_name,
                                                'Time','Patient ID')):
 
     assert os.path.exists(root_path), 'root_path does not exist: {}'.format(root_path)
+    output_dir = os.path.join(root_path, task_setting_folder_name)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    if task_description_csv is None:
+        task_description_csv = os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
+    else:
+        assert os.path.exists(task_description_csv), 'task_description_csv does not'
+        shutil.copy(task_description_csv, os.path.join(root_path, task_setting_folder_name, 'task_description.csv'))
+        task_description_csv = os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
 
     build_data_split_for_csv(task_description_csv, slide_id_key=slide_id_key, test_ratio=test_ratio, k=k,
                              mode=mode, key=split_target_key)
-
-    output_dir = os.path.join(root_path, task_setting_folder_name)
 
     excluding_list = list(excluding_list)
     excluding_list.extend([slide_id_key, split_target_key])
@@ -417,13 +422,17 @@ if __name__ == '__main__':
 
     parser.add_argument('--root_path', type=str, default='/data/BigModel/embedded_datasets/',
                         help='Root path for the datasets')
-    parser.add_argument('--task_description_csv', type=str,
-                        default='/data/BigModel/embedded_datasets/task-settings-5folds/20240827_TCGA_log_marker10.csv',
-                        help='Path to the task description CSV')
+    parser.add_argument('--task_description_csv',
+                        default=None,
+                        type=str, help='label csv file path, if given'
+                                       ' it will be copied to the task_setting_folder as task_description.csv'
+                                       'default none will go to find task_description.csv in task_setting_folder')
+
     parser.add_argument('--slide_id_key', type=str, default='patient_id',
                         help='Slide ID key in the dataset')
     parser.add_argument('--split_target_key', type=str, default='fold_information',
                         help='Key to split the dataset')
+
     parser.add_argument('--task_setting_folder_name', type=str, default='task-settings-5folds',
                         help='Folder name for task settings')
     parser.add_argument('--mode', type=str, default='TCGA',
@@ -459,7 +468,7 @@ if __name__ == '__main__':
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
     --slide_id_key patient_id \
     --split_target_key fold_information \
-    --task_setting_folder_name task-settings \
+    --task_setting_folder_name task-settings-5folds \
     --mode TCGA \
     --dataset_name lung-mix \
     --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A \
@@ -491,7 +500,7 @@ if __name__ == '__main__':
     --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/SGH_Transcriptome_Log_Combined.csv \
     --slide_id_key Slide_folder \
     --split_target_key fold_information \
-    --task_setting_folder_name task-settings \
+    --task_setting_folder_name task-settings-5folds \
     --mode SGH \
     --dataset_name SGH_aidd \
     --tasks_to_run None \

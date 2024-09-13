@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Sep 3rd 15:30
+MTL dataset framework       Script  ver： Sep 13th 11:30
 '''
 
 import os
@@ -31,12 +31,12 @@ class SlideDataset(Dataset):
                  max_tiles=10000,
                  **kwargs):
         """
-        Slide dataset class for retrieving slide samples for different tasks.
+        Slide dataset class for retrieving slide_feature samples for different tasks.
 
         Each WSI is a folder (slide_folder, named by slide_id), and all cropped tiles are embedded as one .h5 file:
             h5file['features'] is a list of numpy features, each feature (can be of multiple dims: dim1, dim2, ...)
                             for transformer embedding, the feature dim is [768]
-            h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is patch index in WSI
+            h5file['coords_yx'] is a list of coordinates, each item is a [Y, X], Y, X is slide_feature index in WSI
 
         Arguments:
         ----------
@@ -47,7 +47,7 @@ class SlideDataset(Dataset):
         split_name : str
             The key word of patient_ids/labeled_slide_names as the split lists to build dataset
         slide_id_key : str
-            The key that contains the slide id
+            The key that contains the slide_feature id
         split_target_key : str
             The key that specifies the column name for taking the split_name,
             'split_nfold-k', n is the total fold number and k is the fold index
@@ -55,7 +55,7 @@ class SlideDataset(Dataset):
         possible_suffixes: supported suffix for taking the samples
         stopping_folder_name_list:
 
-        dataset_type: 'MTL' for building slide level mtl dataset, 'embedding' for probing
+        dataset_type: 'MTL' for building slide_feature level mtl dataset, 'embedding' for probing
 
         everytime it get a sample WSI:
         ----------
@@ -83,7 +83,7 @@ class SlideDataset(Dataset):
         # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
         if self.split_target_key is None or split_name is None or self.dataset_type== 'embedding':
             assert self.dataset_type is 'embedding'
-            split_name = 'all embedding'
+            split_name = 'all_embedding'
             self.task_name_list = None
         else:
             task_description_data_df = task_description_data_df[
@@ -92,20 +92,20 @@ class SlideDataset(Dataset):
             self.task_name_list = self.task_cfg.get('tasks_to_run')
             assert self.task_name_list is not None
 
-        # Find valid slide paths that have tile encodings
+        # Find valid slide_feature paths that have tile encodings
         self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[slide_id_key].values,
                                                                  stopping_folder_name_list, self.mode)
 
         if self.mode == 'TCGA':
             # in tcga csv, we only have slide_id_key indicating the label to the patient,
-            # therefore we need to map the slide id into the csv by duplicating the labels.
+            # therefore we need to map the slide_feature id into the csv by duplicating the labels.
             # certain patients can have multiple slides
             print('In TCGA mode, we take the patient record as label'
                   ' for the slides corresponding to the same patient')
             task_description_data_df = \
                 task_description_data_df[task_description_data_df[self.slide_id_key].isin(valid_sample_ids)]
         else:
-            print('In dataset framework, we take the slide_id_key to pair slide id and label csv')
+            print('In dataset framework, we take the slide_id_key to pair slide_feature id and label csv')
             task_description_data_df = \
                 task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
 
@@ -122,7 +122,7 @@ class SlideDataset(Dataset):
 
     def find_slide_paths_and_ids(self, stopping_folder_name_list):
         """
-        Find slide paths and their corresponding IDs.
+        Find slide_feature paths and their corresponding IDs.
 
         This operation can be slow as there are many '.jpg' files in the slide_folder.
         Therefore, when it detects one slide_folder, all files inside should not be tested again.
@@ -178,10 +178,10 @@ class SlideDataset(Dataset):
 
         tile_num_list = []
         for slide_id in self.slide_ids:
-            # Get the slide path
+            # Get the slide_feature path
             embedded_slide_path = self.slide_paths[slide_id]
 
-            # Read assets from the slide
+            # Read assets from the slide_feature
             assets, _ = self.read_assets_from_h5(embedded_slide_path)
             tile_num = len(assets['coords_yx'])
             tile_num_list.append((slide_id, tile_num))
@@ -189,13 +189,13 @@ class SlideDataset(Dataset):
         # Sort the list based on tile numbers
         tile_num_list.sort(key=lambda x: x[1])
 
-        # Extract slide IDs and corresponding tile counts
+        # Extract slide_feature IDs and corresponding tile counts
         slide_ids_sorted, tile_counts_sorted = zip(*tile_num_list)
 
         # Plotting the distribution of tile numbers
         plt.figure(figsize=(12, 6))
         plt.bar(range(len(slide_ids_sorted)), tile_counts_sorted)
-        plt.xticks(range(len(slide_ids_sorted)), [''] * len(slide_ids_sorted))  # Disable printing the slide IDs
+        plt.xticks(range(len(slide_ids_sorted)), [''] * len(slide_ids_sorted))  # Disable printing the slide_feature IDs
         plt.xlabel('Slide ID')
         plt.ylabel('Number of Tiles')
         plt.title('Distribution of Tile Numbers Across Slides')
@@ -254,7 +254,7 @@ class SlideDataset(Dataset):
         return
         task_dict,
         one_hot_table,
-        labels: a dict recording the labels for each slide by
+        labels: a dict recording the labels for each slide_feature by
                 loading the corresponding self.slide_id_key in csv
         """
         task_dict = self.task_cfg.get('all_task_dict')
@@ -355,15 +355,15 @@ class SlideDataset(Dataset):
 
     def get_one_embedded_sample(self, idx: int) -> dict:
         """Get one sample from the dataset"""
-        # get the slide id
+        # get the slide_feature id
         slide_id = self.slide_ids[idx]
-        # get the slide path
+        # get the slide_feature path
         embedded_slide_path = self.slide_paths[slide_id]
 
-        # get the slide tile embeddings
+        # get the slide_feature tile embeddings
         data_dict = self.get_embedded_data_dict(embedded_slide_path)
 
-        # get the slide label
+        # get the slide_feature label
         slide_id_name = slide_id[0:12] if self.mode == 'TCGA' else slide_id
         task_description_list = self.labels[slide_id_name] if self.dataset_type is not 'embedding' else 'None'
 
