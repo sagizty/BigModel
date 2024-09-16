@@ -1,5 +1,5 @@
 """
-Build WSI level models      Script  ver： Sep 13th 16:00
+Build WSI level models      Script  ver： Sep 16th 13:00
 """
 import os
 import torch
@@ -15,14 +15,16 @@ except:
 
 def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
                              ROI_feature_dim=1536, **kwargs):
+    # fixme internal token
+    # Hugging Face API token
+    os.environ["HF_TOKEN"] = "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"
+
     if model_name == 'gigapath':
         slide_backbone = gigapath_slide_enc12l768d(in_chans=ROI_feature_dim, global_pool=False, **kwargs)
         print("Slide encoder param #", sum(p.numel() for p in slide_backbone.parameters()))
 
         # download the weights
         if local_weight_path is None:
-            # Hugging Face API token
-            os.environ["HF_TOKEN"] = "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"
             hf_hub = "hf_hub:prov-gigapath/prov-gigapath"
             hub_name = hf_hub.split(":")[1]
             local_dir = os.path.join(os.path.expanduser("~"), ".cache/")
@@ -54,8 +56,16 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
 
         return slide_backbone
 
-    elif model_name == 'UNI':
+
+    elif model_name[0:3] == 'UNI':
+        # ABMIL
         pass
+
+    elif model_name[0:7] == 'Virchow':
+        pass
+
+    else:
+        raise NotImplementedError
 
 
 class MTL_module_baseline(nn.Module):

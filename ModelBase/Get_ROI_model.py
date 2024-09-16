@@ -1,10 +1,12 @@
 """
-Build ROI level models    Script  ver： Sep 13th 16:00
+Build ROI level models    Script  ver： Sep 16th 13:00
 """
 import timm
 from pprint import pprint
 import os
 import sys
+from timm.data import resolve_data_config
+from timm.data.transforms_factory import create_transform
 
 try:
     from ROI_models.GetPromptModel import *
@@ -27,6 +29,13 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
 
     :return: prepared model
     """
+    # fixme internal token
+    # Hugging Face API token
+    os.environ["HF_TOKEN"] = "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"
+
+    # default transforms
+    transforms = None
+
     if pretrained_backbone == True or pretrained_backbone == False:
         pretrained_backbone_weight = None
         load_weight_online = pretrained_backbone
@@ -109,7 +118,6 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
         if load_weight_online:
             # fixme if failed, use your own hugging face token and register for the project gigapath
-            os.environ["HF_TOKEN"] = "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"
             model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True, init_values=1e-5, dynamic_img_size=True)
         else:
             raise NotImplementedError
@@ -197,6 +205,57 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         # ['botnet26t_256', 'botnet50ts_256', 'eca_botnext26ts_256']
         model = timm.create_model('botnet26t_256', pretrained=load_weight_online, num_classes=num_classes)
 
+    elif model_idx[0:8] == 'Virchow2':
+        # ref: https://huggingface.co/paige-ai/Virchow
+        if load_weight_online:
+            from timm.layers import SwiGLUPacked
+            # fixme if failed, use your own hugging face token and register for the project
+            model = timm.create_model("hf-hub:paige-ai/Virchow2", pretrained=True,
+                                      mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
+
+            transforms = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
+
+            '''
+            output = model(image)  # size: 1 x 257 x 1280
+
+            class_token = output[:, 0]    # size: 1 x 1280
+            patch_tokens = output[:, 5:]  # size: 1 x 256 x 1280, tokens 1-4 are register tokens so we ignore those
+
+            # concatenate class token and average pool of patch tokens
+            embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
+            # We concatenate the class token and the mean patch token to create the final tile embedding. 
+            In more resource constrained settings, one can experiment with using just class token or the mean 
+            patch token. For downstream tasks with dense outputs (i.e. segmentation), the 256 x 1280 tensor of 
+            patch tokens can be used.
+            '''
+        else:
+            raise NotImplementedError
+
+    elif model_idx[0:7] == 'Virchow':
+        # ref: https://huggingface.co/paige-ai/Virchow
+        if load_weight_online:
+            from timm.layers import SwiGLUPacked
+            # fixme if failed, use your own hugging face token and register for the project
+            model = timm.create_model("hf-hub:paige-ai/Virchow", pretrained=True,
+                                      mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
+
+            transforms = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
+
+            '''
+            output = model(image)  # size: 1 x 257 x 1280
+
+            class_token = output[:, 0]    # size: 1 x 1280
+            patch_tokens = output[:, 1:]  # size: 1 x 256 x 1280
+            # concatenate class token and average pool of patch tokens
+            embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
+            # We concatenate the class token and the mean patch token to create the final tile embedding. 
+            In more resource constrained settings, one can experiment with using just class token or the mean patch 
+            token. For downstream tasks with dense outputs (i.e. segmentation), the 256 x 1280 tensor of patch 
+            tokens can be used.
+            '''
+        else:
+            raise NotImplementedError
+
     elif model_idx[0:8] == 'densenet':  # Transfer learning for densenet
         model_names = timm.list_models('*densenet*')
         pprint(model_names)
@@ -278,8 +337,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     elif model_idx[0:8] == 'gigapath':
         # ref: https://www.nature.com/articles/s41586-024-07441-w
         if load_weight_online:
-            # fixme if failed, use your own hugging face token and register for the project gigapath
-            os.environ["HF_TOKEN"] = "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"
+            # fixme if "HF_TOKEN" failed, use your own hugging face token and register for the project gigapath
             model = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
         else:
             # Model configuration from your JSON
@@ -351,4 +409,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         return -1
     else:
         print('model is ready now!')
-        return model
+        if transforms is not None:
+            return model, transforms
+        else:
+            return model
