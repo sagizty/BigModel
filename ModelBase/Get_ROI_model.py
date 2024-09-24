@@ -32,6 +32,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     # fixme internal token
     # Hugging Face API token
     os.environ["HF_TOKEN"] = "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"
+    # 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
 
     # default transforms
     transforms = None
@@ -118,7 +119,8 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
         if load_weight_online:
             # fixme if failed, use your own hugging face token and register for the project gigapath
-            model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True, init_values=1e-5, dynamic_img_size=True)
+            model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True,
+                                      init_values=1e-5, dynamic_img_size=True)
         else:
             raise NotImplementedError
             # transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
