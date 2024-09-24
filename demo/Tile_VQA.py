@@ -22,8 +22,7 @@ from huggingface_hub import login
 class Tile_VQA_Dataset(Dataset):
     def __init__(self, dataframe, image_folder, tokenizer_name='gpt2',
                  max_seq_length=256, img_size=224, transform=None, answer_to_index=None):
-        super().__init__(self)
-
+    
         self.dataframe = dataframe
         self.image_folder = image_folder
         self.img_size = img_size
@@ -32,7 +31,7 @@ class Tile_VQA_Dataset(Dataset):
         # ------------------- Image Preprocessing Function -------------------
         # default_transform is only resize and to tensor
         default_transform = transforms.Compose([
-            transforms.Resize(self.img_size),
+            transforms.Resize((self.img_size, self.img_size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         # specified slide_feature image Transform can be assigned
@@ -120,7 +119,7 @@ class ImageEncoder(nn.Module):
         self.Image_Encoder = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True, init_values=1e-5,
                                                dynamic_img_size=True)  # 1024
         self.embed_convert = nn.Linear(self.Image_Encoder.embed_dim, embed_size) \
-            if self.Text_Encoder.embed_dim != embed_size else nn.Identity()
+            if self.Image_Encoder.embed_dim != embed_size else nn.Identity()
 
     def forward(self, images):
         # Process image through Image_Encoder to get the embeddings
@@ -385,7 +384,7 @@ if __name__ == '__main__':
 
     tokenizer_name = 'gpt2'
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:4' if torch.cuda.is_available() else 'cpu')
 
     # ------------------- Prepare the excel dataset -------------------
     # fixme this part Tianyi will build baseded on BigModel later
@@ -410,9 +409,9 @@ if __name__ == '__main__':
     val_dataset = Tile_VQA_Dataset(val_df, image_folder, answer_to_index=answer_to_index)
     test_dataset = Tile_VQA_Dataset(test_df, image_folder, answer_to_index=answer_to_index)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=custom_collate_fn)
-    val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
-    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=custom_collate_fn, num_workers=20)
+    val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn, num_workers=20)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn, num_workers=20)
 
     # ------------------- Training Code-------------------
     # Initialize model
