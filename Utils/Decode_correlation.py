@@ -1,5 +1,5 @@
 """
-correlation decoding    Script  ver： Aug 22nd 20:00
+correlation decoding    Script  ver： Sep 24th 20:30
 
 This support wsi and cell level tasks
 and it support both cls and reg tasks
@@ -111,7 +111,7 @@ def main(args):
     check_path_list = {}
     check_task_list = {}
 
-    if args.WSI_tasks is True:
+    if args.WSI_tasks:  # true(taking all tasks in config) or not none (manual tasks)
         if os.path.exists(os.path.join(args.root_path, args.task_setting_folder_name)):
             # build task settings
             task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
@@ -119,14 +119,23 @@ def main(args):
             with open(task_config_path, 'r') as file:
                 config = yaml.load(file, Loader=yaml.Loader)
                 task_idx_or_name_list = config.get('tasks_to_run')
-                WSI_task_dict = config.get('all_task_dict')
+                WSI_all_task_dict = config.get('all_task_dict')
                 all_task_one_hot_describe = config.get('one_hot_table')
-            print('WSI_task_dict', WSI_task_dict)
+            print('WSI_task_dict', WSI_all_task_dict)
         else:
             print('the current WSI_task_settings_path is not there:',
                   os.path.join(args.root_path, args.task_setting_folder_name))
             raise  # cannot load WSI_task_settings_path
 
+        # confirm the tasks
+        if args.WSI_tasks is not True:
+            WSI_task_list = args.WSI_tasks.split('%')
+            WSI_task_dict = OrderedDict((task, WSI_all_task_dict[task]) for task in WSI_task_list)
+        else:
+            WSI_task_dict = WSI_all_task_dict 
+            
+        print('WSI_task_dict', WSI_task_dict)
+        
         check_path_list['WSI_task'] = WSI_task_output
         check_task_list['WSI_task'] = WSI_task_dict
 
@@ -198,21 +207,18 @@ def get_args_parser():
                         type=str, help='save runing results path')
 
     # Task settings
-    parser.add_argument('--WSI_tasks', default=True, type=bool,
-                        help='need decoding WSI-level tasks')
+    parser.add_argument('--WSI_tasks', default=True,
+                        help='True for need decoding WSI-level tasks (retriving from config), '
+                             'string split with % for manual tasks, None or False for no WSI level tasks')
     parser.add_argument('--Cell_tasks', default=False, type=bool,
                         help='need decoding Cell-level tasks')
+    
     parser.add_argument('--task_setting_folder_name', default='task-settings', type=str,
                         help='task-settings folder name')
 
     # Model settings
-    parser.add_argument('--model_name', default='gigapath', type=str, help='slide level model name')
+    parser.add_argument('--model_name', default='gigapath', type=str, help='slide_feature level model name')
 
-    # module settings
-    parser.add_argument('--latent_feature_dim', default=128, type=int, help='MTL module dim')
-    parser.add_argument('--embed_dim', default=768, type=int, help='feature embed_dim , default 768')
-    parser.add_argument('--ROI_feature_dim', default=1536, type=int,
-                        help='feature embed_dim , default 768')
     return parser
 
 
