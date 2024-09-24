@@ -420,7 +420,9 @@ if __name__ == '__main__':
     text_encoder = TextEncoder(embed_size=EMBED_SIZE, dropout_rate=DROP_RATE)
     model = VQAModel_VQAbyCLS(image_encoder, text_encoder, fusion_method='MHSA',
                               embed_size=EMBED_SIZE, heads=HEADS, dropout_rate=DROP_RATE,
-                              num_classes=num_classes).to(device)
+                              num_classes=num_classes)
+    model = torch.compile(model)
+    model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
     loss_fn = CrossEntropyLoss()
 
