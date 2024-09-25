@@ -355,7 +355,7 @@ def train_model(model, dataloaders, criterion, optimizer, class_names, dataset_s
 
             # deep copy the model
             if phase == 'val' and better_performance(temp_acc, temp_vac, best_acc, best_vac) and epoch >= intake_epochs:
-                # what is better? we now use the wildly used method only
+                # what is better? we now use the wildly used fusion_method only
                 best_epoch_idx = epoch + 1
                 best_acc = temp_acc
                 best_vac = temp_vac
