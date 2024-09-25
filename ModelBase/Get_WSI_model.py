@@ -150,6 +150,23 @@ class MTL_Model_builder(nn.Module):
         return WSI_tasks_pred
 
 
+# ------------------- WSI VQA Image Encoder (ViT) -------------------
+# Pre-processed image tensor is passed through WSI model to obtain image embedding (ViT CLS token)
+class ImageEncoder(nn.Module):
+    def __init__(self, WSI_Encoder, embed_size=768):
+        super(ImageEncoder, self).__init__()
+
+        from timm.layers import SwiGLUPacked
+        self.Image_Encoder = WSI_Encoder
+        self.embed_convert = nn.Linear(self.Image_Encoder.embed_dim, embed_size) \
+            if self.Text_Encoder.embed_dim != embed_size else nn.Identity()
+
+    def forward(self, images):
+        # Process image through Image_Encoder to get the embeddings
+        Image_cls_embedding = self.Image_Encoder(images)  # CLS token output from ViT [B,D]
+        return self.embed_convert(Image_cls_embedding)
+
+
 class slide_embedding_model_builder(nn.Module):
     def __init__(self, backbone: nn.Module):
         """

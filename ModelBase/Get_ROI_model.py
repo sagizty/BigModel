@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Sep 16th 13:00
+Build ROI level models    Script  ver： Sep 25th 15:00
 """
 import timm
 from pprint import pprint
@@ -415,3 +415,22 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             return model, transforms
         else:
             return model
+
+
+# ------------------- ROI VQA Image Encoder (ViT) -------------------
+# Pre-processed image tensor is passed through the Vision Transformer (ViT), to obtain image embedding (ViT CLS token)
+class ImageEncoder(nn.Module):
+    def __init__(self, model_idx='uni', embed_size=768):
+        super(ImageEncoder, self).__init__()
+
+        from timm.layers import SwiGLUPacked
+        self.Image_Encoder = get_model(model_idx=model_idx, num_classes=0)
+
+        self.embed_convert = nn.Linear(self.Image_Encoder.embed_dim, embed_size) \
+            if self.Text_Encoder.embed_dim != embed_size else nn.Identity()
+
+    def forward(self, images):
+        # Process image through Image_Encoder to get the embeddings
+        Image_cls_embedding = self.Image_Encoder(images)  # CLS token output from ViT [B,D]
+        return self.embed_convert(Image_cls_embedding)
+
