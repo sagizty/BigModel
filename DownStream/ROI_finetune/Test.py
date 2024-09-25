@@ -4,7 +4,7 @@ Testing ROI models    Script  ver： Aug 21th 00:00
 import os
 import sys
 from pathlib import Path
-# For convinience
+# For convenience
 this_file_dir = Path(__file__).resolve().parent
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
