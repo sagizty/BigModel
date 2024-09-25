@@ -393,7 +393,7 @@ def train_model(model, dataloaders, criterion, optimizer, class_names, dataset_s
 
             # deep copy the model
             if phase == 'val' and better_performance(temp_acc, temp_vac, best_acc, best_vac) and epoch >= intake_epochs:
-                # what is better? we now use the wildly used fusion_method only
+                # what is better? we now use the wildly used method only
                 best_epoch_idx = epoch + 1
                 best_acc = temp_acc
                 best_vac = temp_vac
@@ -907,10 +907,10 @@ def get_args_parser():
 
     # CellMix ablation: loss_drive strategy
     parser.add_argument('--ratio_strategy', default=None, type=str, help='CellMix ratio scheduler strategy')
-    parser.add_argument('--patch_strategy', default=None, type=str, help='CellMix slide_feature scheduler strategy')
+    parser.add_argument('--patch_strategy', default=None, type=str, help='CellMix patch scheduler strategy')
     parser.add_argument('--loop_round_epoch', default=4, type=int, help='CellMix loss_drive_threshold is designed to '
                                                                         'record the epoch bandwidth for epochs at '
-                                                                        'the same slide_feature size')
+                                                                        'the same patch size')
 
     # CellMix ablation: fix_patch_size  patch_size_jump
     parser.add_argument('--fix_position_ratio', default=0.5, type=float, help='CellMix ratio scheduler strategy')
