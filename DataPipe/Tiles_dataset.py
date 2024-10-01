@@ -469,11 +469,11 @@ def get_args_parser():
 
     parser.add_argument('--WSI_dataset_path', type=str,
                         default='/data/hdd_1/BigModel/sampled_qupath_slides',
-                        help='Root path for the datasets')
+                        help='Input Root path for the slide datasets')
 
     parser.add_argument('--tiled_WSI_dataset_path', type=str,
                         default='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                        help='Root path for the datasets')
+                        help='Output Root path for the tiled datasets')
     parser.add_argument('--edge_size', type=int, default=224,
                         help='edge size of tile')
 
