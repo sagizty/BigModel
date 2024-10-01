@@ -1,4 +1,4 @@
-name: Bigmodel
+name: BigModel
 channels:
   - defaults
   - nvidia
