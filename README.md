@@ -24,4 +24,112 @@ conda activate BigModel
 pip install -e .
 ```
 
-3. Application and framework
+3. Tile Cropping
+```Shell
+python DataPipe/Tiles_dataset.py \
+    --WSI_dataset_path /data/hdd_1/CPIA/TCGA-COAD \
+    --tiled_WSI_dataset_path /data/ssd_1/CPIA_processed/tiles_datasets/TCGA-COAD \
+    --edge_size 224 \
+    --target_mpp 0.5
+```
+
+4. Tile Embedding
+```Shell
+python DataPipe/Embedded_dataset.py \
+    --WSI_dataset_path /data/ssd_1/CPIA_processed/tiles_datasets/TCGA-COAD \
+    --embedded_WSI_dataset_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --model_name gigapath \
+    --model_weight_path /home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth \
+    --edge_size 224 \
+    --PrefetchDataLoader_num_workers 32 \
+    --batch_size 512
+```
+
+5. Build MTL dataset for WSI
+```Shell
+python DownStream/MTL/slide_dataset_tools.py \
+    --root_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --task_description_csv /home/workenv/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
+    --slide_id_key patient_id \
+    --split_target_key fold_information \
+    --task_setting_folder_name task-settings \
+    --mode TCGA \
+    --dataset_name coad-read \
+    --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
+```
+
+6. Run MTL task with WSI MTL framwork
+
+```Shell
+# Train
+python DownStream/WSI_finetune/MTL_Train.py \
+    --model_name gigapath \
+    --root_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --local_weight_path /home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth \
+    --save_model_path /data/private/BigModel/saved_models \
+    --runs_path /data/private/BigModel/runs \
+    --task_description_csv /home/workenv/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
+    --task_setting_folder_name task-settings \
+    --slide_id_key patient_id \
+    --split_target_key fold_information \
+    --num_epochs 100 \
+    --warmup_epochs 10 \
+    --intake_epochs 50
+
+# Test
+python DownStream/WSI_finetune/MTL_Test.py \
+    --model_name gigapath \
+    --root_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --save_model_path /data/private/BigModel/saved_models \
+    --runs_path /data/private/BigModel/runs \
+    --task_description_csv /home/workenv/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
+    --task_setting_folder_name task-settings \
+    --slide_id_key patient_id \
+    --split_target_key fold_information
+
+# Decode the test results to csv
+python Utils/Decode_correlation.py \
+    --model_name gigapath \
+    --root_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --runs_path /data/private/BigModel/runs \
+    --WSI_tasks True \
+    --task_setting_folder_name task-settings
+
+```
+
+7. Run ROI level tasks
+
+```Shell
+# todo need demo here
+```
+
+8. Run ROI level SSL pretraining
+
+```Shell
+# todo
+```
+
+9. Run WSI level SSL pretraining
+
+```Shell
+# todo
+```
+
+10. Run WSI level VQA-tuning after pretraining
+
+```Shell
+# todo
+```
+
+11. Run WSI level VQA application
+
+```Shell
+# todo
+```
+
+12. Run ROI level VQA application
+
+```Shell
+# todo
+```
+
