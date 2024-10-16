@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Sep 25th 15:00
+Build ROI level models    Script  ver： Oct 17th 02:00
 """
 import timm
 from pprint import pprint
@@ -64,9 +64,11 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model_names = timm.list_models('*vit*')
         pprint(model_names)
         if edge_size == 224:
-            model = timm.create_model('vit_large_patch16_224', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_large_patch16_224', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         elif edge_size == 384:
-            model = timm.create_model('vit_large_patch16_384', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_large_patch16_384', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         else:
             print('not a avaliable image size with', model_idx)
 
@@ -75,9 +77,11 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model_names = timm.list_models('*vit*')
         pprint(model_names)
         if edge_size == 224:
-            model = timm.create_model('vit_small_patch16_224', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_small_patch16_224', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         elif edge_size == 384:
-            model = timm.create_model('vit_small_patch16_384', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_small_patch16_384', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         else:
             print('not a avaliable image size with', model_idx)
 
@@ -86,9 +90,11 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model_names = timm.list_models('*vit*')
         pprint(model_names)
         if edge_size == 224:
-            model = timm.create_model('vit_tiny_patch16_224', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_tiny_patch16_224', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         elif edge_size == 384:
-            model = timm.create_model('vit_tiny_patch16_384', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_tiny_patch16_384', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         else:
             print('not a avaliable image size with', model_idx)
 
@@ -97,9 +103,11 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model_names = timm.list_models('*vit*')
         pprint(model_names)
         if edge_size == 224:
-            model = timm.create_model('vit_base_patch16_224', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_base_patch16_224', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         elif edge_size == 384:
-            model = timm.create_model('vit_base_patch16_384', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_base_patch16_384', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         else:
             print('not a avaliable image size with', model_idx)
 
@@ -127,13 +135,28 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             # from uni import get_encoder
             # self.backbone, _ = get_encoder(enc_name='uni')
 
+    # VPT feature embedding
+    elif model_idx[0:3] == 'VPT' or model_idx[0:3] == 'vpt':
+        if load_weight_online:
+            prompt_state_dict = None  # fixme this should be load from huggingface
+        else:
+            prompt_state_dict = None
+        model = build_promptmodel(
+            num_classes=0,  # set to feature extractor model, output is CLS token
+            edge_size=224, model_idx='ViT', patch_size=16,
+            Prompt_Token_num=20, VPT_type="Deep",
+            prompt_state_dict=prompt_state_dict,
+            base_state_dict='timm')
+
     elif model_idx[0:4] == 'deit':  # Transfer learning for DeiT
         model_names = timm.list_models('*deit*')
         pprint(model_names)
         if edge_size == 384:
-            model = timm.create_model('deit_base_patch16_384', pretrained=load_weight_online, num_classes=2)
+            model = timm.create_model('deit_base_patch16_384',
+                                      pretrained=load_weight_online, num_classes=num_classes)
         elif edge_size == 224:
-            model = timm.create_model('deit_base_patch16_224', pretrained=load_weight_online, num_classes=2)
+            model = timm.create_model('deit_base_patch16_224',
+                                      pretrained=load_weight_online, num_classes=num_classes)
         else:
             pass
 
@@ -298,7 +321,8 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     elif model_idx[0:11] == 'mobilenetv3':  # Transfer learning for mobilenetv3
         model_names = timm.list_models('*mobilenet*')
         pprint(model_names)
-        model = timm.create_model('mobilenetv3_large_100', pretrained=load_weight_online, num_classes=num_classes)
+        model = timm.create_model('mobilenetv3_large_100', pretrained=load_weight_online,
+                                  num_classes=num_classes)
 
     elif model_idx[0:11] == 'mobilevit_s':  # Transfer learning for mobilevit_s
         model_names = timm.list_models('*mobilevit*')
