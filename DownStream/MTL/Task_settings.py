@@ -1,5 +1,5 @@
 """
-MTL Task settings   Script  ver： Sep 4th 01:20
+MTL Task settings   Script  ver： Oct 16th 13:30
 
 flexible to multiple-tasks and missing labels
 """
@@ -71,6 +71,7 @@ def task_filter_auto(WSI_task_idx_or_name_list=None, task_config_path=None, late
     Returns:
         _type_: _description_
     """
+    assert task_config_path is not None  # the task_config should not be none
 
     (all_task_name_list, task_name_to_idx, task_idx_to_name, all_task_dict, all_MTL_heads, all_criterions,
      all_loss_weight, all_class_num, all_task_one_hot_describe) = (
