@@ -31,8 +31,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     """
     # fixme internal token
     # Hugging Face API token
-    os.environ["HF_TOKEN"] = "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"
-    # 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
+    os.environ["HF_TOKEN"] = "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"
 
     # default transforms
     transforms = None
@@ -55,7 +54,8 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model_names = timm.list_models('*vit*')
         pprint(model_names)
         if edge_size == 224:
-            model = timm.create_model('vit_huge_patch14_224_in21k', pretrained=load_weight_online, num_classes=num_classes)
+            model = timm.create_model('vit_huge_patch14_224_in21k', pretrained=load_weight_online,
+                                      num_classes=num_classes)
         else:
             print('not a avaliable image size with', model_idx)
 
@@ -118,7 +118,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
 
     elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
         if load_weight_online:
-            # fixme if failed, use your own hugging face token and register for the project gigapath
+            # fixme if failed, use your own hugging face token and register for the project UNI
             model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True,
                                       init_values=1e-5, dynamic_img_size=True)
         else:
@@ -403,9 +403,10 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
 
         img = torch.randn(1, 3, edge_size, edge_size)
         preds = model(img)  # (1, class_number)
-        print('test model output：', preds)
+        # print('test model output:', preds)
+        print('Build ROI model wuth in/out shape: ', img.shape, ' -> ', preds.shape)
 
-        print("ROI model param #", sum(p.numel() for p in model.parameters()))
+        print("ROI model param size #", sum(p.numel() for p in model.parameters()))
     except:
         print("Problem exist in the model defining process！！")
         return -1
@@ -434,3 +435,6 @@ class ImageEncoder(nn.Module):
         Image_cls_embedding = self.Image_Encoder(images)  # CLS token output from ViT [B,D]
         return self.embed_convert(Image_cls_embedding)
 
+
+if __name__ == '__main__':
+    get_model(num_classes=0, edge_size=224, model_idx='uni', pretrained_backbone=True)
