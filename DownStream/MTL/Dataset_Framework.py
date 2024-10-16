@@ -1,5 +1,5 @@
 '''
-MTL dataset framework       Script  ver： Sep 13th 11:30
+MTL dataset framework for WSI and Bulk      Script  ver： Oct 16th 23:00
 '''
 
 import os
@@ -16,10 +16,90 @@ except:
 
 import torch
 from torch.utils.data import Dataset
+from torchvision import transforms
+from PIL import Image
 import pandas as pd
 
+import h5py
 
-# MTL dataset builder
+# pseudo Bulk dataset builder
+class Bulk_ROI_Dataset(Dataset):
+    def __init__(self, root_path: str, tile_suffix: str = '.jpeg', edge_size=224, transform=None,
+                 stopping_folder_name_list: list = ['thumbnails']):
+        """
+        Custom Dataset to load pseudo-bulk image and their gene label data for all slides.
+
+        Parameters:
+        - root_path (str): Path to the folder containing tiles and bulk label for each slide.
+        - tile_suffix (str): File extension of tile images (default is '.jpeg').
+        - edge_size (int): Target size for resizing images (default is 224).
+        - transform (callable, optional): Optional transforms to apply to each sample.
+        """
+        self.root_path = root_path
+        self.tile_suffix = tile_suffix
+
+        # Find slide paths and IDs
+        self.slide_paths = self.find_slide_paths_and_ids(stopping_folder_name_list=stopping_folder_name_list)
+        self.slide_ids = list(self.slide_paths.keys())
+
+        # Aggregate gene expression data across all slides into a single DataFrame
+        self.tile_info_for_all_slide = pd.concat(
+            [pd.read_csv(os.path.join(self.slide_paths[slide_id],
+                                      "pseudo_bulk_gene_expression.csv")).assign(slide_name=slide_id)
+             for slide_id in self.slide_ids], ignore_index=True)
+
+        # Default transform (resize, to tensor, normalize)
+        default_transform = transforms.Compose([
+            transforms.Resize((edge_size, edge_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        ])
+        self.transform = transform or default_transform
+
+    def find_slide_paths_and_ids(self, stopping_folder_name_list=['thumbnails']):
+        """
+        Finds slide folder paths, stopping search in specified folders.
+
+        Parameters:
+        - stopping_folder_name_list (list): List of folder names to ignore in search.
+        """
+        slide_paths = {}
+        for dirpath, dirnames, _ in os.walk(self.root_path):
+            dirnames[:] = [d for d in dirnames if d not in stopping_folder_name_list]
+            for dirname in dirnames:
+                slide_folder_path = os.path.join(dirpath, dirname)
+                if any(fname.endswith(self.tile_suffix) for fname in os.listdir(slide_folder_path)):
+                    slide_paths[dirname] = Path(slide_folder_path)
+                    break
+        return slide_paths
+
+    def __len__(self):
+        return len(self.tile_info_for_all_slide)
+
+    def __getitem__(self, idx):
+        # Extract information for the current tile
+        row = self.tile_info_for_all_slide.iloc[idx]
+        slide_name = row['slide_name']
+        tile_name = row['tile_name']
+        gene_expression = row.drop(['slide_name', 'tile_name']).values.astype(float)
+
+        # Construct image path and coordinates
+        img_path = os.path.join(self.slide_paths[slide_name], tile_name)
+        y, x = map(int, [tile_name.split('y')[0], tile_name.split('x')[1].split('.')[0]])
+        patch_coord_yx_tensor = torch.tensor([y, x], dtype=torch.int32)
+
+        # Load and transform the image
+        with open(img_path, "rb") as f:
+            patch_image = Image.open(f).convert("RGB")
+            patch_image_tensor = self.transform(patch_image)
+
+        # Prepare sample with image, gene expression data, and coordinates
+        sample = {'patch_image_tensor': patch_image_tensor, 'gene_expression': gene_expression,
+                  'patch_coord_yx_tensor': patch_coord_yx_tensor}
+        return sample
+
+
+# WSI MTL dataset builder
 class SlideDataset(Dataset):
     def __init__(self, root_path: str, task_description_csv: str = None,
                  task_setting_folder_name: str = 'task_settings',
