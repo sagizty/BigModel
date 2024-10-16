@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Sep 4th 15:30
+MTL Test      Script  ver： Oct 16th 13:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -297,12 +297,19 @@ def main(args):
     if not os.path.exists(draw_path):
         os.mkdir(draw_path)
 
+    # filtered tasks
+    task_idx_or_name_list = args.tasks_to_run.split('%') if args.tasks_to_run is not None else None
+
     # build task settings
     task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
     task_dict, MTL_heads, criterions, loss_weight, class_num, task_describe = \
-        task_filter_auto(task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
+        task_filter_auto(WSI_task_idx_or_name_list=task_idx_or_name_list,
+                         task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
     print('task_dict', task_dict)
+
     if args.old_task_config is not None and os.path.exists(args.old_task_config):
+        # fixme in this case we actually need to put the previous tasks been run,
+        #  but here we assume as all previous tasks has been run
         old_task_dict, MTL_heads, _, _, _, _ = \
             task_filter_auto(task_config_path=args.old_task_config, latent_feature_dim=args.latent_feature_dim)
         print('old_task_dict', old_task_dict)
@@ -401,6 +408,10 @@ def get_args_parser():
     # old task config (this allows testing old model on new set of tasks)
     parser.add_argument('--old_task_config', default=None, type=str,
                         help='path to old training config file')
+
+    # Task settings
+    parser.add_argument('--tasks_to_run', default=None, type=str,
+                        help='tasks to run MTL, split with %, default is None with all tasks to be run')
 
     # Task settings and configurations for dataloaders
     parser.add_argument('--task_setting_folder_name', default='task-settings', type=str,

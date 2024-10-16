@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Sep 4th 15:30
+MTL Train     Script  ver： Oct 16th 13:30
 
 flexible to multiple-tasks and missing labels
 
@@ -384,10 +384,14 @@ def main(args):
     else:
         writer = None
 
+    # filtered tasks
+    task_idx_or_name_list = args.tasks_to_run.split('%') if args.tasks_to_run is not None else None
+
     # build task settings
     task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
     WSI_task_dict, MTL_heads, WSI_criterions, loss_weight, class_num, WSI_task_describe = \
-        task_filter_auto(task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
+        task_filter_auto(WSI_task_idx_or_name_list=task_idx_or_name_list,
+                         task_config_path=task_config_path, latent_feature_dim=args.latent_feature_dim)
     print('WSI_task_dict', WSI_task_dict)
 
     # filtered tasks
@@ -504,6 +508,10 @@ def get_args_parser():
     parser.add_argument('--task_description_csv',
                         default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
                         type=str, help='label csv file path')
+
+    # Task settings
+    parser.add_argument('--tasks_to_run', default=None, type=str,
+                        help='tasks to run MTL, split with %, default is None with all tasks to be run')
 
     # Task settings and configurations for dataloaders
     parser.add_argument('--task_setting_folder_name', default='task-settings', type=str,
