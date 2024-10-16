@@ -299,6 +299,7 @@ def main(args):
 
     # filtered tasks
     task_idx_or_name_list = args.tasks_to_run.split('%') if args.tasks_to_run is not None else None
+    old_task_idx_or_name_list = args.old_tasks_to_run.split('%') if args.old_tasks_to_run is not None else None
 
     # build task settings
     task_config_path = os.path.join(args.root_path, args.task_setting_folder_name, 'task_configs.yaml')
@@ -311,7 +312,8 @@ def main(args):
         # fixme in this case we actually need to put the previous tasks been run,
         #  but here we assume as all previous tasks has been run
         old_task_dict, MTL_heads, _, _, _, _ = \
-            task_filter_auto(task_config_path=args.old_task_config, latent_feature_dim=args.latent_feature_dim)
+            task_filter_auto(WSI_task_idx_or_name_list=old_task_idx_or_name_list,
+                             task_config_path=args.old_task_config, latent_feature_dim=args.latent_feature_dim)
         print('old_task_dict', old_task_dict)
         idx_converter = task_idx_converter(old_task_dict, task_dict)
     else:
@@ -335,7 +337,7 @@ def main(args):
     # info
     dataset_size = len(dataset)
 
-    # GPU idx start with0, -1 to use multipel GPU
+    # GPU idx start with0, -1 to use multiple GPU
     if args.gpu_idx == -1:  # use all cards
         if torch.cuda.device_count() > 1:
             print("Use", torch.cuda.device_count(), "GPUs!")
@@ -365,7 +367,7 @@ def main(args):
             except:
                 print("GPU distributing ERRO occur use CPU instead")
                 gpu_use = 'cpu'
-    # device enviorment
+    # device environment
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # build model
     model = build_WSI_task_model(model_name=args.model_name, local_weight_path=False,
@@ -411,6 +413,8 @@ def get_args_parser():
 
     # Task settings
     parser.add_argument('--tasks_to_run', default=None, type=str,
+                        help='tasks to run MTL, split with %, default is None with all tasks to be run')
+    parser.add_argument('--old_tasks_to_run', default=None, type=str,
                         help='tasks to run MTL, split with %, default is None with all tasks to be run')
 
     # Task settings and configurations for dataloaders
