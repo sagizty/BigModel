@@ -26,18 +26,14 @@ pip install -e .
 
 3. Tile Cropping
 ```Shell
-python DataPipe/Tiles_dataset.py \
-    --WSI_dataset_path /data/hdd_1/CPIA/TCGA-COAD \
-    --tiled_WSI_dataset_path /data/ssd_1/CPIA_processed/tiles_datasets/TCGA-COAD \
-    --edge_size 224 \
-    --target_mpp 0.5
+python Tiles_dataset.py --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/TCGA-LUAD-raw --tiled_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets --edge_size 224 --target_mpp 0.5
 ```
 
 4. Tile Embedding
 ```Shell
 python DataPipe/Embedded_dataset.py \
-    --WSI_dataset_path /data/ssd_1/CPIA_processed/tiles_datasets/TCGA-COAD \
-    --embedded_WSI_dataset_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets \
+    --embedded_WSI_dataset_path /data/hdd_1/BigModel/embedded_datasets/TCGA-LUAD-LUSC-gigapath \
     --model_name gigapath \
     --model_weight_path /home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth \
     --edge_size 224 \
@@ -48,14 +44,13 @@ python DataPipe/Embedded_dataset.py \
 5. Build MTL dataset for WSI
 ```Shell
 python DownStream/MTL/slide_dataset_tools.py \
-    --root_path /data/ssd_1/CPIA_processed/embedded_datasets/TCGA-COAD \
+    --root_path /data/hdd_1/BigModel/embedded_datasets/TCGA-LUAD-LUSC-gigapath \
     --task_description_csv /home/workenv/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv \
     --slide_id_key patient_id \
     --split_target_key fold_information \
     --task_setting_folder_name task-settings \
     --mode TCGA \
-    --dataset_name coad-read \
-    --tasks_to_run iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A
+    --dataset_name luad-lusc
 ```
 
 6. Run MTL task with WSI MTL framwork
