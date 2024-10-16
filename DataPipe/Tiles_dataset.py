@@ -299,7 +299,7 @@ def prepare_tiles_dataset_for_all_slides(slides_sample_list: "slides_sample_list
                                          n_slides: Optional[int] = None) -> None:
     """Process a slides dataset to produce many folders of tiles dataset.
 
-    :param slides_sample_list: Input tiles dataset object.
+    :param slides_sample_list: Input slide folders list
     :param root_output_dir: The root directory of the output tiles dataset.
 
     :param margin: Margin around the foreground bounding box, in pixels at lowest resolution.
@@ -468,12 +468,12 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--WSI_dataset_path', type=str,
-                        default='/data/hdd_1/BigModel/sampled_qupath_slides',
-                        help='Input Root path for the slide datasets')
+                        default='/data/hdd_1/BigModel/TCGA-LUAD-LUSC/TCGA-LUAD-raw',
+                        help='Root path for the original HE WSI datasets')
 
     parser.add_argument('--tiled_WSI_dataset_path', type=str,
-                        default='/data/hdd_1/BigModel/sampled_tiles_datasets',
-                        help='Output Root path for the tiled datasets')
+                        default='/data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets',
+                        help='Root path for the Tiled WSI datasets')
     parser.add_argument('--edge_size', type=int, default=224,
                         help='edge size of tile')
 
