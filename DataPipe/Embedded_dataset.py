@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Sep 9th 12:30
+WSI embedding dataset tools     Script  ver： Oct 16th 22:30
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -92,7 +92,7 @@ class Slide_loading_Dataset(Dataset):
             The root path of the slide_folders, notice we don't know the dataset framework of them
             this code will go through all directories inside the root_path and therefore find each slide_folder
 
-        possible_suffixes: tuple = ('.h5', '.pt', '.jpeg', '.jpg') recording the settings
+        possible_suffixes: tuple = ('.h5', '.pt', '.jpeg', '.jpg') the suffix of the tiles or embedded features
 
         stopping_folder_name_list: in searching, we stop searching for folders in stopping list
         '''
@@ -860,10 +860,10 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description='Build split and task configs.')
 
     parser.add_argument('--WSI_dataset_path', type=str,
-                        default='/data/hdd_1/BigModel/sampled_tiles_datasets/',
+                        default='/data/hdd_1/BigModel/qupath_tiles_datasets',
                         help='Root path for the datasets')
     parser.add_argument('--embedded_WSI_dataset_path', type=str,
-                        default='/data/hdd_1/BigModel/sampled_embedded_datasets/',
+                        default='/data/hdd_1/BigModel/qupath_embedded_datasets/',
                         help='Root path for the datasets')
 
     parser.add_argument('--model_name', type=str, default='gigapath',
