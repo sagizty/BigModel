@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Oct 17th 21:30
+WSI embedding dataset tools     Script  ver： Oct 17th 22:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -301,6 +301,7 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
 
         since = time.time()
         embedding_model_at_certain_GPU.eval()  # Set model to evaluation mode
+
         # Process each batch of image tiles
         for data_iter_step, (patch_image_tensor, patch_coord_yx_tensor) \
                 in tqdm(enumerate(prefetch_loader),
@@ -347,7 +348,16 @@ def embed_at_device(device, model_name, edge_size, model_weight_path, device_sli
     # build Patch_embedding_model
     embedding_model = Get_ROI_model.get_model(num_classes=0, edge_size=edge_size,
                                               model_idx=model_name, pretrained_backbone=model_weight_path)
-    compiled_model = torch.compile(embedding_model)
+    try:
+        compiled_model = torch.compile(embedding_model)
+        img = torch.randn(1, 3, edge_size, edge_size)
+        preds = compiled_model(img)  # (1, class_number)
+        print('\nBuild compiled_model with in/out shape: ', img.shape, ' -> ', preds.shape,'\n')
+    except:
+        # fixme solve this pls
+        compiled_model = embedding_model
+        print('\ntorch.compile(embedding_model) cannot be done, trying to use original model here\n')
+
     embedding_model_at_certain_GPU = compiled_model.to(device)
 
     # build a Prefetch dataloader to pop tile dataloders
