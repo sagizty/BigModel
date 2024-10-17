@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Oct 16th 13:30
+MTL Train     Script  ver： Oct 17th 17:10
 
 flexible to multiple-tasks and missing labels
 
@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience
 this_file_dir = Path(__file__).resolve().parent
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
@@ -43,7 +43,7 @@ except:
 
 def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler, loss_weight, task_dict, task_describe,
           num_epochs=25, accum_iter_train=1, check_minibatch=5, intake_epochs=1,
-          runs_path='./', writer=None, device=torch.device("cpu")):
+          runs_path='./', writer=None, device=torch.device("cpu"), mix_precision=True):
     since = time.time()
 
     task_num = len(task_dict)
@@ -63,7 +63,7 @@ def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler
     log_dict = {}
 
     # loss scaler
-    Scaler = torch.cuda.amp.GradScaler()
+    Scaler = torch.amp.GradScaler("cuda", enabled=mix_precision)  # torch.cuda.amp.GradScaler() # fixme csc check
     # for recording and epoch selection
     temp_best_epoch_loss = 100000  # this one should be very big
     best_epoch_idx = 1
@@ -141,7 +141,7 @@ def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler
                     optimizer.zero_grad()
 
                 # fixme should have phase == 'Train', but val is too big for gpu
-                with torch.cuda.amp.autocast():
+                with torch.amp.autocast("cuda", enabled=mix_precision):  # torch.cuda.amp.autocast(): # fixme csc check
                     y = model(image_features, coords_yx)
 
                     # we calculate the all-batch loss for each task, and do backward
@@ -467,9 +467,10 @@ def main(args):
     print('GPU:', gpu_use)
     if gpu_use == -1:
         model = nn.DataParallel(model)
-    model.to(device)
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.01)  # fixme play opt
+    model.bfloat16().to(device) if args.turn_off_mix_precision else model.to(device)  # fixme csc check
+
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.01)
 
     # cosine Scheduler by https://arxiv.org/pdf/1812.01187.pdf
     lf = lambda x: ((1 + math.cos(x * math.pi / args.num_epochs)) / 2) * (1 - args.lrf) + args.lrf  # cosine
@@ -478,7 +479,8 @@ def main(args):
     trained_model, log_path = train(model, dataloaders, dataset_sizes, WSI_criterions, optimizer, LR_scheduler,
                                     loss_weight, WSI_task_dict, WSI_task_describe, num_epochs=args.num_epochs,
                                     accum_iter_train=args.accum_iter_train, check_minibatch=args.check_minibatch,
-                                    intake_epochs=args.intake_epochs, runs_path=draw_path, writer=writer, device=device)
+                                    intake_epochs=args.intake_epochs, runs_path=draw_path, writer=writer,
+                                    device=device, mix_precision=not args.turn_off_mix_precision)
 
     torch.save(trained_model.state_dict(), save_model_path)
 
@@ -499,7 +501,8 @@ def get_args_parser():
     # PATH
     parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
                         help='MTL dataset root')
-    parser.add_argument('--local_weight_path', default='/home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth', type=str,
+    parser.add_argument('--local_weight_path',
+                        default='/home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth', type=str,
                         help='local weight path')
     parser.add_argument('--save_model_path', default='../saved_models', type=str,
                         help='save model root')
@@ -547,6 +550,9 @@ def get_args_parser():
                         help='training learning rate, default 0.00001')
     parser.add_argument('--lrf', default=0.1, type=float,
                         help='Cosine learning rate decay times, default 0.1')
+    # turn_off_mix_precision
+    parser.add_argument('--turn_off_mix_precision', action='store_true', # fixme csc check
+                        help='turn_off_mix_precision for certain models like RWKV for debugging')
 
     # helper
     parser.add_argument('--check_minibatch', default=25, type=int,
