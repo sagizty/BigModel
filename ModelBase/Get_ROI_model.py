@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 15:30
+Build ROI level models    Script  ver： Oct 17th 16:00
 """
 import timm
 from pprint import pprint
@@ -129,14 +129,39 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
 
     elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
         if load_weight_online:
-            # fixme if failed, use your own hugging face token and register for the project UNI
+            # fixme this somehow failed, we build UNI with manual config and huggingface
+            '''
             model = timm.create_model("hf-hub:MahmoodLab/uni", pretrained=True,
                                       init_values=1e-5, dynamic_img_size=True)
+            '''
+            from huggingface_hub import hf_hub_download
+            # Download the model weights
+            model_weights_path = hf_hub_download(repo_id="MahmoodLab/UNI", filename="pytorch_model.bin",
+                                                 use_auth_token=os.environ["HF_TOKEN"])
+
+            # Load the model using timm and the downloaded weights
+            # Create the ViT model using the configuration read from Hugging Face
+            model = timm.create_model(
+                "vit_large_patch16_224",  # Model architecture
+                pretrained=True,  # Load pretrained weights
+                img_size=224,  # Image size is 224x224
+                num_classes=0,  # No classification head (feature extractor mode)
+                init_values=1.0,  # Layer scale initialization value
+                global_pool="token",  # Use token pooling (default for ViT)
+                dynamic_img_size=True  # Allow dynamic image size
+            )
+            model.load_state_dict(torch.load(model_weights_path))
         else:
-            raise NotImplementedError
-            # transform = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
-            # from uni import get_encoder
-            # self.backbone, _ = get_encoder(enc_name='uni')
+            model = timm.create_model(
+                "vit_large_patch16_224",  # Model architecture
+                pretrained=True,  # Load pretrained weights
+                img_size=224,  # Image size is 224x224
+                num_classes=0,  # No classification head (feature extractor mode)
+                init_values=1.0,  # Layer scale initialization value
+                global_pool="token",  # Use token pooling (default for ViT)
+                dynamic_img_size=True  # Allow dynamic image size
+            )
+            model.load_state_dict(torch.load(pretrained_backbone_weight))
 
     # VPT feature embedding
     elif model_idx[0:3] == 'VPT' or model_idx[0:3] == 'vpt':
@@ -274,7 +299,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         else:
             raise NotImplementedError
 
-    elif model_idx[0:7] == 'Virchow':
+    elif model_idx[0:8] == 'Virchow1' or model_idx[0:7] == 'Virchow':
         # ref: https://huggingface.co/paige-ai/Virchow
         if load_weight_online:
             from timm.layers import SwiGLUPacked
@@ -479,4 +504,4 @@ class ImageEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    get_model(num_classes=0, edge_size=224, model_idx='gigapath', pretrained_backbone=True)
+    get_model(num_classes=0, edge_size=224, model_idx='uni', pretrained_backbone=True)
