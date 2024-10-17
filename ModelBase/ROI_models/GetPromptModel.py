@@ -73,8 +73,7 @@ def build_promptmodel(num_classes=1000, edge_size=224, model_idx='ViT', patch_si
     try:
         img = torch.randn(1, 3, edge_size, edge_size)
         preds = model(img)  # (1, class_number)
-        # print('test model output：', preds)
-        print('model forward cheacked')
+        print('Build VPT model with in/out shape: ', img.shape, ' -> ', preds.shape)
 
     except:
         print("Problem exist in the model defining process！！")
@@ -84,12 +83,5 @@ def build_promptmodel(num_classes=1000, edge_size=224, model_idx='ViT', patch_si
         return model
 
 
-'''
 if __name__ == '__main__':
-    base_state_dict = torch.load(
-        '/root/autodl-tmp/output_models/PuzzleTuning_sae_vit_base_patch16_decoder_transunet_checkpoint-399_of_ViT_E_399_transfer.pth')
-    prompt_state_dict = torch.load(
-        '/root/autodl-tmp/output_models/PuzzleTuning_sae_vit_base_patch16_decoder_swin_unet_Prompt_Deep_tokennum_20_checkpoint-60_of_ViT_E_60_promptstate.pth')
-
-    model = build_promptmodel(prompt_state_dict=prompt_state_dict, base_state_dict=base_state_dict)
-'''
+    model = build_promptmodel(prompt_state_dict=None, base_state_dict='timm', num_classes=0)
