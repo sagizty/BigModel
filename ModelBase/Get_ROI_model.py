@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 16:00
+Build ROI level models    Script  ver： Oct 17th 16:30
 """
 import timm
 from pprint import pprint
@@ -263,8 +263,22 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         else:
             print('this model is not defined in get model')
             return -1
+
+        # Custom Flatten module
+        class Feature_Flatten(nn.Module):
+            def forward(self, x):
+                # Flatten the tensor while keeping the batch dimension
+                return x.view(x.size(0), -1)
+
         num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, num_classes)
+        if num_classes > 0:
+            model.fc = nn.Linear(num_ftrs, num_classes)
+        elif num_classes == 0:
+            model.fc = Feature_Flatten()
+        elif num_classes == -1:  # call for original feature shape
+            model.fc = nn.Identity()
+        else:
+            raise NotImplementedError
 
     elif model_idx[0:7] == 'bot_256' and edge_size == 256:  # Model: BoT
         model_names = timm.list_models('*bot*')
