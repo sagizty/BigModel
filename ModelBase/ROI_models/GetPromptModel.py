@@ -1,5 +1,5 @@
 """
-build_promptmodel   Script  ver： Oct 17th 02:00
+build_promptmodel   Script  ver： Oct 17th 15:00
 
 """
 
@@ -84,4 +84,25 @@ def build_promptmodel(num_classes=1000, edge_size=224, model_idx='ViT', patch_si
 
 
 if __name__ == '__main__':
-    model = build_promptmodel(prompt_state_dict=None, base_state_dict='timm', num_classes=0)
+    from huggingface_hub import hf_hub_download
+    import torch
+
+    # Define the repo ID
+    repo_id = "Tianyinus/PuzzleTuning_VPT"
+
+    # Download the base state dictionary file
+    base_state_dict_path = hf_hub_download(repo_id=repo_id, filename="PuzzleTuning/Archive/ViT_b16_224_Imagenet.pth")
+
+    # Download the prompt state dictionary file
+    prompt_state_dict_path = hf_hub_download(repo_id=repo_id,
+                                             filename="PuzzleTuning/Archive/ViT_b16_224_timm_PuzzleTuning_SAE_CPIAm_Prompt_Deep_tokennum_20_E_199_promptstate.pth")
+
+    # Load these weights into your model
+    base_state_dict = torch.load(base_state_dict_path)
+    prompt_state_dict = torch.load(prompt_state_dict_path)
+
+    # Build your model using the loaded state dictionaries
+    model = build_promptmodel(prompt_state_dict=prompt_state_dict,
+                              base_state_dict=base_state_dict,
+                              num_classes=0)
+
