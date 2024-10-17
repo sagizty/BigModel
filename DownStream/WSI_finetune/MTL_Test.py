@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Oct 16th 13:30
+MTL Test      Script  ver： Oct 17th 18:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -33,7 +33,7 @@ except:
 
 
 def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, task_describe, idx_converter,
-         check_minibatch=20, runs_path='./', device=torch.device("cpu")):
+         check_minibatch=20, runs_path='./', device=torch.device("cpu"), mix_precision=True):
     since = time.time()
 
     # log dict
@@ -113,7 +113,7 @@ def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, ta
         # Tracking the loss for loss-drive bag settings update and also recordings, initialize with 0.0
         running_loss = 0.0  # all tasks loss over a batch
 
-        with torch.cuda.amp.autocast():
+        with torch.amp.autocast("cuda", enabled=mix_precision):  # torch.cuda.amp.autocast(): # fixme csc check
             with torch.no_grad():
                 y = model(image_features, coords_yx)  # y is the predication on all old tasks (of training)
 
@@ -373,18 +373,39 @@ def main(args):
     model = build_WSI_task_model(model_name=args.model_name, local_weight_path=False,
                                  ROI_feature_dim=args.ROI_feature_dim,
                                  MTL_heads=MTL_heads, latent_feature_dim=args.latent_feature_dim)
-    # load model
-    model.load_state_dict(torch.load(save_model_path), False)
+    # load model    # model.load_state_dict(torch.load(save_model_path), False)
+    state_dict = torch.load(save_model_path, weights_only=True)
+
+    new_state_dict = {}
+    for key, value in state_dict.items():
+        key = key.replace("module.", "")  # fixme csc check: should not have .replace("MTL_layer", "MTL_module.layer")
+        new_state_dict[key] = value
+
+    # load_state_dict returns a dict with 'missing_keys' and 'unexpected_keys' among others
+    load_result = model.load_state_dict(new_state_dict)
+    missing_keys = load_result.get('missing_keys', [])
+    unexpected_keys = load_result.get('unexpected_keys', [])
+
+    if len(missing_keys) > 0:
+        for k in missing_keys:
+            print("Missing ", k)
+    if len(unexpected_keys) > 0:
+        for k in unexpected_keys:
+            print("Unexpected ", k)
+
     print('model loaded')
 
     model = torch.compile(model)
+
     print('GPU:', gpu_use)
     if gpu_use == -1:
         model = nn.DataParallel(model)
-    model.to(device)
+
+    model.bfloat16().to(device) if args.turn_off_mix_precision else model.to(device)  # fixme csc check
 
     test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, task_describe,
-         idx_converter, check_minibatch=20, runs_path=draw_path, device=device)
+         idx_converter, check_minibatch=20, runs_path=draw_path, device=device,
+         mix_precision=not args.turn_off_mix_precision)
 
 
 def get_args_parser():
@@ -440,6 +461,8 @@ def get_args_parser():
     # training settings
     parser.add_argument('--batch_size', default=1, type=int,
                         help='batch_size , default 1')
+    parser.add_argument('--turn_off_mix_precision', action='store_true',  # fixme csc check
+                        help='turn_off_mix_precision for certain models like RWKV for debugging')
 
     # help
     parser.add_argument('--check_minibatch', default=25, type=int, help='check batch_size')
