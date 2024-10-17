@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 20:00
+Build ROI level models    Script  ver： Oct 17th 21:30
 """
 import timm
 from pprint import pprint
@@ -624,10 +624,8 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         raise  # Problem exist in the model defining process
     else:
         print('model is ready now!')
-        if transforms is not None:
-            return model, transforms
-        else:
-            return model
+        return model
+        # todo foe future maybe we return model, transforms
 
 
 # ------------------- ROI VQA Image Encoder (ViT) -------------------
@@ -647,6 +645,3 @@ class ImageEncoder(nn.Module):
         Image_cls_embedding = self.Image_Encoder(images)  # CLS token output from ViT [B,D]
         return self.embed_convert(Image_cls_embedding)
 
-
-if __name__ == '__main__':
-    get_model(num_classes=0, edge_size=224, model_idx='Virchow1', pretrained_backbone=True)
