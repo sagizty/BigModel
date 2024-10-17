@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 21:30
+Build ROI level models    Script  ver： Oct 17th 22:00
 """
 import timm
 from pprint import pprint
@@ -625,7 +625,9 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     else:
         print('model is ready now!')
         return model
-        # todo foe future maybe we return model, transforms
+        # todo for future maybe we return model, transforms
+
+            
 
 
 # ------------------- ROI VQA Image Encoder (ViT) -------------------
