@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Oct 17th 20:30
+WSI embedding dataset tools     Script  ver： Oct 17th 21:30
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -199,6 +199,7 @@ def prefetch_dataloader_collate_fn(batch):
     """
     return batch[0]
 
+
 class PrefetchDataLoader_dataset(torch.utils.data.Dataset):
     def __init__(self, device_slide_folders,
                  dataset_builder=TileEncodingDataset, edge_size=224, embedding_batch_size=256,
@@ -208,7 +209,7 @@ class PrefetchDataLoader_dataset(torch.utils.data.Dataset):
         self.embedding_batch_size = embedding_batch_size
         self.embedding_num_workers = embedding_num_workers
         self.pin_memory = pin_memory
-        self.device_slide_folders=device_slide_folders
+        self.device_slide_folders = device_slide_folders
 
     def __len__(self):
         return len(self.device_slide_folders)
@@ -368,7 +369,7 @@ def embed_at_device(device, model_name, edge_size, model_weight_path, device_sli
     for slide_id, slide_folder, prefetch_loader in tqdm(PrefetchDataLoader,
                                                         desc=f'Embedding slides on GPU:{device}', unit="wsi"):
 
-        logging.info(f'Processing {len(prefetch_loader)} tiles from slide_feature {slide_id}')
+        logging.info(f'Processing {len(prefetch_loader)} batch of {batch_size} tiles from slide_feature {slide_id}')
 
         error_wsi_infor = embedding_one_slide_from_tiles(
             slide_folder, prefetch_loader, embedding_model_at_certain_GPU, output_WSI_dataset_path,
@@ -651,7 +652,7 @@ def crop_and_embed_one_slide(sample: Dict["SlideKey", Any],
 
             since = time.time()
 
-            logging.info(f'Embedding {len(tile_dataset)} tiles from slide_feature {slide_id}')
+            logging.info(f'Embedding {len(tile_dataset)} batch of {batch_size} tiles from slide_feature {slide_id}')
             embedding_model.eval()
 
             # Process each batch of image tiles
