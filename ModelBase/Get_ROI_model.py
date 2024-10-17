@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 15:00
+Build ROI level models    Script  ver： Oct 17th 15:30
 """
 import timm
 from pprint import pprint
@@ -39,14 +39,17 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     if pretrained_backbone == True or pretrained_backbone == False:
         pretrained_backbone_weight = None
         load_weight_online = pretrained_backbone
+
     elif pretrained_backbone == None:
-        load_weight_online = True
         pretrained_backbone_weight = None
+        load_weight_online = True
+
     else:  # str path
         if os.path.exists(pretrained_backbone):
             pretrained_backbone_weight = pretrained_backbone
         else:
             pretrained_backbone_weight = None
+            raise  # the manual pretrained_backbone_weight is missing, check your file there
         load_weight_online = False
 
     if model_idx[0:5] == 'ViT_h':
@@ -476,4 +479,4 @@ class ImageEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    get_model(num_classes=0, edge_size=224, model_idx='VPT', pretrained_backbone=True)
+    get_model(num_classes=0, edge_size=224, model_idx='gigapath', pretrained_backbone=True)
