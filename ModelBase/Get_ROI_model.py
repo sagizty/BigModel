@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 02:00
+Build ROI level models    Script  ver： Oct 17th 15:00
 """
 import timm
 from pprint import pprint
@@ -138,15 +138,30 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     # VPT feature embedding
     elif model_idx[0:3] == 'VPT' or model_idx[0:3] == 'vpt':
         if load_weight_online:
-            prompt_state_dict = None  # fixme this should be load from huggingface
+            from huggingface_hub import hf_hub_download
+            # Define the repo ID
+            repo_id = "Tianyinus/PuzzleTuning_VPT"
+
+            # Download the base state dictionary file
+            base_state_dict_path = hf_hub_download(repo_id=repo_id,
+                                                   filename="PuzzleTuning/Archive/ViT_b16_224_Imagenet.pth")
+
+            # Download the prompt state dictionary file
+            prompt_state_dict_path = hf_hub_download(repo_id=repo_id,
+                                                     filename="PuzzleTuning/Archive/ViT_b16_224_timm_PuzzleTuning_SAE_CPIAm_Prompt_Deep_tokennum_20_E_199_promptstate.pth")
+
+            # Load these weights into your model
+            base_state_dict = torch.load(base_state_dict_path)
+            prompt_state_dict = torch.load(prompt_state_dict_path)
+
         else:
             prompt_state_dict = None
-        model = build_promptmodel(
-            num_classes=0,  # set to feature extractor model, output is CLS token
-            edge_size=224, model_idx='ViT', patch_size=16,
-            Prompt_Token_num=20, VPT_type="Deep",
-            prompt_state_dict=prompt_state_dict,
-            base_state_dict='timm')
+            base_state_dict = 'timm'
+
+        # Build your model using the loaded state dictionaries
+        model = build_promptmodel(prompt_state_dict=prompt_state_dict,
+                                  base_state_dict=base_state_dict,
+                                  num_classes=0)
 
     elif model_idx[0:4] == 'deit':  # Transfer learning for DeiT
         model_names = timm.list_models('*deit*')
@@ -281,6 +296,47 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         else:
             raise NotImplementedError
 
+    # prov-gigapath feature embedding ViT
+    elif model_idx[0:8] == 'gigapath':
+        # ref: https://www.nature.com/articles/s41586-024-07441-w
+        if load_weight_online:
+            # fixme if "HF_TOKEN" failed, use your own hugging face token and register for the project gigapath
+            model = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
+        else:
+            # Model configuration from your JSON
+            config = {
+                "architecture": "vit_giant_patch14_dinov2",
+                "num_classes": 0,
+                "num_features": 1536,
+                "global_pool": "token",
+                "model_args": {
+                    "img_size": 224,
+                    "in_chans": 3,
+                    "patch_size": 16,
+                    "embed_dim": 1536,
+                    "depth": 40,
+                    "num_heads": 24,
+                    "init_values": 1e-05,
+                    "mlp_ratio": 5.33334,
+                    "num_classes": 0
+                }
+            }
+
+            # Create the model using timm
+            model = timm.create_model(
+                config['architecture'],
+                pretrained=False,  # Set to True if you want to load pretrained weights
+                img_size=config['model_args']['img_size'],
+                in_chans=config['model_args']['in_chans'],
+                patch_size=config['model_args']['patch_size'],
+                embed_dim=config['model_args']['embed_dim'],
+                depth=config['model_args']['depth'],
+                num_heads=config['model_args']['num_heads'],
+                init_values=config['model_args']['init_values'],
+                mlp_ratio=config['model_args']['mlp_ratio'],
+                num_classes=config['model_args']['num_classes']
+            )
+
     elif model_idx[0:8] == 'densenet':  # Transfer learning for densenet
         model_names = timm.list_models('*densenet*')
         pprint(model_names)
@@ -359,47 +415,6 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         pprint(model_names)
         model = timm.create_model(model_idx[0:18], pretrained=load_weight_online, num_classes=num_classes)
 
-    # prov-gigapath feature embedding ViT
-    elif model_idx[0:8] == 'gigapath':
-        # ref: https://www.nature.com/articles/s41586-024-07441-w
-        if load_weight_online:
-            # fixme if "HF_TOKEN" failed, use your own hugging face token and register for the project gigapath
-            model = timm.create_model("hf_hub:prov-gigapath/prov-gigapath", pretrained=True)
-        else:
-            # Model configuration from your JSON
-            config = {
-                "architecture": "vit_giant_patch14_dinov2",
-                "num_classes": 0,
-                "num_features": 1536,
-                "global_pool": "token",
-                "model_args": {
-                    "img_size": 224,
-                    "in_chans": 3,
-                    "patch_size": 16,
-                    "embed_dim": 1536,
-                    "depth": 40,
-                    "num_heads": 24,
-                    "init_values": 1e-05,
-                    "mlp_ratio": 5.33334,
-                    "num_classes": 0
-                }
-            }
-
-            # Create the model using timm
-            model = timm.create_model(
-                config['architecture'],
-                pretrained=False,  # Set to True if you want to load pretrained weights
-                img_size=config['model_args']['img_size'],
-                in_chans=config['model_args']['in_chans'],
-                patch_size=config['model_args']['patch_size'],
-                embed_dim=config['model_args']['embed_dim'],
-                depth=config['model_args']['depth'],
-                num_heads=config['model_args']['num_heads'],
-                init_values=config['model_args']['init_values'],
-                mlp_ratio=config['model_args']['mlp_ratio'],
-                num_classes=config['model_args']['num_classes']
-            )
-
     else:
         print('\nThe model', model_idx, 'with the edge size of', edge_size)
         print("is not defined in the script！！", '\n')
@@ -461,4 +476,4 @@ class ImageEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    get_model(num_classes=0, edge_size=224, model_idx='uni', pretrained_backbone=True)
+    get_model(num_classes=0, edge_size=224, model_idx='VPT', pretrained_backbone=True)
