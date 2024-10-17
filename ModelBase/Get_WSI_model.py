@@ -1,5 +1,5 @@
 """
-Build WSI level models      Script  ver： Sep 16th 13:00
+Build WSI level models      Script  ver： Oct 17th 17:00
 """
 import os
 import torch
@@ -9,8 +9,10 @@ import huggingface_hub
 
 try:
     from gigapath.slide_encoder import gigapath_slide_enc12l768d
+    from PathRWKV.path_rwkv import PathRWKV
 except:
     from PuzzleAI.ModelBase.gigapath.slide_encoder import gigapath_slide_enc12l768d
+    from PuzzleAI.ModelBase.PathRWKV.path_rwkv import PathRWKV
 
 
 def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
@@ -56,6 +58,31 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
 
         return slide_backbone
 
+    elif model_name == "PathRWKV":
+        slide_backbone = PathRWKV(**kwargs)
+
+        if local_weight_path:
+            state_dict = torch.load(local_weight_path, map_location="cpu", weights_only=True)
+            missing_keys, unexpected_keys = slide_backbone.load_state_dict(state_dict)
+            if len(missing_keys) > 0:
+                for k in missing_keys:
+                    print("Missing ", k)
+
+            if len(unexpected_keys) > 0:
+                for k in unexpected_keys:
+                    print("Unexpected ", k)
+
+            print(f"Successfully loaded pretrained model from {local_weight_path}")
+
+        # for test
+        elif local_weight_path == False:
+            pass
+
+        else:
+            slide_backbone.init_params()
+            print("Pretrained weights not found. Initializing model by default method.")
+
+        return slide_backbone
 
     elif model_name[0:3] == 'UNI':
         # ABMIL
