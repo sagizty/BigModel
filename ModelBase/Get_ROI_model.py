@@ -1,5 +1,5 @@
 """
-Build ROI level models    Script  ver： Oct 17th 16:30
+Build ROI level models    Script  ver： Oct 17th 20:00
 """
 import timm
 from pprint import pprint
@@ -21,7 +21,9 @@ from torchvision import models
 # get model
 def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=True):
     """
-    :param num_classes: classification required number of your dataset, 0 for taking the feature
+    :param num_classes: classification required number of your dataset,
+    0 for taking the feature, -1 for taking the original feature map
+
     :param edge_size: the input edge size of the dataloder
     :param model_idx: the model we are going to use. by the format of Model_size_other_info
 
@@ -102,6 +104,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             print('not a avaliable image size with', model_idx)
 
     elif model_idx[0:5] == 'ViT_b' or model_idx[0:3] == 'ViT':  # vit_base
+        # ->  torch.Size([1, 768])
         # Transfer learning for ViT
         model_names = timm.list_models('*vit*')
         pprint(model_names)
@@ -128,6 +131,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             model = timm.create_model('vgg19', pretrained=load_weight_online, num_classes=num_classes)
 
     elif model_idx[0:3] == 'uni' or model_idx[0:3] == "UNI":
+        #  ->  torch.Size([1, 1024])
         if load_weight_online:
             # fixme this somehow failed, we build UNI with manual config and huggingface
             '''
@@ -161,10 +165,10 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
                 global_pool="token",  # Use token pooling (default for ViT)
                 dynamic_img_size=True  # Allow dynamic image size
             )
-            model.load_state_dict(torch.load(pretrained_backbone_weight))
 
     # VPT feature embedding
     elif model_idx[0:3] == 'VPT' or model_idx[0:3] == 'vpt':
+        # ->  torch.Size([1, 768])
         if load_weight_online:
             from huggingface_hub import hf_hub_download
             # Define the repo ID
@@ -254,7 +258,9 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         model = timm.create_model('convit_base', pretrained=load_weight_online, num_classes=num_classes)
 
     elif model_idx[0:6] == 'ResNet':  # Transfer learning for the ResNets
-        if model_idx[0:8] == 'ResNet34':
+        if model_idx[0:8] == 'ResNet18':
+            model = models.resnet18(pretrained=load_weight_online)
+        elif model_idx[0:8] == 'ResNet34':
             model = models.resnet34(pretrained=load_weight_online)
         elif model_idx[0:8] == 'ResNet50':
             model = models.resnet50(pretrained=load_weight_online)
@@ -275,6 +281,10 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             model.fc = nn.Linear(num_ftrs, num_classes)
         elif num_classes == 0:
             model.fc = Feature_Flatten()
+            # ResNet18 ->  torch.Size([1, 512])
+            # ResNet34 ->  torch.Size([1, 512])
+            # ResNet50 ->  torch.Size([1, 2048])
+            # ResNet101 ->  torch.Size([1, 2048])
         elif num_classes == -1:  # call for original feature shape
             model.fc = nn.Identity()
         else:
@@ -287,59 +297,182 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         # ['botnet26t_256', 'botnet50ts_256', 'eca_botnext26ts_256']
         model = timm.create_model('botnet26t_256', pretrained=load_weight_online, num_classes=num_classes)
 
-    elif model_idx[0:8] == 'Virchow2':
+    elif model_idx[0:7] == 'Virchow':
+        # -> [1, 2560]
+        class VirchowTaskModel(nn.Module):
+            """
+            A model that integrates the Virchow backbone and extracts a class token or a full tile embedding based on the version.
+
+            Args:
+                backbone_model: The pre-trained Virchow backbone model.
+                Virchow_version: The version of Virchow model being used ('1' or '2').
+                num_classes: If non-zero, returns only the class token (used for classification tasks).
+                             If zero, concatenates the class token and mean patch token for feature extraction.
+            """
+
+            def __init__(self, backbone_model, Virchow_version='1', num_classes=0):
+                super(VirchowTaskModel, self).__init__()
+                assert Virchow_version in ['1', '2'], "Virchow_version must be either '1' or '2'"
+
+                self.backbone_model = backbone_model
+                self.Virchow_version = Virchow_version
+                self.num_classes = num_classes
+
+            def forward(self, x):
+                """
+                Memo from original authors:
+                    output = model(image)  # size: 1 x 257 (or 261 for Virchow2) x 1280
+
+                    class_token = output[:, 0]    # size: 1 x 1280
+                    patch_tokens = output[:, 1:]  # size: 1 x 256 x 1280
+                    # for Virchow 2 its:
+                    # patch_tokens = output[:, 5:]  # size: 1 x 260 x 1280, tokens 1-4 are register tokens so we ignore those
+
+                    # concatenate class token and average pool of patch tokens
+                    embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
+                    # We concatenate the class token and the mean patch token to create the final tile embedding.
+
+                    Notice:
+                    In more resource constrained settings, one can experiment with using just class token or the mean patch
+                    token. For downstream tasks with dense outputs (i.e. segmentation), the 256 x 1280 tensor of patch
+                    tokens can be used.
+                """
+                # Pass image through the backbone model
+                output = self.backbone_model(x)  # size: 1 x 257 (or 261 for Virchow2) x 1280
+
+                # Extract class token
+                class_token = output[:, 0]  # size: 1 x 1280 or 1 x num_classes (if used for classification task)
+
+                # If num_classes is non-zero, return only the class token (for classification tasks)
+                if self.num_classes != 0:
+                    return class_token
+
+                # For Virchow2, ignore the first 4 tokens (register tokens)
+                if self.Virchow_version == '2':
+                    patch_tokens = output[:, 5:]  # size: 1 x 260 x 1280
+                else:
+                    patch_tokens = output[:, 1:]  # size: 1 x 256 x 1280
+
+                # Compute final embedding by concatenating class token and mean of patch tokens
+                embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
+
+                return embedding
+
         # ref: https://huggingface.co/paige-ai/Virchow
         if load_weight_online:
             from timm.layers import SwiGLUPacked
-            # fixme if failed, use your own hugging face token and register for the project
-            model = timm.create_model("hf-hub:paige-ai/Virchow2", pretrained=True,
-                                      mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
 
-            transforms = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
+            if model_idx[0:8] == 'Virchow2':
+                Virchow_version = '2'
+                backbone_model = timm.create_model("hf-hub:paige-ai/Virchow2", pretrained=True,
+                                                   num_classes=0 if num_classes < 0 else num_classes,
+                                                   mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
+            else:  # Virchow1
+                Virchow_version = '1'
+                backbone_model = timm.create_model("hf-hub:paige-ai/Virchow", pretrained=True,
+                                                   num_classes=0 if num_classes < 0 else num_classes,
+                                                   mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
 
-            '''
-            output = model(image)  # size: 1 x 257 x 1280
+            transforms = create_transform(**resolve_data_config(backbone_model.pretrained_cfg, model=backbone_model))
+            if num_classes == -1:
+                model = backbone_model
+            else:
+                model = VirchowTaskModel(backbone_model=backbone_model,
+                                         Virchow_version=Virchow_version,
+                                         num_classes=num_classes)
 
-            class_token = output[:, 0]    # size: 1 x 1280
-            patch_tokens = output[:, 5:]  # size: 1 x 256 x 1280, tokens 1-4 are register tokens so we ignore those
-
-            # concatenate class token and average pool of patch tokens
-            embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
-            # We concatenate the class token and the mean patch token to create the final tile embedding. 
-            In more resource constrained settings, one can experiment with using just class token or the mean 
-            patch token. For downstream tasks with dense outputs (i.e. segmentation), the 256 x 1280 tensor of 
-            patch tokens can be used.
-            '''
         else:
-            raise NotImplementedError
-
-    elif model_idx[0:8] == 'Virchow1' or model_idx[0:7] == 'Virchow':
-        # ref: https://huggingface.co/paige-ai/Virchow
-        if load_weight_online:
             from timm.layers import SwiGLUPacked
-            # fixme if failed, use your own hugging face token and register for the project
-            model = timm.create_model("hf-hub:paige-ai/Virchow", pretrained=True,
-                                      mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
 
-            transforms = create_transform(**resolve_data_config(model.pretrained_cfg, model=model))
+            if model_idx[0:8] == 'Virchow2':
+                Virchow_version = '2'
+                # Model configuration from JSON
+                config = {
+                    "architecture": "vit_huge_patch14_224",
+                    "model_args": {
+                        "img_size": 224,
+                        "init_values": 1e-5,
+                        "num_classes": 0,
+                        "reg_tokens": 4,
+                        "mlp_ratio": 5.3375,
+                        "global_pool": "",
+                        "dynamic_img_size": True
+                    },
+                    "pretrained_cfg": {
+                        "tag": "virchow_v2",
+                        "custom_load": False,
+                        "input_size": [3, 224, 224],
+                        "fixed_input_size": False,
+                        "interpolation": "bicubic",
+                        "crop_pct": 1.0,
+                        "crop_mode": "center",
+                        "mean": [0.485, 0.456, 0.406],
+                        "std": [0.229, 0.224, 0.225],
+                        "num_classes": 0,
+                        "pool_size": None,
+                        "first_conv": "patch_embed.proj",
+                        "classifier": "head",
+                        "license": "CC-BY-NC-ND-4.0"
+                    }
+                }
+            else:  # Virchow1
+                Virchow_version = '1'
+                # Model configuration from JSON
+                config = {
+                    "architecture": "vit_huge_patch14_224",
+                    "model_args": {
+                        "img_size": 224,
+                        "init_values": 1e-5,
+                        "num_classes": 0,
+                        "mlp_ratio": 5.3375,
+                        "global_pool": "",
+                        "dynamic_img_size": True
+                    },
+                    "pretrained_cfg": {
+                        "tag": "virchow_v1",
+                        "custom_load": False,
+                        "input_size": [3, 224, 224],
+                        "fixed_input_size": False,
+                        "interpolation": "bicubic",
+                        "crop_pct": 1.0,
+                        "crop_mode": "center",
+                        "mean": [0.485, 0.456, 0.406],
+                        "std": [0.229, 0.224, 0.225],
+                        "num_classes": 0,
+                        "pool_size": None,
+                        "first_conv": "patch_embed.proj",
+                        "classifier": "head",
+                        "license": "Apache 2.0"
+                    }
+                }
 
-            '''
-            output = model(image)  # size: 1 x 257 x 1280
+            # Create the model using timm
+            backbone_model = timm.create_model(
+                config['architecture'],
+                pretrained=False,
+                img_size=config['model_args']['img_size'],
+                init_values=config['model_args']['init_values'],
+                mlp_ratio=config['model_args']['mlp_ratio'],
+                num_classes=num_classes,
+                global_pool=config['model_args']['global_pool'],
+                dynamic_img_size=config['model_args']['dynamic_img_size'],
+                mlp_layer=SwiGLUPacked, act_layer=torch.nn.SiLU)
 
-            class_token = output[:, 0]    # size: 1 x 1280
-            patch_tokens = output[:, 1:]  # size: 1 x 256 x 1280
-            # concatenate class token and average pool of patch tokens
-            embedding = torch.cat([class_token, patch_tokens.mean(1)], dim=-1)  # size: 1 x 2560
-            # We concatenate the class token and the mean patch token to create the final tile embedding. 
-            In more resource constrained settings, one can experiment with using just class token or the mean patch 
-            token. For downstream tasks with dense outputs (i.e. segmentation), the 256 x 1280 tensor of patch 
-            tokens can be used.
-            '''
-        else:
-            raise NotImplementedError
+            # Virchow 1 and 2 are special as we are loading the backbone and stack the model here,
+            # if loading their weights, we should load the weights to the backbone
+            # other model just load weightsin the end of the model building
+            backbone_model.load_state_dict(torch.load(pretrained_backbone_weight), False)
+
+            if num_classes == -1:
+                model = backbone_model
+            else:
+                model = VirchowTaskModel(backbone_model=backbone_model,
+                                         Virchow_version=Virchow_version,
+                                         num_classes=num_classes)
 
     # prov-gigapath feature embedding ViT
     elif model_idx[0:8] == 'gigapath':
+        # ->  torch.Size([1, 1536])
         # ref: https://www.nature.com/articles/s41586-024-07441-w
         if load_weight_online:
             # fixme if "HF_TOKEN" failed, use your own hugging face token and register for the project gigapath
@@ -348,7 +481,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
             # Model configuration from your JSON
             config = {
                 "architecture": "vit_giant_patch14_dinov2",
-                "num_classes": 0,
+                "num_classes": num_classes,  # original is 0
                 "num_features": 1536,
                 "global_pool": "token",
                 "model_args": {
@@ -460,9 +593,7 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
     else:
         print('\nThe model', model_idx, 'with the edge size of', edge_size)
         print("is not defined in the script！！", '\n')
-        return -1
-        # Print the model to verify
-        print(model)
+        raise NotImplementedError
 
     # load state
     try:
@@ -485,12 +616,12 @@ def get_model(num_classes=0, edge_size=224, model_idx=None, pretrained_backbone=
         img = torch.randn(1, 3, edge_size, edge_size)
         preds = model(img)  # (1, class_number)
         # print('test model output:', preds)
-        print('Build ROI model wuth in/out shape: ', img.shape, ' -> ', preds.shape)
+        print('Build ROI model with in/out shape: ', img.shape, ' -> ', preds.shape)
 
         print("ROI model param size #", sum(p.numel() for p in model.parameters()))
     except:
         print("Problem exist in the model defining process！！")
-        return -1
+        raise  # Problem exist in the model defining process
     else:
         print('model is ready now!')
         if transforms is not None:
@@ -518,4 +649,4 @@ class ImageEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    get_model(num_classes=0, edge_size=224, model_idx='uni', pretrained_backbone=True)
+    get_model(num_classes=0, edge_size=224, model_idx='Virchow1', pretrained_backbone=True)
