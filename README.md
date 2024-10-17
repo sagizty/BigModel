@@ -26,7 +26,11 @@ pip install -e .
 
 3. Tile Cropping
 ```Shell
-python Tiles_dataset.py --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/TCGA-LUAD-raw --tiled_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets --edge_size 224 --target_mpp 0.5
+python Tiles_dataset.py \
+    --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/TCGA-LUAD-raw \
+    --tiled_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets \
+    --edge_size 224 \
+    --target_mpp 0.5
 ```
 
 4. Tile Embedding
