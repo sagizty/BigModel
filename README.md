@@ -31,14 +31,13 @@ python Tiles_dataset.py --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/T
 
 4. Tile Embedding
 ```Shell
-python DataPipe/Embedded_dataset.py \
+python Embedded_dataset.py \
     --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets \
-    --embedded_WSI_dataset_path /data/hdd_1/BigModel/embedded_datasets/TCGA-LUAD-LUSC-gigapath \
+    --embedded_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/slide_embeddings/gigapath \
     --model_name gigapath \
-    --model_weight_path /home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth \
     --edge_size 224 \
-    --PrefetchDataLoader_num_workers 32 \
-    --batch_size 512
+    --PrefetchDataLoader_num_workers 10 \
+    --batch_size 256
 ```
 
 5. Build MTL dataset for WSI
