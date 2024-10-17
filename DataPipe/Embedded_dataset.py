@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Oct 16th 22:30
+WSI embedding dataset tools     Script  ver： Oct 17th 20:30
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -308,7 +308,8 @@ def embedding_one_slide_from_tiles(slide_folder: Union[str, Path],
                         unit="batch",
                         desc=f'Embedding slide_feature {slide_id} on batch of {batch_size} tiles'):
             patch_image_tensor = patch_image_tensor.to(device)  # Move tensor to device
-            with torch.no_grad():  # No need for gradient computation during embedding
+            # No need for gradient computation during embedding
+            with torch.no_grad(), torch.autocast(device_type="cuda", dtype=torch.float16):
                 patch_feature_tensor = embedding_model_at_certain_GPU(patch_image_tensor)  # Extract features
 
             # Save the features and coordinates to the HDF5 file
