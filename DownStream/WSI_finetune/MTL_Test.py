@@ -4,33 +4,22 @@ flexible to multiple-tasks and missing labels
 """
 import os
 import sys
-from pathlib import Path
-
-# For convinience
-this_file_dir = Path(__file__).resolve().parent
-sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
-
-import csv
-import argparse
 import time
 import json
 import torch
-import torch.nn as nn
+import argparse
 import numpy as np
+import torch.nn as nn
+from pathlib import Path
 
-try:
-    from DownStream.MTL.slide_dataset_tools import *
-    from DownStream.MTL.Dataset_Framework import *
-    from DownStream.MTL.Task_settings import task_filter_auto, task_idx_converter, result_recorder
-    from ModelBase.Get_WSI_model import build_WSI_task_model
-    from Utils.tools import setup_seed
-except:
-    from PuzzleAI.DownStream.MTL.slide_dataset_tools import *
-    from PuzzleAI.DownStream.MTL.Dataset_Framework import *
-    from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto, task_idx_converter, result_recorder
-    from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
-    from PuzzleAI.Utils.tools import setup_seed
+# Go up 3 levels
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
+from DownStream.MTL.slide_dataset_tools import *
+from DownStream.MTL.Dataset_Framework import *
+from DownStream.MTL.Task_settings import task_filter_auto, task_idx_converter, result_recorder
+from ModelBase.Get_WSI_model import build_WSI_task_model
+from Utils.tools import setup_seed
 
 def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, task_describe, idx_converter,
          check_minibatch=20, runs_path='./', device=torch.device("cpu"), mix_precision=True):

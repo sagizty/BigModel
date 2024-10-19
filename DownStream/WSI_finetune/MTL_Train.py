@@ -9,36 +9,26 @@ we use loss-aggregate technique to combine each sample for back-propagation
 """
 import os
 import sys
-from pathlib import Path
-
-# For convenience
-this_file_dir = Path(__file__).resolve().parent
-sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
-
-import argparse
 import json
 import copy
 import time
 import math
 import torch
-import torch.optim as optim
-import torch.nn as nn
+import argparse
 import numpy as np
+import torch.nn as nn
+from pathlib import Path
+import torch.optim as optim
 from tensorboardX import SummaryWriter
 
+# Go up 3 levels
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-try:
-    from DownStream.MTL.Dataset_Framework import *
-    from DownStream.MTL.Task_settings import task_filter_auto
-    from ModelBase.Get_WSI_model import build_WSI_task_model
-    from Utils.MTL_plot_json import check_json_with_plot
-    from Utils.tools import setup_seed
-except:
-    from PuzzleAI.DownStream.MTL.Dataset_Framework import *
-    from PuzzleAI.DownStream.MTL.Task_settings import task_filter_auto
-    from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_task_model
-    from PuzzleAI.Utils.MTL_plot_json import check_json_with_plot
-    from PuzzleAI.Utils.tools import setup_seed
+from DownStream.MTL.Dataset_Framework import *
+from DownStream.MTL.Task_settings import task_filter_auto
+from ModelBase.Get_WSI_model import build_WSI_task_model
+from Utils.MTL_plot_json import check_json_with_plot
+from Utils.tools import setup_seed
 
 
 def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler, loss_weight, task_dict, task_describe,
