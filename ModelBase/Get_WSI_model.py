@@ -2,17 +2,18 @@
 Build WSI level models      Script  ver： Oct 17th 17:00
 """
 import os
+import sys
 import torch
 import torch.nn as nn
-from typing import Optional, List
 import huggingface_hub
+from pathlib import Path
+from typing import Optional, List
 
-try:
-    from gigapath.slide_encoder import gigapath_slide_enc12l768d
-    from PathRWKV.path_rwkv import PathRWKV
-except:
-    from PuzzleAI.ModelBase.gigapath.slide_encoder import gigapath_slide_enc12l768d
-    from PuzzleAI.ModelBase.PathRWKV.path_rwkv import PathRWKV
+# Go up 1 level
+sys.path.append(str(Path(__file__).resolve().parent))
+
+from PathRWKV.path_rwkv import PathRWKV
+from gigapath.slide_encoder import gigapath_slide_enc12l768d
 
 
 def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
