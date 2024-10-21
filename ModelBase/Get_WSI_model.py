@@ -12,7 +12,7 @@ from typing import Optional, List
 # Go up 1 level
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from PathRWKV.path_rwkv import PathRWKV
+from path_rwkv.v6 import PathRWKVv6
 from gigapath.slide_encoder import gigapath_slide_enc12l768d
 
 
@@ -60,7 +60,7 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
         return slide_backbone
 
     elif model_name == "PathRWKV":
-        slide_backbone = PathRWKV(**kwargs)
+        slide_backbone = PathRWKVv6(**kwargs)
 
         if local_weight_path:
             state_dict = torch.load(local_weight_path, map_location="cpu", weights_only=True)
