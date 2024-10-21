@@ -53,7 +53,7 @@ def train(model, dataloaders, dataset_sizes, criterions, optimizer, LR_scheduler
     log_dict = {}
 
     # loss scaler
-    Scaler = torch.amp.GradScaler("cuda", enabled=mix_precision)  # torch.cuda.amp.GradScaler() # fixme csc check
+    Scaler = torch.amp.GradScaler("cuda", enabled=mix_precision)  # fixme csc check
     # for recording and epoch selection
     temp_best_epoch_loss = 100000  # this one should be very big
     best_epoch_idx = 1
@@ -472,7 +472,7 @@ def main(args):
                                     intake_epochs=args.intake_epochs, runs_path=draw_path, writer=writer,
                                     device=device, mix_precision=not args.turn_off_mix_precision)
 
-    torch.save(trained_model.state_dict(), save_model_path)
+    torch.save(trained_model.module.state_dict() if args.gpu_idx == -1 else trained_model.state_dict(), save_model_path)
 
     # print training summary
     check_json_with_plot(log_path, WSI_task_dict, save_path=draw_path)

@@ -102,7 +102,7 @@ def test(model, dataloader, dataset_size, criterions, loss_weight, task_dict, ta
         # Tracking the loss for loss-drive bag settings update and also recordings, initialize with 0.0
         running_loss = 0.0  # all tasks loss over a batch
 
-        with torch.amp.autocast("cuda", enabled=mix_precision):  # torch.cuda.amp.autocast(): # fixme csc check
+        with torch.amp.autocast("cuda", enabled=mix_precision):  # fixme csc check
             with torch.no_grad():
                 y = model(image_features, coords_yx)  # y is the predication on all old tasks (of training)
 
@@ -362,26 +362,8 @@ def main(args):
     model = build_WSI_task_model(model_name=args.model_name, local_weight_path=False,
                                  ROI_feature_dim=args.ROI_feature_dim,
                                  MTL_heads=MTL_heads, latent_feature_dim=args.latent_feature_dim)
-    # load model    # model.load_state_dict(torch.load(save_model_path), False)
-    state_dict = torch.load(save_model_path, weights_only=True)
-
-    new_state_dict = {}
-    for key, value in state_dict.items():
-        key = key.replace("module.", "")  # fixme csc check: should not have .replace("MTL_layer", "MTL_module.layer")
-        new_state_dict[key] = value
-
-    # load_state_dict returns a dict with 'missing_keys' and 'unexpected_keys' among others
-    load_result = model.load_state_dict(new_state_dict)
-    missing_keys = load_result.get('missing_keys', [])
-    unexpected_keys = load_result.get('unexpected_keys', [])
-
-    if len(missing_keys) > 0:
-        for k in missing_keys:
-            print("Missing ", k)
-    if len(unexpected_keys) > 0:
-        for k in unexpected_keys:
-            print("Unexpected ", k)
-
+    # load model
+    model.load_state_dict(torch.load(save_model_path, weights_only=True))
     print('model loaded')
 
     model = torch.compile(model)
