@@ -1,5 +1,5 @@
 """
-MTL Test      Script  ver： Oct 17th 18:30
+MTL Test      Script  ver： Oct 21st 16:30
 flexible to multiple-tasks and missing labels
 """
 import os
@@ -13,7 +13,8 @@ import torch.nn as nn
 from pathlib import Path
 
 # Go up 3 levels
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+ROOT_PATH = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(ROOT_PATH))
 
 from DownStream.MTL.slide_dataset_tools import *
 from DownStream.MTL.Dataset_Framework import *
@@ -386,19 +387,20 @@ def get_args_parser():
                         help='use a single GPU with its index, -1 to use multiple GPU')
 
     # Model tag (for example k-fold)
-    parser.add_argument('--tag', default=None, type=str, help='Model tag (for example 5-fold)')
+    parser.add_argument('--tag', default=None, type=str,
+                        help='Model tag (for example 5-fold)')
 
     # PATH
-    parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
+    parser.add_argument('--root_path', default=None, type=str,
                         help='MTL dataset root')
-    parser.add_argument('--save_model_path', default='../saved_models', type=str,
+    parser.add_argument('--save_model_path', default=ROOT_PATH/'saved_models', type=str,
                         help='save model root')
-    parser.add_argument('--runs_path', default='../runs', type=str, help='save runing results path')
+    parser.add_argument('--runs_path', default=ROOT_PATH/'runs', type=str,
+                        help='save running results path')
 
     # labels
-    parser.add_argument('--task_description_csv',
-                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
-                        type=str, help='label csv file path')
+    parser.add_argument('--task_description_csv', default=None, type=str,
+                        help='label csv file path')
     # old task config (this allows testing old model on new set of tasks)
     parser.add_argument('--old_task_config', default=None, type=str,
                         help='path to old training config file')
@@ -416,12 +418,16 @@ def get_args_parser():
                         help='key for mapping the label')
     parser.add_argument('--split_target_key', default='fold_information', type=str,
                         help='key identifying the split information')
-    parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
-    parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
+    parser.add_argument('--num_workers', default=2, type=int,
+                        help='dataloader num_workers')
+    parser.add_argument('--max_tiles', default=10000, type=int,
+                        help='max tile for loading')
 
     # module settings
-    parser.add_argument('--latent_feature_dim', default=128, type=int, help='MTL module dim')
-    parser.add_argument('--embed_dim', default=768, type=int, help='feature embed_dim , default 768')
+    parser.add_argument('--latent_feature_dim', default=128, type=int,
+                        help='MTL module dim')
+    parser.add_argument('--embed_dim', default=768, type=int,
+                        help='feature embed_dim , default 768')
     parser.add_argument('--ROI_feature_dim', default=1536, type=int,
                         help='feature embed_dim , default 768')
 

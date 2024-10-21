@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Oct 17th 18:30
+MTL Train     Script  ver： Oct 21st 16:30
 
 flexible to multiple-tasks and missing labels
 
@@ -22,9 +22,10 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 # Go up 3 levels
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+ROOT_PATH = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(ROOT_PATH))
 
-from DownStream.MTL.Dataset_Framework import *
+from DownStream.MTL.Dataset_Framework import SlideDataset, MTL_WSI_collate_fn
 from DownStream.MTL.Task_settings import task_filter_auto
 from ModelBase.Get_WSI_model import build_WSI_task_model
 from Utils.MTL_plot_json import check_json_with_plot
@@ -486,21 +487,21 @@ def get_args_parser():
                         help='use a single GPU with its index, -1 to use multiple GPU')
 
     # Model tag (for example k-fold)
-    parser.add_argument('--tag', default=None, type=str, help='Model tag (for example 5-fold)')
+    parser.add_argument('--tag', default=None, type=str,
+                        help='Model tag (for example 5-fold)')
 
     # PATH
-    parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
+    parser.add_argument('--root_path', default=None, type=str,
                         help='MTL dataset root')
-    parser.add_argument('--local_weight_path',
-                        default='/home/workenv/PuzzleAI/ModelWeight/prov-gigapath/slide_encoder.pth', type=str,
+    parser.add_argument('--local_weight_path', default=None, type=str,
                         help='local weight path')
-    parser.add_argument('--save_model_path', default='../saved_models', type=str,
+    parser.add_argument('--save_model_path', default=ROOT_PATH/'saved_models', type=str,
                         help='save model root')
-    parser.add_argument('--runs_path', default='../runs', type=str, help='save runing results path')
+    parser.add_argument('--runs_path', default=ROOT_PATH/'runs', type=str,
+                        help='save running results path')
     # labels
-    parser.add_argument('--task_description_csv',
-                        default='/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv',
-                        type=str, help='label csv file path')
+    parser.add_argument('--task_description_csv', default=None, type=str,
+                        help='label csv file path')
 
     # Task settings
     parser.add_argument('--tasks_to_run', default=None, type=str,
@@ -513,17 +514,22 @@ def get_args_parser():
                         help='key for mapping the label')
     parser.add_argument('--split_target_key', default='fold_information', type=str,
                         help='key identifying the split information')
-    parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
-    parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
+    parser.add_argument('--num_workers', default=2, type=int,
+                        help='dataloader num_workers')
+    parser.add_argument('--max_tiles', default=10000, type=int,
+                        help='max tile for loading')
 
     # module settings
-    parser.add_argument('--latent_feature_dim', default=128, type=int, help='MTL module dim')
-    parser.add_argument('--embed_dim', default=768, type=int, help='feature embed_dim , default 768')
+    parser.add_argument('--latent_feature_dim', default=128, type=int,
+                        help='MTL module dim')
+    parser.add_argument('--embed_dim', default=768, type=int,
+                        help='feature embed_dim , default 768')
     parser.add_argument('--ROI_feature_dim', default=1536, type=int,
                         help='feature embed_dim , default 768')
 
     # Model settings
-    parser.add_argument('--model_name', default='gigapath', type=str, help='slide level model name')
+    parser.add_argument('--model_name', default='gigapath', type=str,
+                        help='slide level model name')
 
     # training settings
     parser.add_argument('--batch_size', default=1, type=int,
@@ -541,7 +547,7 @@ def get_args_parser():
     parser.add_argument('--lrf', default=0.1, type=float,
                         help='Cosine learning rate decay times, default 0.1')
     # turn_off_mix_precision
-    parser.add_argument('--turn_off_mix_precision', action='store_true', # fixme csc check
+    parser.add_argument('--turn_off_mix_precision', action='store_true',  # fixme csc check
                         help='turn_off_mix_precision for certain models like RWKV for debugging')
 
     # helper
