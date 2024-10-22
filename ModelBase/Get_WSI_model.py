@@ -233,3 +233,22 @@ def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None
     slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
     slide_embedding_model = slide_embedding_model_builder(slide_backbone)
     return slide_embedding_model
+
+
+if __name__ == '__main__':
+    # you may need this test code to see if your model is ok to run
+    ROI_feature_dim = 1536  # base on embedding model, fixme in your model design you need to have a converter
+
+    # take data and task_description_list from dataloader fetched sample
+    # image_features, coords_yx, task_description_list, slide_id = sample
+
+    # image_features is a tensor of [B,N,D],  coords_yx is tensor of [B,N,2]
+    image_features = torch.randn(1, 2345, ROI_feature_dim)
+    coords_yx = torch.randn(1, 2345, 2)
+
+    # you can touch your model a bit to ignore the coords_yx if neccessary when you put them into the bigmodel framwork
+    model = build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
+                                     ROI_feature_dim=ROI_feature_dim, )  # fixme you can put other **kwargs inside
+
+    # you can generate the pseudo tensor and put into the model
+    y = model(image_features, coords_yx)
