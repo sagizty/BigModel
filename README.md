@@ -98,7 +98,8 @@ python Utils/Decode_correlation.py \
 6.b Run slide level embedding to make probing dataset
 
 ```Shell
-python DataPipe/Slide_probing_dataset.py --model_name gigapath --root_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
+python DataPipe/Slide_probing_dataset.py --model_name gigapath --slide_embedding_folder /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Slide_embeddings/gigapath/ --tile_embedding_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
+    
 ```
 
 7. Run ROI level tasks
