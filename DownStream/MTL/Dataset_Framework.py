@@ -1,5 +1,5 @@
 '''
-MTL dataset framework for WSI and Bulk      Script  ver： Oct 16th 23:00
+MTL dataset framework       Script  ver： Oct 23th 19:00
 '''
 
 import os
@@ -21,6 +21,7 @@ from PIL import Image
 import pandas as pd
 
 import h5py
+
 
 # pseudo Bulk dataset builder
 class Bulk_ROI_Dataset(Dataset):
@@ -107,8 +108,9 @@ class SlideDataset(Dataset):
                  slide_id_key='slide_id', split_target_key='split',
                  possible_suffixes=('.h5', '.pt', '.jpeg', '.jpg'),
                  stopping_folder_name_list=['thumbnails', ],
-                 dataset_type='MTL',
-                 max_tiles=10000,
+                 task_type='MTL',
+                 data_name_mode=None,
+                 max_tiles=None,
                  **kwargs):
         """
         Slide dataset class for retrieving slide_feature samples for different tasks.
@@ -135,7 +137,14 @@ class SlideDataset(Dataset):
         possible_suffixes: supported suffix for taking the samples
         stopping_folder_name_list:
 
-        dataset_type: 'MTL' for building slide_feature level mtl dataset, 'embedding' for probing
+        task_type: 'MTL' for building slide_feature level mtl dataset, 'embedding' for doing slide level embedding
+
+        data_name_mode: slide name rule, default is None, 'TCGA' for TCGA names,
+                        by default will try to load the config file
+
+        max_tiles: tile taking maximum number for each slide, default is None,
+                        by default will try to load the config file
+
 
         everytime it get a sample WSI:
         ----------
@@ -147,58 +156,80 @@ class SlideDataset(Dataset):
               'task_name_list': task_name_list,
               'task_description_list': task_description_list}
         """
+        # add default stop list:
+        stopping_folder_name_list.extend(['task-settings', 'task-settings-5folds'])
+
         super(SlideDataset, self).__init__(**kwargs)
+        self.task_type = task_type
+
         self.root_path = root_path
         self.possible_suffixes = possible_suffixes
-        self.task_cfg = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
-        self.split_target_key = split_target_key  # the key to record the fold infor
-        self.slide_id_key = slide_id_key
-        self.mode = self.task_cfg.get('mode')
-        self.dataset_type = dataset_type
 
-        task_description_csv = task_description_csv or \
-                               os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
-        task_description_data_df = pd.read_csv(task_description_csv)
-
-        # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
-        if self.split_target_key is None or split_name is None or self.dataset_type== 'embedding':
-            assert self.dataset_type is 'embedding'
+        if self.task_type == 'embedding':
+            # here the slide dataset is called without requirement of task labels,
+            # in this case we dont need config and csv label file
             split_name = 'all_embedding'
-            self.task_name_list = None
+            self.task_name_list = 'slide_embedding'
+            try:
+                self.task_cfg = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
+                self.data_name_mode = data_name_mode or self.task_cfg.get('mode')
+            except:
+                self.task_cfg = None
+                self.data_name_mode = data_name_mode
+
+            # Find valid slide_feature paths that have tile encodings
+            self.slide_ids, valid_sample_ids = self.get_valid_slides(None, stopping_folder_name_list, self.data_name_mode)
+            self.setup_task_data(None, None, task_type=self.task_type)
+
         else:
+            # the slide dataset need task labels
+            # load task config
+            self.task_cfg = load_yaml_config(os.path.join(root_path, task_setting_folder_name, 'task_configs.yaml'))
+            self.data_name_mode = data_name_mode or self.task_cfg.get('mode')
+            self.split_target_key = split_target_key  # the key to record the fold infor
+            self.slide_id_key = slide_id_key
+
+            # load label csv
+            task_description_csv = task_description_csv or \
+                                   os.path.join(root_path, task_setting_folder_name, 'task_description.csv')
+            task_description_data_df = pd.read_csv(task_description_csv)
+            # Get the label from CSV file with WSIs assigned with the target split (such as 'train').
             task_description_data_df = task_description_data_df[
                 task_description_data_df[self.split_target_key] == split_name]
             # Set up the task
             self.task_name_list = self.task_cfg.get('tasks_to_run')
             assert self.task_name_list is not None
+            # Find valid slide_feature paths that have tile encodings
+            self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[self.slide_id_key].values,
+                                                                     stopping_folder_name_list, self.data_name_mode)
 
-        # Find valid slide_feature paths that have tile encodings
-        self.slide_ids, valid_sample_ids = self.get_valid_slides(task_description_data_df[slide_id_key].values,
-                                                                 stopping_folder_name_list, self.mode)
+            if self.data_name_mode == 'TCGA':
+                # in tcga csv, we only have slide_id_key indicating the label to the patient,
+                # therefore we need to map the slide_feature id into the csv by duplicating the labels.
+                # certain patients can have multiple slides
+                print('In TCGA mode, we take the patient record as label'
+                      ' for the slides corresponding to the same patient')
+                task_description_data_df = \
+                    task_description_data_df[task_description_data_df[self.slide_id_key].isin(valid_sample_ids)]
+            else:
+                print('In dataset framework, we take the slide_id_key to pair slide_feature id and label csv')
+                task_description_data_df = \
+                    task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
 
-        if self.mode == 'TCGA':
-            # in tcga csv, we only have slide_id_key indicating the label to the patient,
-            # therefore we need to map the slide_feature id into the csv by duplicating the labels.
-            # certain patients can have multiple slides
-            print('In TCGA mode, we take the patient record as label'
-                  ' for the slides corresponding to the same patient')
-            task_description_data_df = \
-                task_description_data_df[task_description_data_df[self.slide_id_key].isin(valid_sample_ids)]
-        else:
-            print('In dataset framework, we take the slide_id_key to pair slide_feature id and label csv')
-            task_description_data_df = \
-                task_description_data_df[task_description_data_df[self.slide_id_key].isin(self.slide_ids)]
-
-        self.setup_task_data(task_description_data_df, self.task_name_list, dataset_type=self.dataset_type)
+            self.setup_task_data(task_description_data_df, self.task_name_list, task_type=self.task_type)
 
         # Load from settings or set default value
-        self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 1000)
-        self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False)
+        self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 10000)
+        self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False) if self.task_cfg is not None else False
         print('Dataset has been initialized with ' + str(len(self.slide_ids)) +
               ' slides for split:', str(split_name))
-        # check tile distribution
+
+        # fixme notice this is very slow when the hard disk is in use
+        '''
+        # check tile distribution 
         self.check_tile_num_distribution(draw_path=os.path.join(root_path, task_setting_folder_name,
                                                                 str(split_name) + '.jpeg'))
+        '''
 
     def find_slide_paths_and_ids(self, stopping_folder_name_list):
         """
@@ -206,6 +237,9 @@ class SlideDataset(Dataset):
 
         This operation can be slow as there are many '.jpg' files in the slide_folder.
         Therefore, when it detects one slide_folder, all files inside should not be tested again.
+
+
+        stopping_folder_name_list: a list of the not-taking slide names, default is none
         """
         slide_paths = {}
         for dirpath, dirnames, _ in os.walk(self.root_path):
@@ -222,21 +256,39 @@ class SlideDataset(Dataset):
                         break  # Break early once a valid file is found
         return slide_paths
 
-    def get_valid_slides(self, labeled_slide_names, stopping_folder_name_list, mode='TCGA'):
-        """Get the slides that have tile encodings stored in the tile directory."""
-        slide_paths = self.find_slide_paths_and_ids(stopping_folder_name_list)
+    def get_valid_slides(self, labeled_slide_names, stopping_folder_name_list, data_name_mode='TCGA'):
+        """Get the slides that have tile encodings stored in the tile directory.
+
+        labeled_slide_names: a list of the slide names, default is none for all slides
+        stopping_folder_name_list: a list of the not-taking slide names, default is none
+
+        """
+        slide_paths = self.find_slide_paths_and_ids(stopping_folder_name_list=stopping_folder_name_list)
 
         self.slide_paths = {}
 
         valid_slide_ids = []
         valid_sample_ids = []
         for slide_id in slide_paths:
-            slide_id_name = slide_id[0:12] if mode == 'TCGA' else slide_id
+            slide_id_name = slide_id[0:12] if data_name_mode == 'TCGA' else slide_id
             slide_path = slide_paths[slide_id]
-
-            if slide_id_name not in labeled_slide_names:
-                # this sample is not required in this current split
-                pass
+            if labeled_slide_names is not None:
+                if slide_id_name not in labeled_slide_names:
+                    # when this sample is not required in this current split
+                    continue
+                else:
+                    if 'pt_files' in self.root_path.split('/')[-1]:
+                        embedded_slide_file = slide_id.replace(".svs", "") + '.pt'
+                    else:
+                        embedded_slide_file = slide_id.replace(".svs", "") + '.h5'
+                    embedded_slide_path = os.path.join(slide_path, embedded_slide_file)
+                    if not os.path.exists(embedded_slide_path):
+                        print('Data Missing for: ', slide_id)
+                    else:
+                        # Add to valid list
+                        valid_slide_ids.append(slide_id)
+                        valid_sample_ids.append(slide_id_name)
+                        self.slide_paths[slide_id] = embedded_slide_path
             else:
                 if 'pt_files' in self.root_path.split('/')[-1]:
                     embedded_slide_file = slide_id.replace(".svs", "") + '.pt'
@@ -254,8 +306,8 @@ class SlideDataset(Dataset):
         return valid_slide_ids, valid_sample_ids
 
     def check_tile_num_distribution(self, draw_path):
+        # fixme notice this is very slow when the hard disk is in use
         import matplotlib.pyplot as plt
-
         tile_num_list = []
         for slide_id in self.slide_ids:
             # Get the slide_feature path
@@ -374,20 +426,21 @@ class SlideDataset(Dataset):
 
         return task_dict, one_hot_table, labels
 
-    def setup_task_data(self, task_description_csv, task_name_list, dataset_type='MTL'):
+    def setup_task_data(self, task_description_csv=None, task_name_list=None, task_type='MTL'):
         """Prepare the sample for single task tasks_to_run or multi-task tasks_to_run.
 
         old demo self.prepare_single_task_data_list, the split is a list of wsi name
         """
 
         # todo multiple modality func
-        if dataset_type == 'MTL':
+        if task_type == 'MTL':
+            assert task_description_csv is not None and task_name_list is not None
             self.task_dict, self.one_hot_table, self.labels = \
                 self.prepare_MTL_data_list(task_description_csv, task_name_list)
-        elif dataset_type == 'embedding':
+        elif task_type == 'embedding':
             self.task_dict, self.one_hot_table, self.labels = None, None, None
         else:
-            raise NotImplementedError  # currently we only have dataset_type == 'MTL'
+            raise NotImplementedError  # currently we only have task_type == 'MTL'
 
     def shuffle_data_pairs(self, images: torch.Tensor, coords: torch.Tensor) -> tuple:
         """Shuffle the serialized images and coordinates"""
@@ -442,10 +495,9 @@ class SlideDataset(Dataset):
 
         # get the slide_feature tile embeddings
         data_dict = self.get_embedded_data_dict(embedded_slide_path)
-
         # get the slide_feature label
-        slide_id_name = slide_id[0:12] if self.mode == 'TCGA' else slide_id
-        task_description_list = self.labels[slide_id_name] if self.dataset_type is not 'embedding' else 'None'
+        slide_id_name = slide_id[0:12] if self.data_name_mode == 'TCGA' else slide_id
+        task_description_list = self.labels[slide_id_name] if self.task_type != 'embedding' else 'None'
 
         # set the sample dict
         sample = {'image_features': data_dict['image_features'],
@@ -455,6 +507,7 @@ class SlideDataset(Dataset):
                   'slide_id': slide_id,
                   'task_name_list': self.task_name_list,
                   'task_description_list': task_description_list}
+
         return sample
 
     def get_embedded_sample_with_try(self, idx, n_try=3):
@@ -505,16 +558,18 @@ def MTL_WSI_collate_fn(batch):  # todo havent designed for dictionary version
 
 
 if __name__ == '__main__':
-    root_path = '/data/BigModel/embedded_datasets/'
+    root_path = '/data/hdd_1/BigModel/TCGA-COAD-READ/Tile_embeddings/gigapath'
     task_description_csv = \
-        '/home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv'
+        '/data/hdd_1/BigModel/TCGA-COAD-READ/Tile_embeddings/gigapath/task-settings-5folds/20240827_TCGA_log_marker10.csv'
     slide_id_key = 'patient_id'
-    split_target_key = 'fold_information'
-    task_setting_folder_name = 'task-settings'
-    mode = 'TCGA'
+    split_target_key = 'fold_information_5fold-5'
+    task_setting_folder_name = 'task-settings-5folds'
+    data_name_mode = 'TCGA'
+    max_tiles = 10000
 
     dataset_name = 'TCGA-COAD-READ',
     tasks_to_run = 'iCMS%CMS%MSI.status%EPCAM%COL3A1%CD3E%PLVAP%C1QA%IL1B%MS4A1%CD79A'.split('%')
+    task_type = 'MTL'  # MTL or embedding, if its embedding, the task config is not composable
 
     '''
     build_split_and_task_configs(root_path, task_description_csv, dataset_name, tasks_to_run,
@@ -524,12 +579,16 @@ if __name__ == '__main__':
     # check the dataset
     Train_dataset = SlideDataset(root_path, task_description_csv,
                                  task_setting_folder_name=task_setting_folder_name,
-                                 split_name='train', slide_id_key=slide_id_key,
-                                 split_target_key=split_target_key)
+                                 split_name='Train', slide_id_key=slide_id_key,
+                                 split_target_key=split_target_key,
+                                 data_name_mode=data_name_mode, max_tiles=max_tiles,
+                                 task_type=task_type)
     Val_dataset = SlideDataset(root_path, task_description_csv,
                                task_setting_folder_name=task_setting_folder_name,
-                               split_name='val', slide_id_key=slide_id_key,
-                               split_target_key=split_target_key)
+                               split_name='Val', slide_id_key=slide_id_key,
+                               split_target_key=split_target_key,
+                               data_name_mode=data_name_mode, max_tiles=max_tiles,
+                               task_type=task_type)
 
     print(Train_dataset.get_embedded_sample_with_try(20))
     dataloaders = {
