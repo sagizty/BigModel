@@ -1,5 +1,5 @@
 """
-Embedding slide_feature dataset     Script  ver： Sep 13th 11:30
+Embedding slide_feature dataset     Script  ver： Oct 23rd 19:30
 
 flexible to multiple-tasks and missing labels
 
@@ -11,7 +11,7 @@ import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience
 this_file_dir = Path(__file__).resolve().parent
 sys.path.append(str(this_file_dir.parent.parent))  # Go up 3 levels
 
@@ -23,16 +23,10 @@ import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 
-try:
-    from DataPipe.h5tools import hdf5_save_a_slide_embedding_dataset
-    from DownStream.MTL.Dataset_Framework import *
-    from ModelBase.Get_WSI_model import build_WSI_prob_embedding_model
-    from Utils.tools import setup_seed
-except:
-    from PuzzleAI.DataPipe.h5tools import hdf5_save_a_slide_embedding_dataset
-    from PuzzleAI.DownStream.MTL.Dataset_Framework import *
-    from PuzzleAI.ModelBase.Get_WSI_model import build_WSI_prob_embedding_model
-    from PuzzleAI.Utils.tools import setup_seed
+from DataPipe.h5tools import hdf5_save_a_slide_embedding_dataset
+from DownStream.MTL.Dataset_Framework import *
+from ModelBase.Get_WSI_model import build_WSI_prob_embedding_model
+from Utils.tools import setup_seed
 
 
 def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=torch.device("cpu")):
@@ -88,12 +82,17 @@ def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=
 
 
 def main(args):
-    h5_file_path = os.path.join(args.root_path, args.task_setting_folder_name, 'slide_embedding.h5')
+    slide_embedding_folder = args.slide_embedding_folder or os.path.join(args.root_path, args.task_setting_folder_name)
+    if not os.path.exists(slide_embedding_folder):
+        os.mkdir(slide_embedding_folder)
+
+    h5_file_path = os.path.join(slide_embedding_folder, 'slide_embedding.h5')
+
     # instantiate the dataset
     dataset = SlideDataset(args.root_path, args.task_description_csv,
                            task_setting_folder_name=args.task_setting_folder_name,
                            split_name=None, slide_id_key=args.slide_id_key, split_target_key=None,
-                           dataset_type='embedding', max_tiles=args.max_tiles)
+                           task_type='embedding', max_tiles=args.max_tiles)
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                              collate_fn=MTL_WSI_collate_fn,
@@ -101,7 +100,7 @@ def main(args):
     # info
     dataset_size = len(dataset)
 
-    # GPU idx start with0, -1 to use multipel GPU
+    # GPU idx start with0, -1 to use multiple GPU
     if args.gpu_idx == -1:  # use all cards
         if torch.cuda.device_count() > 1:
             print("Use", torch.cuda.device_count(), "GPUs!")
@@ -155,41 +154,40 @@ def get_args_parser():
                         help='use a single GPU with its index, -1 to use multiple GPU')
 
     # PATH
-    parser.add_argument('--root_path', default='/data/BigModel/embedded_datasets/', type=str,
-                        help='MTL dataset root')  #
-    parser.add_argument('--local_weight_path',
-                        default=None, type=str,
-                        help='local weight path')
-    # labels
-    parser.add_argument('--task_description_csv',
-                        default=None,
-                        type=str, help='label csv file path, '
-                                       'default none will go to task_description.csv in task_setting_folder')
+    parser.add_argument('--slide_embedding_folder', default=None,
+                        type=str, help='path to the embedded slide dataset, '
+                                       'default go to task_setting folder of embedded tile dataset')
+    parser.add_argument('--tile_embedding_path',
+                        default='/data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath/',
+                        type=str, help='path to the embedded tile dataset')
+    parser.add_argument('--local_weight_path', default=None, type=str, help='local weight path')
 
     # Task settings and configurations for dataloaders
-    parser.add_argument('--task_setting_folder_name', default='task-settings-5folds', type=str,
+    # labels
+    parser.add_argument('--task_description_csv', default=None, type=str,
+                        help='label csv file path, default none will go to task_description.csv in task_setting_folder')
+
+    parser.add_argument('--task_setting_folder_name', default='task-settings', type=str,
                         help='task-settings folder name')
 
     parser.add_argument('--slide_id_key', default='patient_id', type=str,
                         help='key for mapping the label')
 
-    parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
-    parser.add_argument('--max_tiles', default=10000, type=int, help='max tile for loading')
-
-    # module settings
-    parser.add_argument('--ROI_feature_dim', default=1536, type=int,
-                        help='feature embed_dim , default 768')
+    # slide module settings
+    parser.add_argument('--max_tiles', default=None, type=int, help='max tile for loading, '
+                                                                    'default will load config or be 10000')
 
     # Model settings
     parser.add_argument('--model_name', default='gigapath', type=str, help='slide_feature level model name')
+    parser.add_argument('--ROI_feature_dim', default=None, type=int,
+                        help='feature embed_dim , default will be loading from model config')
 
     # embedding settings
-    parser.add_argument('--batch_size', default=1, type=int,
-                        help='batch_size of WSI, default 1')
+    parser.add_argument('--batch_size', default=1, type=int, help='batch_size of WSI, default 1')
+    parser.add_argument('--num_workers', default=2, type=int, help='dataloader num_workers')
 
     # helper
-    parser.add_argument('--check_minibatch', default=25, type=int,
-                        help='check batch_size')
+    parser.add_argument('--check_minibatch', default=25, type=int, help='check batch_size')
 
     return parser
 
@@ -203,6 +201,5 @@ if __name__ == '__main__':
     main(args)
 
     '''
-    python Slide_probing_dataset.py --root_path /data/BigModel/embedded_datasets/ --task_description_csv /home/zhangty/Desktop/BigModel/prov-gigapath/PuzzleAI/Archive/dataset_csv/TCGA_Log_Transcriptome_Final.csv --slide_id_key 'patient_id'  
-    python Slide_probing_dataset.py --root_path /data/hdd_1/BigModel/qupath_embedded_datasets --slide_id_key 'Slide_folder' --num_workers 20
+    python Slide_probing_dataset.py --model_name gigapath --slide_embedding_folder /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Slide_embeddings/gigapath/ --tile_embedding_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
     '''
