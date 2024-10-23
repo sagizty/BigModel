@@ -1,5 +1,5 @@
 """
-Build WSI level models      Script  ver： Oct 17th 17:00
+Build WSI level models      Script  ver： Oct 23th 19:00
 """
 import os
 import sys
@@ -17,13 +17,13 @@ from gigapath.slide_encoder import gigapath_slide_enc12l768d
 
 
 def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
-                             ROI_feature_dim=1536, **kwargs):
+                             ROI_feature_dim=None, **kwargs):
     # fixme internal token
     # Hugging Face API token
     os.environ["HF_TOKEN"] = "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"
 
     if model_name == 'gigapath':
-        slide_backbone = gigapath_slide_enc12l768d(in_chans=ROI_feature_dim, global_pool=False, **kwargs)
+        slide_backbone = gigapath_slide_enc12l768d(in_chans=ROI_feature_dim or 1536, global_pool=False, **kwargs)
         print("Slide encoder param #", sum(p.numel() for p in slide_backbone.parameters()))
 
         # download the weights
@@ -60,7 +60,7 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
         return slide_backbone
 
     elif model_name == "PathRWKV":
-        slide_backbone = PathRWKVv6(**kwargs)
+        slide_backbone = PathRWKV(**kwargs)
 
         if local_weight_path:
             state_dict = torch.load(local_weight_path, map_location="cpu", weights_only=True)
@@ -116,7 +116,7 @@ class MTL_Model_builder(nn.Module):
         :param backbone: slide_feature-level modeling model
         :param MTL_module: MTL model projecting the features to multiple task heads
         :param MTL_heads: the list of multiple WSI-level task heads for each task
-        :param embed_dim: feature dim for MTL heads and WSI level modeling model
+        :param embed_dim: feature dim for WSI level modeling model
         :param latent_feature_dim: feature dim for MTL modeling
         """
         super().__init__()
@@ -218,7 +218,7 @@ class slide_embedding_model_builder(nn.Module):
         return slide_latent
 
 
-def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536,
+def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None,
                          MTL_heads: List[nn.Module] = None, latent_feature_dim=128, Froze_backbone=False):
     assert MTL_heads is not None
     slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
@@ -229,26 +229,10 @@ def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feat
     return MTL_Model
 
 
-def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=1536):
+def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None):
     slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
     slide_embedding_model = slide_embedding_model_builder(slide_backbone)
     return slide_embedding_model
 
 
-if __name__ == '__main__':
-    # you may need this test code to see if your model is ok to run
-    ROI_feature_dim = 1536  # base on embedding model, fixme in your model design you need to have a converter
 
-    # take data and task_description_list from dataloader fetched sample
-    # image_features, coords_yx, task_description_list, slide_id = sample
-
-    # image_features is a tensor of [B,N,D],  coords_yx is tensor of [B,N,2]
-    image_features = torch.randn(1, 2345, ROI_feature_dim)
-    coords_yx = torch.randn(1, 2345, 2)
-
-    # you can touch your model a bit to ignore the coords_yx if neccessary when you put them into the bigmodel framwork
-    model = build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
-                                     ROI_feature_dim=ROI_feature_dim, )  # fixme you can put other **kwargs inside
-
-    # you can generate the pseudo tensor and put into the model
-    y = model(image_features, coords_yx)
