@@ -26,7 +26,7 @@ pip install -e .
 
 3. Tile Cropping
 ```Shell
-python Tiles_dataset.py \
+python DataPipe/Tiles_dataset.py \
     --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/TCGA-LUAD-raw \
     --tiled_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets \
     --edge_size 224 \
@@ -35,7 +35,7 @@ python Tiles_dataset.py \
 
 4. Tile Embedding
 ```Shell
-python Embedded_dataset.py \
+python DataPipe/Embedded_dataset.py \
     --WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/tiles_datasets \
     --embedded_WSI_dataset_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/slide_embeddings/gigapath \
     --model_name gigapath \
@@ -44,7 +44,7 @@ python Embedded_dataset.py \
     --batch_size 256
 ```
 
-5. Build MTL dataset for WSI
+5. Build MTL dataset and task configs for WSI downstram MTL task
 ```Shell
 python DownStream/MTL/slide_dataset_tools.py \
     --root_path /data/hdd_1/BigModel/embedded_datasets/TCGA-LUAD-LUSC-gigapath \
@@ -56,7 +56,7 @@ python DownStream/MTL/slide_dataset_tools.py \
     --dataset_name luad-lusc
 ```
 
-6. Run MTL task with WSI MTL framwork
+6.a Run MTL task with WSI MTL framwork
 
 ```Shell
 # Train
@@ -93,6 +93,12 @@ python Utils/Decode_correlation.py \
     --WSI_tasks True \
     --task_setting_folder_name task-settings
 
+```
+
+6.b Run slide level embedding to make probing dataset
+
+```Shell
+python DataPipe/Slide_probing_dataset.py --model_name gigapath --root_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
 ```
 
 7. Run ROI level tasks
