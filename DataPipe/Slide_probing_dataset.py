@@ -1,5 +1,5 @@
 """
-Embedding slide_feature dataset     Script  ver： Oct 23rd 19:30
+Embedding slide_feature dataset     Script  ver： Oct 24th 16:15
 
 flexible to multiple-tasks and missing labels
 
@@ -61,7 +61,7 @@ def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=
             # task_description_list [task, batch_size] batch-stacked tensors, element of long-int or float
 
         # count failed samples in dataloader (should be 0, normally)
-        # default B - B = 0, we dont have the last batch issue 'drop last batch in training code'
+        # default B - B = 0, we don't have the last batch issue 'drop last batch in training code'
         failed_sample_count += dataloader.batch_size - len(slide_ids)
 
         with torch.cuda.amp.autocast():
@@ -70,9 +70,9 @@ def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=
                 for slide_idx in range(len(slide_ids)):
                     slide_feature = slide_features[slide_idx].cpu().numpy()
                     slide_id = slide_ids[slide_idx]
-                    # fixme save the output features in what format ?
-                    print('slide_id', slide_id)
-                    print('slide_feature', slide_feature)
+                    # Notice we will save the output features in whatever the model returns (without batch dim)
+                    # print('slide_id', slide_id)
+                    # print('slide_feature', slide_feature)
                     hdf5_save_a_slide_embedding_dataset(h5_file_path, slide_id, slide_feature,
                                                         section_type='slide_features')
 
