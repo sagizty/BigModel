@@ -13,6 +13,8 @@ from pathlib import Path
 
 # For convenience
 this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir))
+sys.path.append(str(this_file_dir.parent))
 sys.path.append(str(this_file_dir.parent.parent))  # Go up 3 levels
 
 import argparse
@@ -82,14 +84,15 @@ def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=
 
 
 def main(args):
-    slide_embedding_folder = args.slide_embedding_folder or os.path.join(args.root_path, args.task_setting_folder_name)
+    slide_embedding_folder = args.slide_embedding_folder or \
+                             os.path.join(args.tile_embedding_path, args.task_setting_folder_name)
     if not os.path.exists(slide_embedding_folder):
         os.mkdir(slide_embedding_folder)
 
     h5_file_path = os.path.join(slide_embedding_folder, 'slide_embedding.h5')
 
     # instantiate the dataset
-    dataset = SlideDataset(args.root_path, args.task_description_csv,
+    dataset = SlideDataset(args.tile_embedding_path, args.task_description_csv,
                            task_setting_folder_name=args.task_setting_folder_name,
                            split_name=None, slide_id_key=args.slide_id_key, split_target_key=None,
                            task_type='embedding', max_tiles=args.max_tiles)
@@ -130,12 +133,13 @@ def main(args):
             except:
                 print("GPU distributing ERRO occur use CPU instead")
                 gpu_use = 'cpu'
-    # device enviorment
+    # device environment
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # build model
-    model = build_WSI_prob_embedding_model(model_name=args.model_name,
-                                           local_weight_path=args.local_weight_path,
-                                           ROI_feature_dim=args.ROI_feature_dim)
+    model, default_ROI_feature_dim = build_WSI_prob_embedding_model(model_name=args.model_name,
+                                                                    local_weight_path=args.local_weight_path,
+                                                                    ROI_feature_dim=args.ROI_feature_dim)
+    assert args.ROI_feature_dim is None or default_ROI_feature_dim == args.ROI_feature_dim
 
     model = torch.compile(model)
     print('GPU:', gpu_use)
@@ -180,7 +184,7 @@ def get_args_parser():
     # Model settings
     parser.add_argument('--model_name', default='gigapath', type=str, help='slide_feature level model name')
     parser.add_argument('--ROI_feature_dim', default=None, type=int,
-                        help='feature embed_dim , default will be loading from model config')
+                        help='feature slide_embed_dim , default will be loading from model config')
 
     # embedding settings
     parser.add_argument('--batch_size', default=1, type=int, help='batch_size of WSI, default 1')
@@ -201,5 +205,5 @@ if __name__ == '__main__':
     main(args)
 
     '''
-    python Slide_probing_dataset.py --model_name gigapath --slide_embedding_folder /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Slide_embeddings/gigapath/ --tile_embedding_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
+    python Slide_probing_dataset.py --model_name gigapath --slide_embedding_folder /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Slide_embeddings/gigapath --tile_embedding_path /data/hdd_1/BigModel/TCGA-LUAD-LUSC/Tile_embeddings/gigapath --num_workers 8
     '''
