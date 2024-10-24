@@ -1,5 +1,5 @@
 """
-WSI embedding dataset tools     Script  ver： Oct 17th 22:00
+WSI embedding dataset tools     Script  ver： Oct 24th 16:00
 
 load a cropped dataset (ROI dataset):
     each WSI is a folder (slide_folder, name of slide_id),
@@ -20,8 +20,9 @@ import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience, import all path to sys
 this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir))
 sys.path.append(str(this_file_dir.parent))
 sys.path.append(str(this_file_dir.parent.parent))
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
@@ -56,10 +57,7 @@ from torch.utils.data import Dataset, DataLoader
 from h5tools import hdf5_save_a_patch, hdf5_save_a_patch_coord
 from Tiles_dataset import *
 
-try:
-    from ..ModelBase import Get_ROI_model
-except:
-    from PuzzleAI.ModelBase import Get_ROI_model
+from ModelBase import Get_ROI_model
 
 
 # tools for logging
