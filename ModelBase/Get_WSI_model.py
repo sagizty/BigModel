@@ -1,5 +1,5 @@
 """
-Build WSI level models      Script  ver： Oct 23th 19:00
+Build WSI level models      Script  ver： Oct 24th 16:00
 """
 import os
 import sys
@@ -13,6 +13,7 @@ from typing import Optional, List
 sys.path.append(str(Path(__file__).resolve().parent))
 
 from path_rwkv.v6 import PathRWKVv6
+
 from gigapath.slide_encoder import gigapath_slide_enc12l768d
 
 
@@ -23,7 +24,11 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
     os.environ["HF_TOKEN"] = "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"
 
     if model_name == 'gigapath':
-        slide_backbone = gigapath_slide_enc12l768d(in_chans=ROI_feature_dim or 1536, global_pool=False, **kwargs)
+        default_ROI_feature_dim = 1536  # the embedding input size
+        slide_embed_dim = 768  # the embedding output size
+
+        slide_backbone = gigapath_slide_enc12l768d(in_chans=ROI_feature_dim or default_ROI_feature_dim,
+                                                   global_pool=False, **kwargs)
         print("Slide encoder param #", sum(p.numel() for p in slide_backbone.parameters()))
 
         # download the weights
@@ -57,9 +62,12 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
             print("\033[93m Pretrained weights not found at {}. Randomly initialized the model! \033[00m".format(
                 local_weight_path))
 
-        return slide_backbone
+        return slide_backbone, default_ROI_feature_dim, slide_embed_dim
 
     elif model_name == "PathRWKV":
+        default_ROI_feature_dim = 768  # the embedding input size  fixme csc pls check this,
+        slide_embed_dim = 768  # the embedding output size  fixme csc pls check this,
+
         slide_backbone = PathRWKV(**kwargs)
 
         if local_weight_path:
@@ -83,7 +91,7 @@ def build_WSI_backbone_model(model_name='gigapath', local_weight_path=None,
             slide_backbone.init_params()
             print("Pretrained weights not found. Initializing model by default method.")
 
-        return slide_backbone
+        return slide_backbone, default_ROI_feature_dim, slide_embed_dim
 
     elif model_name[0:3] == 'UNI':
         # ABMIL
@@ -111,22 +119,28 @@ class MTL_Model_builder(nn.Module):
     def __init__(self, backbone: nn.Module,
                  MTL_module: Optional[nn.Module] = None,
                  MTL_heads: List[nn.Module] = [nn.Identity(), nn.Identity(), nn.Identity()],
-                 embed_dim: int = 768, latent_feature_dim: int = 128, Froze_backbone=False):
+                 ROI_feature_dim: int = 1536, default_ROI_feature_dim: int = 1536,
+                 slide_embed_dim: int = 768, latent_feature_dim: int = 128, Froze_backbone=False):
         """
         :param backbone: slide_feature-level modeling model
         :param MTL_module: MTL model projecting the features to multiple task heads
         :param MTL_heads: the list of multiple WSI-level task heads for each task
-        :param embed_dim: feature dim for WSI level modeling model
+        :param slide_embed_dim: feature dim for WSI level modeling model
         :param latent_feature_dim: feature dim for MTL modeling
         """
         super().__init__()
 
-        self.backbone = backbone  # the output feature is [B, embed_dim]
+        self.backbone = backbone  # the output feature is [B, slide_embed_dim]
 
-        if latent_feature_dim == embed_dim:
-            self.embedding_converter = nn.Identity()
+        if ROI_feature_dim == default_ROI_feature_dim:
+            self.ROI_embedding_converter = nn.Identity()
         else:
-            self.embedding_converter = nn.Linear(embed_dim, latent_feature_dim)
+            self.ROI_embedding_converter = nn.Linear(ROI_feature_dim, default_ROI_feature_dim)
+
+        if latent_feature_dim == slide_embed_dim:
+            self.slide_embedding_converter = nn.Identity()
+        else:
+            self.slide_embedding_converter = nn.Linear(slide_embed_dim, latent_feature_dim)
 
         self.MTL_token_num = len(MTL_heads)
         assert self.MTL_token_num > 0, "MTL_heads cannot be empty."
@@ -168,7 +182,7 @@ class MTL_Model_builder(nn.Module):
                  shape [B, output_dim] (output_dim may vary depending on the task).
         """
         slide_latent = self.backbone(image_features, img_coords)[0]  # fixme take from the list of embeddings
-        MTL_tokens = self.MTL_module(self.embedding_converter(slide_latent))
+        MTL_tokens = self.MTL_module(self.slide_embedding_converter(slide_latent))
 
         WSI_tasks_pred = []
         for idx, head in enumerate(self.MTL_heads):
@@ -202,7 +216,7 @@ class slide_embedding_model_builder(nn.Module):
         """
         super().__init__()
 
-        self.backbone = backbone  # the output feature is [B, embed_dim]
+        self.backbone = backbone  # the output feature is [B, slide_embed_dim]
 
     def forward(self, image_features, img_coords):
         """
@@ -219,20 +233,31 @@ class slide_embedding_model_builder(nn.Module):
 
 
 def build_WSI_task_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None,
-                         MTL_heads: List[nn.Module] = None, latent_feature_dim=128, Froze_backbone=False):
+                         MTL_heads: List[nn.Module] = None, latent_feature_dim=128, Froze_backbone=False, **kwargs):
     assert MTL_heads is not None
-    slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
+    slide_backbone, default_ROI_feature_dim, slide_embed_dim = \
+        build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim, **kwargs)
+    ROI_feature_dim = ROI_feature_dim or default_ROI_feature_dim
+
     MTL_Model = MTL_Model_builder(slide_backbone, MTL_module=None, MTL_heads=MTL_heads,
-                                  embed_dim=768, latent_feature_dim=latent_feature_dim,
+                                  ROI_feature_dim=ROI_feature_dim, default_ROI_feature_dim=default_ROI_feature_dim,
+                                  slide_embed_dim=slide_embed_dim, latent_feature_dim=latent_feature_dim,
                                   Froze_backbone=Froze_backbone)
 
     return MTL_Model
 
 
-def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None):
-    slide_backbone = build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim)
+def build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None, **kwargs):
+    slide_backbone, default_ROI_feature_dim, slide_embed_dim = \
+        build_WSI_backbone_model(model_name, local_weight_path, ROI_feature_dim, **kwargs)
+
     slide_embedding_model = slide_embedding_model_builder(slide_backbone)
-    return slide_embedding_model
+    return slide_embedding_model, default_ROI_feature_dim
 
 
+def build_WSI_MLLM_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None, **kwargs):
+    pass
 
+
+if __name__ == '__main__':
+    build_WSI_prob_embedding_model(model_name='gigapath', local_weight_path=None, ROI_feature_dim=None)
