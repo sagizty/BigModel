@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image
 from torchvision.transforms import ToPILImage
-from pytorch_grad_cam.utils import show_cam_on_image
+from Utils.pytorch_grad_cam.grad_cam import GradCAM
+from Utils.pytorch_grad_cam.utils.image import show_cam_on_image
 
 def softmax(x):
     """Compute the softmax in a numerically stable way."""
@@ -133,7 +134,6 @@ def choose_cam_by_model(model, model_idx, edge_size, use_cuda=True, model_type='
     :param use_cuda: use cuda to speed up imaging
     :param model_type: default 'CLS' for model, 'MIL_structures' for model backbone
     """
-    from pytorch_grad_cam import GradCAM
 
     # check class: target_category = None
     # If None, returns the map for the highest scoring category.
@@ -454,7 +454,7 @@ def visualize_check(inputs, labels, model, class_names, num_images=-1, pic_name=
 
 def unpatchify(pred, patch_size=16):
     """
-    Decoding embeded patch tokens
+    Decoding embeded slide_feature tokens
 
     input:
     x: (B, num_patches, patch_size**2 *3) AKA [B, num_patches, flatten_dim]
@@ -473,14 +473,14 @@ def unpatchify(pred, patch_size=16):
     pred = pred.reshape(shape=(pred.shape[0], h, w, patch_size, patch_size, 3))
     # ReArrange dimensions [B, h_p, w_p, patch_size, patch_size, C] -> [B, C, h_p, patch_size, w_p, patch_size]
     pred = torch.einsum('nhwpqc->nchpwq', pred)
-    # use reshape to compose patch [B, C, h_p, patch_size, w_p, patch_size] -> [B, C, H, W]
+    # use reshape to compose slide_feature [B, C, h_p, patch_size, w_p, patch_size] -> [B, C, H, W]
     imgs = pred.reshape(shape=(pred.shape[0], 3, h * patch_size, h * patch_size))
     return imgs
 
 
 def patchify(imgs, patch_size=16):
     """
-    Break image to patch tokens
+    Break image to slide_feature tokens
 
     input:
     imgs: (B, 3, H, W)
@@ -488,12 +488,12 @@ def patchify(imgs, patch_size=16):
     output:
     x: (B, num_patches, patch_size**2 *3) AKA [B, num_patches, flatten_dim]
     """
-    # assert H == W and image shape is dividedable by patch
+    # assert H == W and image shape is dividedable by slide_feature
     assert imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % patch_size == 0
-    # patch num in rol or column
+    # slide_feature num in rol or column
     h = w = imgs.shape[2] // patch_size
 
-    # use reshape to split patch [B, C, H, W] -> [B, C, h_p, patch_size, w_p, patch_size]
+    # use reshape to split slide_feature [B, C, H, W] -> [B, C, h_p, patch_size, w_p, patch_size]
     imgs = imgs.reshape(shape=(imgs.shape[0], 3, h, patch_size, w, patch_size))
 
     # ReArrange dimensions [B, C, h_p, patch_size, w_p, patch_size] -> [B, h_p, w_p, patch_size, patch_size, C]
