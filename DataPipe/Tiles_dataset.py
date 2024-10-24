@@ -1,5 +1,5 @@
 """
-WSI tile cropping dataset tools   Script  ver： Sep 9th 12:30
+WSI tile cropping dataset tools   Script  ver： Oct 24th 16:00
 
 # type A is for (ROI+WSI approaches)
 # type B is for (Cell+ROI+WSI approaches)
@@ -23,14 +23,19 @@ now its lowest magnification and highest level (level-8), now the resolution for
 2. you can only one cell on your screen with 100x magnification,
 now its highest magnification and lowest level (level-0), now the resolution for whole slide_feature is super high
 
+todo
+fixme timothy and Dhanav mention some tiff loading issue, tianyi will take a look
 """
 
 import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience, import all path to sys
 this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir))
+sys.path.append(str(this_file_dir.parent))
+sys.path.append(str(this_file_dir.parent.parent))
 sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 import time
@@ -60,13 +65,8 @@ from monai.data.wsi_reader import WSIReader
 from openslide import OpenSlide
 from tqdm import tqdm
 
-try:
-    from wsi_tools import *
-    from segmentation_and_filtering_tools import *
-except:
-    from PuzzleAI.DataPipe.wsi_tools import *
-    from PuzzleAI.DataPipe.segmentation_and_filtering_tools import *
-
+from DataPipe.wsi_tools import *
+from DataPipe.segmentation_and_filtering_tools import *
 
 # todo it should be designed for better pretraining management
 def prepare_slides_sample_list(slide_root, slide_suffixes=['.svs', '.ndpi', '.tiff'], metadata_file_paths=None,
