@@ -7,7 +7,7 @@ import os
 # Add the parent directory to the sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 try:
-    from ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder, run_inference_with_tile_encoder
+    from ModelBase.WSI_models.gigapath import load_tile_slide_encoder, run_inference_with_tile_encoder
 except:
     from PuzzleAI.ModelBase.gigapath.Inference_pipeline import load_tile_slide_encoder, run_inference_with_tile_encoder
 
@@ -45,8 +45,8 @@ def check_tile_embedding_model(tile_encoder):
     print('the embedding of the pretrained model is correct as expected')
 
 
-# Load the tile and slide encoder models (fixme change to manual later)
-# NOTE: The CLS token is not trained during the slide-level pretraining.
+# Load the tile and slide_feature encoder models (fixme change to manual later)
+# NOTE: The CLS token is not trained during the slide_feature-level pretraining.
 # Here, we enable the use of global pooling for the output embeddings.
 tile_encoder, slide_encoder_model = load_tile_slide_encoder(global_pool=True)
 

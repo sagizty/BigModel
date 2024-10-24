@@ -37,7 +37,7 @@ argparser = argparse.ArgumentParser(description='Linear Probe')
 # Dataset
 argparser.add_argument('--dataset_csv',            type=str, default='', help='The csv file indicating input samples and labels')
 argparser.add_argument('--input_path',          type=str, default='', help='The input embedding files')
-argparser.add_argument('--embed_dim',           type=int, default=1536, help='The dimension of the embeddings')
+argparser.add_argument('--slide_embed_dim',           type=int, default=1536, help='The dimension of the embeddings')
 # Training
 argparser.add_argument('--batch_size',          type=int, default=512, help='Batch size')
 argparser.add_argument('--train_iters',         type=int, default=12500, help='Number of epochs')

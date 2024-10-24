@@ -1,6 +1,6 @@
 import os
 try:
-    import ModelBase.gigapath.slide_encoder as slide_encoder
+    import ModelBase.WSI_models.gigapath.slide_encoder as slide_encoder
 except:
     import PuzzleAI.ModelBase.gigapath.slide_encoder as slide_encoder
 
