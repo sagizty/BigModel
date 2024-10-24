@@ -1,11 +1,6 @@
 """
-Embedding slide_feature dataset     Script  ver： Oct 24th 16:15
+Embedding slide_feature dataset     Script  ver： Oct 24th 16:30
 
-flexible to multiple-tasks and missing labels
-
-we have enable multiple samples training by controlling the gradient in different task labels
-we break the process of controlling when calculating the gradient, and
-we use loss-aggregate technique to combine each sample for back-propagation
 """
 import os
 import sys
@@ -81,6 +76,8 @@ def building_prob_dataset(model, dataloader, dataset_size, h5_file_path, device=
 
     time_elapsed = time.time() - epoch_time
     print('Embedding complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('total samples from embedded tile dataset:', dataset_size)
+    print('total valid_samples in the embedded slide dataset:', valid_samples)
 
 
 def main(args):
