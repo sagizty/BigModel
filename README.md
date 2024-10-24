@@ -138,3 +138,12 @@ python DataPipe/Slide_probing_dataset.py --model_name gigapath --slide_embedding
 # todo
 ```
 
+
+## Cite information
+This repo has referenced to multiple code repo in building process, following their originla lisences, pls cite the original repo in your paper once you used their functions:
+* https://github.com/prov-gigapath
+* https://github.com/sagizty/PuzzleTuning
+* https://github.com/sagizty/CellMix
+* https://github.com/facebookresearch/mae
+
+
