@@ -3,20 +3,19 @@ import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience, import all path to sys
 this_file_dir = Path(__file__).resolve().parent
-sys.path.append(str(this_file_dir.parent.parent))  # Go up two levels
+sys.path.append(str(this_file_dir))
+sys.path.append(str(this_file_dir.parent))
+sys.path.append(str(this_file_dir.parent.parent))
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 
 import time
 import wandb
 import torch
-import numpy as np
 import torch.utils.tensorboard as tensorboard
 
-try:
-    from ModelBase.gigapath.classification_head import get_model
-except:
-    from PuzzleAI.ModelBase.gigapath.classification_head import get_model
+from ModelBase.WSI_models.gigapath.classification_head import get_model
 from metrics import calculate_metrics_with_task_cfg
 from utils import (get_optimizer, get_loss_function, \
                   Monitor_Score, get_records_array,

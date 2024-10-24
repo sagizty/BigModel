@@ -1,5 +1,5 @@
 """
-MTL Train     Script  ver： Oct 21st 16:30
+MTL Train     Script  ver： Oct 25th 00:30
 
 flexible to multiple-tasks and missing labels
 
@@ -9,6 +9,14 @@ we use loss-aggregate technique to combine each sample for back-propagation
 """
 import os
 import sys
+from pathlib import Path
+
+# For convenience, import all path to sys
+this_file_dir = Path(__file__).resolve().parent
+sys.path.append(str(this_file_dir))
+sys.path.append(str(this_file_dir.parent))
+sys.path.append(str(this_file_dir.parent.parent))
+sys.path.append(str(this_file_dir.parent.parent.parent))  # Go up 3 levels
 import json
 import copy
 import time
@@ -17,13 +25,8 @@ import torch
 import argparse
 import numpy as np
 import torch.nn as nn
-from pathlib import Path
 import torch.optim as optim
 from tensorboardX import SummaryWriter
-
-# Go up 3 levels
-ROOT_PATH = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(ROOT_PATH))
 
 from DownStream.MTL.Dataset_Framework import SlideDataset, MTL_WSI_collate_fn
 from DownStream.MTL.Task_settings import task_filter_auto
@@ -520,12 +523,12 @@ def get_args_parser():
                         help='max tile for loading')
 
     # module settings
-    parser.add_argument('--latent_feature_dim', default=128, type=int,
+    parser.add_argument('--MTL_feature_dim', default=128, type=int,
                         help='MTL module dim')
-    parser.add_argument('--embed_dim', default=768, type=int,
-                        help='feature embed_dim , default 768')
+    parser.add_argument('--slide_embed_dim', default=768, type=int,
+                        help='feature slide_embed_dim , default 768')
     parser.add_argument('--ROI_feature_dim', default=1536, type=int,
-                        help='feature embed_dim , default 768')
+                        help='feature slide_embed_dim , default 768')
 
     # Model settings
     parser.add_argument('--model_name', default='gigapath', type=str,
