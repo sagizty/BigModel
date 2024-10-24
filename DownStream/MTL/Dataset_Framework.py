@@ -1,12 +1,12 @@
 '''
-MTL dataset framework       Script  ver： Oct 23th 19:00
+MTL dataset framework       Script  ver： Oct 24th 16:00
 '''
 
 import os
 import sys
 from pathlib import Path
 
-# For convinience
+# For convenience
 this_file_dir = Path(__file__).resolve().parent
 sys.path.append(str(this_file_dir.parent.parent))  # Go up 2 levels
 try:
@@ -219,13 +219,13 @@ class SlideDataset(Dataset):
             self.setup_task_data(task_description_data_df, self.task_name_list, task_type=self.task_type)
 
         # Load from settings or set default value
-        self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 10000)
+        self.max_tiles = max_tiles or self.task_cfg.get('max_tiles', 10000) if self.task_cfg is not None else 10000
         self.shuffle_tiles = self.task_cfg.get('shuffle_tiles', False) if self.task_cfg is not None else False
         print('Dataset has been initialized with ' + str(len(self.slide_ids)) +
               ' slides for split:', str(split_name))
 
-        # fixme notice this is very slow when the hard disk is in use
         '''
+        # fixme notice this is very slow when the hard disk is in use
         # check tile distribution 
         self.check_tile_num_distribution(draw_path=os.path.join(root_path, task_setting_folder_name,
                                                                 str(split_name) + '.jpeg'))
